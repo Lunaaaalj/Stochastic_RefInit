@@ -4,4 +4,4 @@
   <img src="https://example.com/logo.png" alt="Project Logo" width="200"/>
 </div>
 
-Este `README.md` se define después de la finalización de la primera etapa del proyecto.
+Este `README.md` se define después de la finalización de la primera etapa del proyecto. Lee el `CONTRIBUTING.md` para obtener información sobre cómo contribuir al proyecto.
