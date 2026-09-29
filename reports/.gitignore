@@ -1,0 +1,95 @@
+# Archivos auxiliares de LaTeX para reports/.
+# Los .tex, .bib, figuras y el main.pdf de cada etapa SÍ se versionan
+# (ver CONTRIBUTING.md#workflow-para-los-reportes). Para limpiar: `latexmk -c`.
+
+# Núcleo de LaTeX
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+
+# Salidas intermedias (el PDF final sí se sube)
+*.dvi
+*.xdv
+*-converted-to.*
+
+# biblatex / biber / bibtex
+*.bbl
+*.bbl-SAVE-ERROR
+*.bcf
+*.bcf-SAVE-ERROR
+*.blg
+*-blx.aux
+*-blx.bib
+*.run.xml
+
+# latexmk
+*.fdb_latexmk
+*.synctex
+*.synctex(busy)
+*.synctex.gz
+*.synctex.gz(busy)
+*.pdfsync
+
+# Paquetes comunes
+*.nav
+*.snm
+*.vrb
+*.idx
+*.ilg
+*.ind
+*.glo
+*.gls
+*.glg
+*.acn
+*.acr
+*.alg
+*.ist
+*.loa
+*.lol
+*.maf
+*.mtc
+*.mtc[0-9]*
+*.xdy
+*.auxlock
+*.figlist
+*.makefile
+figure*.pdf-save
+*.pyg
+_minted*/
+*.upa
+*.upb
+*.nlo
+*.nls
+*.thm
+*.tdo
+*.ptc
+*.bak
+*.sav
+*.soc
+*.loe
+*.listing
+
+# PDFs generados por TikZ externalize
+*-figure[0-9]*.pdf
+*.dpth
+*.md5
+
+# Editores de LaTeX
+*.sublime-workspace
+*.tps
+*.swp
+*~
+*.backup
+.texpadtmp/
+TSWLatexianTemp*
+
+*.spl
