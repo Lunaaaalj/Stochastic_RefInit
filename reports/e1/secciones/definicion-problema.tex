@@ -1,0 +1,48 @@
+\section{Definición del problema}
+\label{sec:definicion-problema}
+
+\subsection{Descripción del problema}
+\label{subsec:descripcion-problema}
+
+\textbf{Qué decisiones deben tomarse.} Son dos decisiones relacionadas pero distintas.
+
+\begin{enumerate}
+\item \textbf{Distribución de especies.} En qué posición de la retícula al tresbolillo se coloca cada planta, dentro del margen que el plan permite variar por especie (de $\pm$5\% a $\pm$10\%), buscando reducir la competencia entre vecinos.
+\item \textbf{Cantidad a adquirir.} Cuántas plantas de cada una de las 10 especies comprar por polígono, dado que ya existen algunas plantas cuyo número exacto no se conoce con certeza, y dada la mortalidad esperada de las plantas nuevas.
+\end{enumerate}
+
+\textbf{Qué información está disponible.} El plan de siembra (plantas por hectárea y por especie); conteos de plantas existentes por especie en cada uno de los 30 polígonos; la superficie de cada polígono; datos de supervivencia de 2021 a 2023 por especie, medidos en una muestra del 5\% de la superficie; y la secuencia de 22 posiciones que actualmente se usa para ordenar la plantación en cada 100 m lineales.
+
+\textbf{Qué resultados se esperan obtener.} Una cantidad de plantas a comprar por especie (y, si se desglosa, por polígono) que cumpla la meta del plan considerando la incertidumbre sobre las existentes y la mortalidad esperada; y un algoritmo de fácil implementación en campo que indique en qué orden o posición plantar cada especie para reducir la competencia frente al arreglo actual.
+
+\subsection{Variables y parámetros}
+\label{subsec:variables-parametros}
+
+\Cref{tab:variables-parametros} resume las variables de decisión, los parámetros conocidos, las variables aleatorias y la información aún no disponible que intervienen en el problema.
+
+\begin{table*}[t]
+\centering
+\caption{Variables y parámetros identificados para el problema de reforestación.}
+\label{tab:variables-parametros}
+\small
+\begin{tabular}{@{}p{0.27\textwidth}p{0.18\textwidth}p{0.47\textwidth}@{}}
+\toprule
+Elemento & Tipo & Descripción \\
+\midrule
+Especie a plantar en cada posición & Variable de decisión & Qué una de las 10 especies ocupa cada sitio de la retícula \\
+Cantidad a comprar por especie & Variable de decisión & Número de plantas adicionales a adquirir \\
+Plantas requeridas por especie (plan) & Parámetro conocido & 658 plantas/ha repartidas en 10 especies, según el documento del reto \\
+Presupuesto & Parámetro conocido & \$13{,}200 (unidad y alcance por confirmar con el socio) \\
+Distancia entre plantas & Parámetro conocido & Definida por el arreglo al tresbolillo y la densidad del plan \\
+Plantas existentes por especie y polígono & Variable aleatoria & Se conoce un conteo, pero con incertidumbre sobre cuántas hay realmente en el área no muestreada \\
+Supervivencia por especie & Variable aleatoria & Estimada de los datos históricos de 2021 a 2023, sujeta al tamaño de la muestra de monitoreo \\
+Compatibilidad o competencia entre especies & Información a estimar & No viene en los datos del reto; debe construirse con literatura o criterio experto, y es el parámetro más incierto del modelo \\
+Requerimientos de agua por especie & Información a obtener & Relevante para el matorral desértico, no incluida en los datos actuales \\
+Disponibilidad de plantas en vivero & Información a obtener & Relevante para saber si la compra calculada es factible de adquirir \\
+Costo de adquisición por especie & Información a obtener & Necesario para optimizar el presupuesto, no incluido en los datos actuales \\
+Características del terreno (pendiente, suelo, exposición) & Información a obtener & El reto distingue tipos de vegetación y relieve por polígono, pero no se dispone del detalle por polígono \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\textbf{Justificación de relevancia.} Las variables de decisión (especie por posición y cantidad por comprar) son el núcleo de las dos preguntas del reto. Las variables aleatorias (existentes y supervivencia) son las fuentes de incertidumbre que justifican usar simulación y no una fórmula determinista. La compatibilidad entre especies es indispensable porque es justamente lo que la distribución espacial busca reducir, aunque no esté en los datos. El agua, la disponibilidad, los costos y el terreno no son indispensables para una primera versión del modelo, pero condicionan qué tan realista es la solución final y son los primeros candidatos para refinar el modelo más adelante.
