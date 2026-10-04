@@ -1,0 +1,169 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\usepackage{caption}
+\usepackage{csquotes}
+\usepackage[style=apa,backend=biber]{biblatex}
+\DeclareLanguageMapping{spanish}{spanish-apa}
+\addbibresource{referencias.bib}
+
+% Paragraphs
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1\baselineskip}
+
+\title{Untitled}
+\author{Author Name}
+\date{\today}
+
+\begin{document}
+
+
+\section{Trabajo relacionado}
+\label{sec:trabajo-relacionado}
+
+Esta sección revisa trabajos que enfrentan problemas con una estructura similar a la del reto: asignar elementos a posiciones o momentos de modo que se reduzca la competencia, la interferencia o la incompatibilidad entre ellos. Primero se analizan cinco referencias académicas sobre reducción de competencia en reforestación, agricultura, telecomunicaciones y manejo forestal (Sección~\ref{sec:reduccion-competencia}). Después se revisan los problemas de coloración de grafos y su posible uso para representar la distribución de especies (Sección~\ref{sec:coloracion}).
+
+%==================================================
+\subsection{Reducción de competencia}
+\label{sec:reduccion-competencia}
+
+Para cada referencia se identifica el problema estudiado, las variables o elementos considerados, el criterio con el que se mide la competencia o incompatibilidad, el método de solución y los principales resultados.
+
+\subsubsection{Competencia entre especies en un área de reforestación}
+
+\textcite{elizalde2025} estudian un problema muy cercano al del reto.
+
+\begin{description}
+  \item[Problema.] Asignar especies de árboles a las posiciones de siembra de un polígono para minimizar la competencia interespecífica y cumplir la demanda de cada especie, siguiendo los lineamientos técnicos de CONAFOR/USPAE (625 plantas de diez especies por hectárea).
+  \item[Variables.] El terreno se representa como un grafo $G=(V,A)$ cuyos vértices son las posiciones de siembra y cuyos arcos indican vecindad. La decisión es una variable binaria $x_{oi}$ (la especie $o$ se planta en la posición $i$) y una variable $R_{ij}$ con el nivel de competencia de cada arco. Los parámetros son la adyacencia $w(i,j)$, el factor de competencia $cop$ entre pares de especies y la demanda $d_o$ de cada especie.
+  \item[Criterio de competencia.] Coeficientes de competencia por par de especies que solo se contabilizan cuando ambas ocupan posiciones vecinas; el objetivo es minimizar la suma de $R_{ij}$ sobre todo el terreno.
+  \item[Método.] Un modelo de programación matemática exacto, resuelto con el solver CBC mediante PuLP, y un algoritmo genético con cromosoma entero (cada gen es una posición y su valor es la especie), selección por ruleta, cruce de tres puntos, mutación y elitismo.
+  \item[Resultados.] Con instancias de 25 a 625 nodos y un límite de tres horas, el modelo exacto obtuvo soluciones factibles sin garantía de calidad (brecha infinita) entre 169 y 324 nodos, y no reportó resultados con 361, 400 y 625 nodos. El algoritmo genético encontró soluciones factibles en todos los tamaños, con un tiempo de 349.44 segundos en el mayor, y fue mejor o muy cercano al modelo exacto en casi todas las instancias comparables.
+\end{description}
+
+\subsubsection{Interferencia en la asignación de frecuencias}
+
+\textcite{eisenblatter2002} presentan un estudio sobre la asignación de frecuencias en redes celulares, donde la interferencia desempeña el mismo papel que la competencia entre plantas.
+
+\begin{description}
+  \item[Problema.] Asignar canales de frecuencia a los transmisores de una red de telefonía celular evitando la interferencia o, en su defecto, minimizándola.
+  \item[Variables.] Un grafo de interferencia con un vértice por transmisor y una arista cuando existe interferencia entre dos transmisores. Los canales actúan como colores. El modelo de minimización usa variables binarias $x_{vf}$ (el canal $f$ se asigna al transmisor $v$) y $z_{vw}$ (se viola una restricción en la arista $vw$), además de parámetros como los canales bloqueados y las distancias mínimas de separación.
+  \item[Criterio de interferencia.] Un valor de interferencia por par de transmisores, normalizado entre 0 y 1, que distingue la interferencia cuando comparten canal y cuando usan canales adyacentes; una función de penalización evalúa cada par de frecuencias asignadas.
+  \item[Método.] Los autores recorren la evolución de los modelos, desde la coloración de vértices hasta generalizaciones como la T-coloración y la coloración por listas, y formulan el problema de mínima interferencia como un programa lineal entero. Revisan heurísticas de coloración secuencial, DSATUR, \textit{threshold accepting} y algoritmos genéticos, así como cotas inferiores.
+  \item[Resultados.] Todas las variantes son NP-difíciles y el problema de mínima interferencia lo es fuertemente. Las instancias reales llegan a miles de vértices. En un ejemplo, DSATUR seguido de una búsqueda local sencilla mejoró en 96\,\% el plan de un operador, mientras que las relajaciones lineales dan cotas inferiores débiles, con brechas grandes.
+\end{description}
+
+\subsubsection{Asignación espacio-temporal de cultivos}
+
+\textcite{akplogan2011} abordan el plan de cultivos de una granja.
+
+\begin{description}
+  \item[Problema.] Asignar cultivos a unidades de terreno a lo largo de un horizonte de tiempo, considerando a la vez los aspectos espaciales y temporales y las decisiones del agricultor.
+  \item[Variables.] El cultivo $x^{t}_{b,i}$ que ocupa la unidad $i$ del bloque $b$ en el año $t$. Los parámetros incluyen el tiempo mínimo de retorno de cada cultivo, el efecto del cultivo previo, la compatibilidad entre cultivo y tipo de suelo, los límites de agua de riego y los rangos de superficie por cultivo.
+  \item[Criterio de incompatibilidad.] Restricciones duras (por ejemplo, cultivos no aptos para un suelo o repetidos antes del tiempo mínimo de retorno) y penalizaciones por el efecto del cultivo precedente. Además, penalizan las unidades aisladas para agrupar un mismo cultivo y las desviaciones de las superficies deseadas.
+  \item[Método.] Un problema de satisfacción de restricciones ponderadas (WCSP) resuelto con búsqueda por ramificación y acotamiento en el solver Toulbar2.
+  \item[Resultados.] En una granja virtual de 180~ha con hasta 120 unidades y nueve años de horizonte, los bloques independientes se resolvieron hasta el óptimo casi siempre en menos de un minuto (228 segundos en el caso más lento). Con bloques interdependientes, la instancia de 60 unidades tardó 2412.97 segundos y la de 120 no se cerró en 48 horas.
+\end{description}
+
+\subsubsection{Planeación robusta de cultivos bajo incertidumbre}
+
+\textcite{liu2026} combinan la interacción entre cultivos con incertidumbre.
+
+\begin{description}
+  \item[Problema.] Planear la asignación de cultivos en varios años sobre un terreno heterogéneo, con incertidumbre en rendimientos, precios y costos, y aprovechando relaciones de complementariedad y competencia entre cultivos.
+  \item[Variables.] Una variable binaria por unidad de terreno, periodo y cultivo; una matriz de adyacencia $W$ construida a partir de unidades vecinas en una cuadrícula (horizontal o verticalmente); una matriz de interacción $M$ entre cultivos; y parámetros de rendimiento, precio, costo, área y consumo de agua.
+  \item[Criterio de competencia.] Los coeficientes de $M$ son positivos para pares complementarios (por ejemplo, leguminosa y cereal) y negativos para pares competitivos; el potencial de interacción de cada unidad se obtiene sumando, sobre sus vecinas, los términos $W_{ij}M_{c,c'}$ de los cultivos plantados.
+  \item[Método.] Un marco de tres capas (heterogeneidad espacial, dinámica temporal y robustez) con optimización distribucionalmente robusta max-min, un conjunto de ambigüedad basado en la distancia de Wasserstein y escenarios generados mediante simulación Monte Carlo, implementado en PuLP.
+  \item[Resultados.] En un caso del norte de China (54 unidades, 41 cultivos y siete años), el método obtuvo una ganancia en el peor caso de $2310.5$ ($10^{4}$ CNY), frente a $1820.1$ del modelo determinístico y $2180.3$ del robusto base, y elevó la proporción de leguminosas a 22\,\% (12\,\% y 15\,\% en los otros dos). Superó al robusto base en todo el rango de incertidumbre evaluado.
+\end{description}
+
+\subsubsection{Definición de competidores en bosques mixtos}
+
+\textcite{kobal2025} estudian cómo medir la competencia entre árboles en campo.
+
+\begin{description}
+  \item[Problema.] Determinar qué árboles vecinos deben considerarse competidores para explicar el crecimiento de abetos plateados dominantes en bosques mixtos de edades diversas de las montañas dináricas (Eslovenia).
+  \item[Variables.] El incremento de volumen en cinco años de 60 árboles, su volumen, y el diámetro a la altura del pecho (DBH), la altura y la distancia de 4\,454 vecinos medidos en un radio de 25.23~m. Se definen umbrales dinámicos: un vecino es competidor si su DBH supera $\alpha\cdot\mathrm{DBH}_i$ y si está a menos de $\beta\cdot\mathrm{DBH}_i$.
+  \item[Criterio de competencia.] Nueve índices de competencia, independientes y dependientes de la distancia, evaluados por el coeficiente de determinación ajustado de un modelo lineal del incremento de volumen en función del volumen y del índice.
+  \item[Método.] Regresión lineal con optimización de $\alpha$ y $\beta$ mediante una búsqueda iterativa que maximiza el $R^{2}$ ajustado.
+  \item[Resultados.] El modelo solo con volumen explicó 32.5\,\% de la variabilidad y el que incluye competencia, 64\,\%. El mejor índice fue el de Hegyi por altura y distancia ($R^{2}$ ajustado de 0.647), los índices que consideran la distancia superaron a los que no, y optimizar la distancia influyó más que optimizar el umbral de DBH. Los autores señalan que no pudieron evaluar la competencia interespecífica por la baja proporción de otras especies.
+\end{description}
+
+\subsubsection{Síntesis}
+
+La Tabla~\ref{tab:comparacion-competencia} resume las cinco referencias.
+
+\begin{table}[ht]
+  \centering
+  \caption{Comparación de las referencias sobre reducción de competencia.}
+  \label{tab:comparacion-competencia}
+  \small
+  \begin{tabularx}{\textwidth}{@{}>{\RaggedRight\arraybackslash}p{2.7cm}>{\RaggedRight\arraybackslash}p{3.1cm}*{2}{>{\RaggedRight\arraybackslash}X}@{}}
+    \toprule
+    Referencia & Dominio & Criterio de competencia o incompatibilidad & Método \\
+    \midrule
+    \parencite{elizalde2025} & Reforestación & Coeficiente por par de especies en posiciones vecinas & Programación entera y algoritmo genético \\
+    \parencite{eisenblatter2002} & Telecomunicaciones & Valor de interferencia por par de transmisores (0 a 1) & Programación entera, heurísticas y cotas \\
+    \parencite{akplogan2011} & Agricultura & Efecto del cultivo previo, compatibilidad con el suelo y agrupación espacial & WCSP con ramificación y acotamiento \\
+    \parencite{liu2026} & Agricultura bajo incertidumbre & Matriz de interacción entre cultivos vecinos & Optimización robusta con escenarios Monte Carlo \\
+    \parencite{kobal2025} & Manejo forestal & Índices de competencia según tamaño y distancia de vecinos & Regresión con optimización de umbrales \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Las referencias muestran tres formas de medir la competencia: coeficientes asociados a pares de elementos vecinos en un grafo \parencite{elizalde2025,eisenblatter2002,liu2026}, penalizaciones por el efecto del elemento previo o cercano \parencite{akplogan2011} e índices que combinan tamaño y distancia \parencite{kobal2025}. En cuanto a los métodos, los modelos exactos pierden escalabilidad al crecer el problema \parencite{elizalde2025,akplogan2011}, lo que justifica el uso de heurísticas y metaheurísticas \parencite{elizalde2025,eisenblatter2002}. Por otro lado, solo \textcite{liu2026} incorpora incertidumbre mediante escenarios Monte Carlo, aunque la aplica a rendimientos, precios y costos. Ninguna de las cinco estima la cantidad de plantas que se deben adquirir cuando se desconocen las plantas preexistentes, que es el segundo componente del reto y donde la simulación Monte Carlo resulta necesaria.
+
+%==================================================
+\subsection{Problemas de coloración en grafos}
+\label{sec:coloracion}
+
+\subsubsection{Coloración de vértices}
+
+Sea $G=(V,E)$ un grafo no dirigido. Una coloración propia de vértices con $k$ colores es una función $c:V\to\{1,\dots,k\}$ tal que $c(u)\neq c(v)$ para toda arista $uv\in E$. El menor $k$ para el que existe una coloración propia es el número cromático $\chi(G)$. En el problema de asignación de frecuencias, cada vértice representa un transmisor, dos vértices se unen si sus señales interfieren cuando usan la misma frecuencia y los colores corresponden a frecuencias; el número mínimo de frecuencias necesarias es entonces el número cromático del grafo de conflicto \parencite{eisenblatter2002}. Los mismos autores recuerdan que la coloración de vértices es un problema NP-difícil.
+
+Como la coloración propia no basta para modelar requisitos prácticos, existen generalizaciones: la T-coloración (distancias prohibidas entre colores de vértices vecinos), la coloración por listas (colores bloqueados por vértice), la coloración por conjuntos y los modelos que, en lugar de prohibir los conflictos, minimizan una penalización total de interferencia \parencite{eisenblatter2002}. Según \textcite{dewerra2015}, los modelos básicos de coloración de vértices y de aristas se han extendido para resolver problemas de programación (\textit{scheduling}) cada vez más complejos.
+
+\subsubsection{Coloración de aristas}
+
+Una coloración propia de aristas con $k$ colores es una función $f:E\to\{1,\dots,k\}$ tal que dos aristas que comparten un vértice reciben colores distintos. El menor $k$ posible es el índice cromático $\chi'(G)$. Según \textcite{dewerra2015}, las coloraciones de aristas se aplican a problemas de talleres abiertos (\textit{open shop}), horarios escolares y calendarios deportivos.
+
+Una variante es la coloración fuerte de aristas adyacentes \parencite{zhang2002}: es una coloración propia de aristas en la que, además, para cada arista $uv$ los conjuntos de colores incidentes en $u$ y en $v$ son distintos, es decir $C(u)\neq C(v)$ con $C(u)=\{f(uv)\mid uv\in E\}$. El menor número de colores se denota $\chi'_{as}(G)$. Los autores muestran que $\chi'_{as}(G)\geq\Delta(G)$, donde $\Delta(G)$ es el grado máximo; que para un árbol vale $\Delta$ si no hay dos vértices de grado máximo adyacentes y $\Delta+1$ si los hay; y proponen la conjetura de que $\chi'_{as}(G)\leq\Delta(G)+2$ para todo grafo conexo con al menos seis vértices. También señalan que algunos problemas de redes se pueden convertir a esta clase de coloraciones.
+
+\subsubsection{Representación del problema de reforestación mediante un grafo}
+
+La distribución de especies en un polígono puede representarse con un grafo donde cada elemento del problema tiene un equivalente (Tabla~\ref{tab:grafo-reforestacion}). Esta representación coincide con la de \textcite{elizalde2025}, que modelan el terreno como un grafo de posiciones de siembra y vecindades, y con la matriz de adyacencia de \textcite{liu2026}. La definición de vecindad puede variar (por ejemplo, solo vecinos horizontales y verticales o también diagonales) y determina la densidad del grafo.
+
+\begin{table}[ht]
+  \centering
+  \caption{Representación propuesta del problema de reforestación como un grafo.}
+  \label{tab:grafo-reforestacion}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{3.2cm}X@{}}
+    \toprule
+    Elemento del grafo & Equivalente en el problema de reforestación \\
+    \midrule
+    Vértices & Posiciones de siembra del polígono \\
+    Aristas & Pares de posiciones vecinas entre las que puede haber competencia \\
+    Colores & Especies a plantar \\
+    Peso de arista & Nivel de competencia o incompatibilidad entre las especies asignadas a sus extremos \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Coloración de vértices como referencia.} Una coloración propia exigiría que posiciones vecinas tengan especies distintas, pero no considera por sí sola la demanda por especie ni que la competencia entre pares de especies sea parcial. Por ello, el problema se parece más a las generalizaciones que minimizan una penalización total que a la coloración propia. Se observa además que el modelo de mínima interferencia de \textcite{eisenblatter2002} y el modelo de \textcite{elizalde2025} tienen la misma estructura: variables binarias de asignación (canal o especie por vértice), una restricción que asigna exactamente un valor a cada vértice y variables auxiliares que activan una penalización en cada arista cuando sus extremos toman valores incompatibles, con el objetivo de minimizar la suma. Esto convierte a la coloración de vértices con penalización en la referencia más cercana para desarrollar la estrategia de distribución de especies, y a las heurísticas de coloración (como DSATUR) en candidatas a construir soluciones iniciales.
+
+\paragraph{Coloración de aristas.} Las aristas del grafo (pares de posiciones vecinas) no tienen un equivalente natural de especie, por lo que esta coloración no sirve directamente para decidir qué especie va en cada posición. Una posibilidad, que aquí se plantea únicamente como hipótesis de trabajo, es emplearla para el orden de plantación, interpretando los colores como etapas o turnos en los que se atienden las interacciones entre posiciones vecinas, de forma análoga a los usos en programación de horarios señalados por \textcite{dewerra2015}.
+
+\subsubsection{Conclusión de la sección}
+
+Los problemas de coloración de vértices, y en particular sus generalizaciones con penalización por conflicto, ofrecen un marco adecuado y bien estudiado para la distribución de especies, y la literatura revisada indica que, al crecer el tamaño, conviene recurrir a heurísticas o metaheurísticas. La coloración de aristas aporta, en todo caso, una idea complementaria para el orden de plantación. La estimación de la cantidad de plantas a adquirir queda fuera de estos modelos y se aborda con las herramientas de probabilidad y simulación de la Sección~3.
+
+\printbibliography
+
+\end{document}
