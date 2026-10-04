@@ -1,0 +1,47 @@
+\section{Conceptos en la modelación con incertidumbre}
+
+Consideramos los siguientes conceptos que serán necesarios para desarrollar un modelo que actúe en un proceso estocástico.
+
+
+\subsection{Probabilidad basica}
+
+
+\begin{definition}
+    Una variable aleatoria $X$ es una función de un espacio muestral $\Omega=\{s_1,s_2,s_3,\dots\}$ hacia los números reales. Con una funcion de probabilidad $\mathbb{P}$ en $\Omega$, sea $\mathcal{X}=\{x_1,\dots,x_m\}$ el rango de $X$. Definimos la funcion de probabilidad $\mathbb{P}_X$ en $\mathcal{X}$ observando que $X=x_i$ si y solo si el resultado de un experimento aleatorio es $s_j\in\Omega\;\text{t.q}\;X(s_j)=x_i$. Entonces:
+    
+    \begin{align}
+        \mathbb{P}_X(X=x_i) = \mathbb{P}(\{s_j\in\Omega\,:\,X(s_j)=x_i\})
+    \end{align}\autocite{:berger2002}.
+\end{definition}
+
+Para toda variable aleatoria $X$ le asociamos una función de distribución acumulada.
+
+\begin{definition}
+    Una funcion de distribución acumulada $F_X(x)$ es definida como:
+
+    \begin{align}
+        F_X(x)=\mathbb{P}_X(X\leq x)\;\forall\;x
+    \end{align}\autocite{:berger2002}.
+\end{definition}
+
+
+Una variable aleatoria puede estar asociada a una función de probabilidad acumulada \textit{cdf} que puede ser o una función de densidad de probabilidad \textit{pdf} o una función de masa de probabilidad \textit{pmf}, esto dependiedo si esta en un espacio continuo o discreto respectivamente.
+
+\begin{definition}
+    Una \textit{pmf} para una variable aleatoria discreta es
+
+    \begin{align}
+        f_X(x)=\mathbb{P}_X(X=x)\,\forall\,x.
+    \end{align}
+\end{definition}
+
+\begin{definition}
+    Una \textit{pdf} de una variable aleatoria continua satisface
+
+    \begin{align}
+        F_X(x)=\int_{-\infty}^{x}f_X(t)\mathbf{dt}\,\forall\,x
+    \end{align}\autocite{:berger2002}.
+\end{definition}
+
+
+Entre las distribuciones de probabilidad que podrian.
