@@ -1,0 +1,43 @@
+\section{Identificación inicial del modelo de optimización}
+\label{sec:modelo-optimizacion}
+
+\subsection{Función objetivo}
+\label{subsec:funcion-objetivo}
+
+Hay más de un criterio razonable. Conviene identificarlos antes de comprometerse con uno solo.
+
+\begin{itemize}
+\item \textbf{Minimizar la competencia entre especies vecinas}, sumada sobre todos los pares de posiciones adyacentes de la retícula. Es el criterio que responde directamente a la parte de distribución espacial del reto.
+\item \textbf{Minimizar el costo esperado de compra}, sumando el costo de cada especie por la cantidad que hay que adquirir. Responde a la parte de cantidad a comprar.
+\item \textbf{Una combinación ponderada de ambas}, ya que la distribución espacial también puede influir en la supervivencia y, con ello, en la compra futura, y porque el reto permite mover las proporciones por especie dentro de un margen de $\pm$5\% a $\pm$10\%, lo que conecta ambas decisiones.
+\end{itemize}
+
+De estas, minimizar la competencia espacial es el objetivo más directamente pedido por el reto para la primera decisión, y se tomará como punto de partida; el costo se incorporará en cuanto se conozcan precios por especie y el alcance real del presupuesto de \$13{,}200.
+
+\subsection{Restricciones}
+\label{subsec:restricciones}
+
+\Cref{tab:restricciones} enumera las restricciones identificadas hasta ahora y la condición del problema que representa cada una.
+
+\begin{table*}[t]
+\centering
+\caption{Restricciones identificadas para el modelo de optimización.}
+\label{tab:restricciones}
+\small
+\begin{tabular}{@{}p{0.22\textwidth}p{0.42\textwidth}p{0.28\textwidth}@{}}
+\toprule
+Restricción & Qué condición representa & Por qué se incluye \\
+\midrule
+Cantidad requerida por especie & El total de plantas de cada especie debe cumplir el plan (658 plantas/ha repartidas según las proporciones dadas, ajustadas dentro de un margen de $\pm$5\% a $\pm$10\%) & Es la meta explícita del reto; sin ella el modelo podría vaciar una especie completa \\
+Capacidad o espacio disponible & El número de posiciones en la retícula de cada polígono es fijo, según su superficie y la densidad del plan & No se puede plantar más individuos de los que caben en el área disponible \\
+Distancias mínimas entre plantas & La separación entre posiciones vecinas queda fija por el arreglo al tresbolillo ($\approx$4.19 m con el plan actual) & Es una condición del propio diseño de plantación que el reto pide respetar \\
+Compatibilidad entre especies & Ciertos pares de especies no deberían quedar como vecinos inmediatos, o deberían evitarse en exceso & Es el criterio ecológico que sostiene la función objetivo de competencia \\
+Disponibilidad de plantas & La cantidad comprada no puede superar lo que el vivero puede producir o entregar en la temporada de siembra & Vuelve factible en la práctica la cantidad que el modelo calcule, aunque el dato aún no se tiene \\
+Requerimientos de agua & Las especies con mayor demanda de agua podrían necesitar restricciones adicionales de ubicación o densidad & Relevante en un matorral desértico, aunque no está cuantificado en los datos actuales \\
+Existencia previa de plantas & Las posiciones donde ya hay una planta establecida no deberían recibir una nueva, y esas plantas cuentan hacia la meta del plan & Evita comprar y plantar de más donde ya se cumplió la meta \\
+Presupuesto & El costo total de la compra no debe superar los \$13{,}200 disponibles & Límite económico explícito del reto, pendiente de precisar su alcance \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Esta identificación es preliminar. No fija todavía coeficientes ni una formulación matemática completa (eso corresponde a los siguientes entregables), pero delimita qué debe entrar al modelo y por qué, y distingue las restricciones que ya se pueden cuantificar con los datos actuales (cantidad por especie, capacidad, distancias) de las que dependen de información que aún falta por obtener (compatibilidad, disponibilidad, agua, presupuesto).
