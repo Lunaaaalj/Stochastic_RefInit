@@ -3,11 +3,11 @@
 Consideramos los siguientes conceptos que serán necesarios para desarrollar un modelo que actúe en un proceso estocástico.
 
 
-\subsection{Probabilidad basica}
+\subsection{Probabilidad básica}
 
 
 \begin{definition}
-    Una variable aleatoria $X$ es una función de un espacio muestral $\Omega=\{s_1,s_2,s_3,\dots\}$ hacia los números reales. Con una funcion de probabilidad $\mathbb{P}$ en $\Omega$, sea $\mathcal{X}=\{x_1,\dots,x_m\}$ el rango de $X$. Definimos la funcion de probabilidad $\mathbb{P}_X$ en $\mathcal{X}$ observando que $X=x_i$ si y solo si el resultado de un experimento aleatorio es $s_j\in\Omega\;\text{t.q}\;X(s_j)=x_i$. Entonces:
+    Una variable aleatoria $X$ es una función de un espacio muestral $\Omega=\{s_1,s_2,s_3,\dots\}$ hacia los números reales. Con una función de probabilidad $\mathbb{P}$ en $\Omega$, sea $\mathcal{X}=\{x_1,\dots,x_m\}$ el rango de $X$. Definimos la función de probabilidad $\mathbb{P}_X$ en $\mathcal{X}$ observando que $X=x_i$ si y solo si el resultado de un experimento aleatorio es $s_j\in\Omega\;\text{ t.q. }\;X(s_j)=x_i$. Entonces:
     
     \begin{align}
         \mathbb{P}_X(X=x_i) = \mathbb{P}(\{s_j\in\Omega\,:\,X(s_j)=x_i\})
@@ -17,7 +17,7 @@ Consideramos los siguientes conceptos que serán necesarios para desarrollar un 
 Para toda variable aleatoria $X$ le asociamos una función de distribución acumulada.
 
 \begin{definition}
-    Una funcion de distribución acumulada $F_X(x)$ es definida como:
+    Una función de distribución acumulada $F_X(x)$ es definida como:
 
     \begin{align}
         F_X(x)=\mathbb{P}_X(X\leq x)\;\forall\;x
@@ -25,7 +25,7 @@ Para toda variable aleatoria $X$ le asociamos una función de distribución acum
 \end{definition}
 
 
-Una variable aleatoria puede estar asociada a una función de probabilidad acumulada \textit{cdf} que puede ser o una función de densidad de probabilidad \textit{pdf} o una función de masa de probabilidad \textit{pmf}, esto dependiedo si esta en un espacio continuo o discreto respectivamente.
+Además de su función de distribución acumulada (\textit{cdf}), una variable aleatoria tiene asociada una función de densidad de probabilidad (\textit{pdf}) o una función de masa de probabilidad (\textit{pmf}), dependiendo de si es continua o discreta, respectivamente.
 
 \begin{definition}
     Una \textit{pmf} para una variable aleatoria discreta es
@@ -39,9 +39,83 @@ Una variable aleatoria puede estar asociada a una función de probabilidad acumu
     Una \textit{pdf} de una variable aleatoria continua satisface
 
     \begin{align}
-        F_X(x)=\int_{-\infty}^{x}f_X(t)\mathbf{dt}\,\forall\,x
+        F_X(x)=\int_{-\infty}^{x}f_X(t)\,dt\,\forall\,x
     \end{align}\autocite{:berger2002}.
 \end{definition}
 
+\subsection{Distribuciones interesantes}
 
-Entre las distribuciones de probabilidad que podrian.
+Se remarca un conjunto de distribuciones que poseen potencial aplicabilidad en el contexto del problema, lo cual nos serviría para determinar, de manera estocástica, la distribución de las plantas en el tresbolillo.
+
+\subsubsection{Distribución de Poisson}
+
+Cuando se requiere de modelar la cantidad de ocurrencias de un evento en un intervalo de tiempo, se puede utilizar la distribución de Poisson. Asume que, para pequeños intervalos, la probabilidad de una ocurrencia es proporcional a la longitud del intervalo. Generalmente se modela con tiempo, aunque también, para nuestro caso, puede ser adaptada para el análisis espacial.
+
+La distribución tiene un parámetro $\lambda$, denominado como el parámetro de intensidad.
+
+\begin{definition}
+    Una variable aleatoria $X$ tiene una distribución de Poisson si
+\begin{align}
+    \mathbb{P}(X=x|\lambda)=\frac{e^{-\lambda}\lambda^x}{x!},\,x=0,1,\dots
+\end{align}\autocite{:berger2002}.
+\end{definition}
+
+A partir de este fundamento de la distribución de Poisson, se derivan modelos aplicables como el proceso de punto de Poisson y los modelos generalizados de Poisson.
+
+\subsubsection{Distribución binomial negativa}
+
+La distribución binomial cuenta el número de éxitos en una cierta cantidad de pruebas de Bernoulli. En su lugar, la distribución binomial negativa cuenta el número de pruebas requeridas para obtener $r$ éxitos, útil para estimar las posiciones de las plantas dado un número de posiciones.
+
+
+\begin{definition}
+    En una secuencia de pruebas de Bernoulli independientes, dada una variable aleatoria $X$ que denota la prueba en la que ocurre el $r$-ésimo éxito, entonces
+
+    \begin{align}
+        \mathbb{P}(X=x|r,p)=\binom{x-1}{r-1}p^r(1-p)^{x-r},\,x=r,r+1,\dots
+    \end{align}\autocite{:berger2002}
+\end{definition}
+
+\subsection{Método de Monte Carlo}
+
+El método de Monte Carlo estima una cantidad determinista, escrita como una esperanza $\theta=\mathbb{E}[g(\mathbf{X})]$, promediando evaluaciones del modelo sobre realizaciones independientes $\mathbf{X}_1,\dots,\mathbf{X}_n$ de la entrada aleatoria \autocite{:robert2004}:
+
+\begin{align}
+    \hat{\theta}_n=\frac{1}{n}\sum_{i=1}^{n}g(\mathbf{X}_i)\xrightarrow{\text{c.s.}}\theta.
+\end{align}
+
+La convergencia la garantiza la ley fuerte de los grandes números. Se usa cuando $\theta$ no tiene forma cerrada: integrales en varias dimensiones, sistemas con muchas fuentes de aleatoriedad que interactúan de forma no lineal (colas, inventarios, confiabilidad) y propagación de incertidumbre de los parámetros a las salidas de un modelo.
+
+Cada \emph{escenario} es una realización completa de las variables aleatorias del modelo. Se parte de números pseudoaleatorios $U\sim\mathcal{U}(0,1)$ y se transforman a la distribución deseada, por ejemplo, con el método de la transformada inversa $X=F_X^{-1}(U)$ o por aceptación y rechazo \autocite{:ross2013}. Sobre cada escenario se evalúa el modelo de forma determinista.
+
+\paragraph{Aplicación a la compra de plantas} Sea $N$ el número de posiciones del tresbolillo en el polígono. En el escenario $k$ se simula el número de plantas vivas existentes $E^{(k)}$, ya sea con un ensayo Bernoulli de parámetro $p$ por posición o con un conteo Poisson de intensidad $\lambda$ por unidad de área. Las posiciones por cubrir son $N-E^{(k)}$. Si cada planta nueva sobrevive con probabilidad $q$, la cantidad por adquirir en ese escenario es $D^{(k)}=\lceil (N-E^{(k)})/q\rceil$. Tras $n$ escenarios, $\bar{D}_n=\frac{1}{n}\sum_k D^{(k)}$ estima la compra esperada, y un cuantil empírico alto de $\{D^{(k)}\}$ (p.\,ej. el 95\,\%) da una compra que cubre el déficit en la mayoría de los escenarios.
+
+\paragraph{Número de corridas, error y confianza} Si $\sigma^2=\operatorname{Var}[g(\mathbf{X})]<\infty$, el teorema central del límite da el intervalo aproximado de nivel $1-\alpha$
+\begin{align}
+    \hat{\theta}_n\pm z_{\alpha/2}\frac{S_n}{\sqrt{n}},
+\end{align}
+donde $S_n$ es la desviación estándar muestral. Para que el semiancho no exceda un error $\varepsilon$ se requiere
+\begin{align}
+    n\geq\left(\frac{z_{\alpha/2}\,S_n}{\varepsilon}\right)^2.
+\end{align}
+En la práctica se hace una corrida piloto para estimar $S_n$ y se sigue simulando hasta que $S_n/\sqrt{n}$ cae bajo la tolerancia \autocite{:ross2013}. El error disminuye como $1/\sqrt{n}$: reducirlo a la mitad cuesta cuatro veces más corridas, y subir la confianza (de 95\,\% a 99\,\% $z_{\alpha/2}$ pasa de 1.96 a 2.58) multiplica $n$ por $\approx1.73$ para el mismo $\varepsilon$.
+
+\paragraph{Ventajas y limitaciones} Es fácil de implementar, la tasa $O(n^{-1/2})$ no depende de la dimensión del problema, admite modelos no lineales arbitrarios y entrega la distribución completa de la salida, no solo su media. En contraste, converge lento, su costo crece con la precisión exigida, depende de un buen generador pseudoaleatorio y los resultados no son mejores que las distribuciones supuestas para las entradas \autocite{:robert2004}.
+
+\subsection{Cadenas de Markov}
+
+\begin{definition}
+    Un proceso $\{X_n\}_{n\geq0}$ con espacio de estados $S$ finito o numerable es una cadena de Markov (homogénea) si
+    \begin{align}
+        \begin{split}
+            \mathbb{P}(X_{n+1}=j\mid X_n=i,&\,X_{n-1}=i_{n-1},\dots,X_0=i_0)\\
+            &=\mathbb{P}(X_{n+1}=j\mid X_n=i)=P_{ij}
+        \end{split}
+    \end{align}
+    para todo $n$ y todos los estados \autocite{:ross2014}.
+\end{definition}
+
+Los estados describen la condición del sistema en cada periodo. La probabilidad de transición $P_{ij}$ es la probabilidad de pasar de $i$ a $j$ en un paso y se agrupa en una matriz estocástica $\mathbf{P}$ con $P_{ij}\geq0$ y $\sum_j P_{ij}=1$. Por las ecuaciones de Chapman-Kolmogorov, si $\boldsymbol{\pi}_0$ es la distribución inicial, la distribución tras $n$ pasos es $\boldsymbol{\pi}_n=\boldsymbol{\pi}_0\mathbf{P}^n$ \autocite{:norris1997}. Las cadenas se usan para modelar colas, inventarios, dinámica de poblaciones, confiabilidad de equipos y clima, así como para calcular probabilidades de absorción, tiempos esperados de llegada y distribuciones estacionarias.
+
+Son apropiadas cuando (i) el estado actual resume toda la información relevante del pasado (propiedad de Markov), (ii) las probabilidades de transición no cambian en el tiempo, o cambian de forma conocida, (iii) el sistema admite una discretización razonable en estados y periodos, y (iv) hay datos o conocimiento experto para estimar $\mathbf{P}$.
+
+\paragraph{Aplicación a la reforestación} Sí resulta útil para la dinámica de supervivencia de cada posición del tresbolillo. Con periodos anuales y estados $S=\{\text{vacía},\ \text{plántula},\ \text{establecida}\}$, una plántula muere (vuelve a vacía) o se establece. Una planta establecida tiene mortalidad baja, y una posición vacía pasa a plántula solo si se replanta. Es razonable porque la mortalidad depende sobre todo de la etapa actual de la planta y no de su historia. Con $\boldsymbol{\pi}_0$ dada por el conteo inicial, $N\,\boldsymbol{\pi}_n$ estima cuántas posiciones estarán vacías en el año $n$ y, por lo tanto, cuántas plantas hay que comprar en cada campaña de replantación. Simular trayectorias de la cadena es, además, una forma natural de generar los escenarios de Monte Carlo. Sus limitaciones son que la sequía o las plagas vuelven no homogéneas las transiciones y que la competencia entre plantas vecinas rompe la independencia entre posiciones.
