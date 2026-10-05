@@ -1,0 +1,68 @@
+name: Claude Review
+
+# Revisión automática, una sola vez por PR: cuando sale de draft o cuando se
+# abre directamente como lista para review. No corre en cada push para no
+# gastar cuota; para otra pasada se pide con @claude (ver claude.yml).
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, reopened]
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Claude Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          track_progress: true
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Revisa esta Pull Request y escribe todos tus comentarios en español.
+            Antes de empezar, lee CONTRIBUTING.md: ahí están las reglas del equipo.
+
+            El proyecto modela estocásticamente la localización óptima de plantas
+            y árboles en un polígono. Gran parte del trabajo son reportes en LaTeX
+            bajo reports/, además de código y análisis.
+
+            Enfócate en:
+
+            1. **Corrección técnica y matemática**: errores en modelos, ecuaciones,
+               supuestos, notación inconsistente, resultados que no se siguen de
+               lo planteado, bugs en el código.
+            2. **Reportes LaTeX**: que la sección viva en su propio archivo y se
+               inserte con \input desde main.tex (sin texto en main.tex); que use
+               \begin{refsection}[<seccion>.bib] con su propio .bib y termine con
+               \printbibliography[heading=subbibliography]; citas sin entrada en
+               el .bib, etiquetas (\label/\ref) rotas o duplicadas.
+            3. **Alcance**: cambios que se salgan de lo que pide la issue ligada,
+               sobre todo si tocan archivos de secciones de otra persona.
+            4. **Convenciones**: Conventional Commits en español e imperativo,
+               nombre de la branch, archivos generados de LaTeX (.aux, .log, .bbl,
+               .fls, ...) que no deberían versionarse.
+            5. **Redacción**: ortografía y claridad en español, solo cuando afecte
+               la comprensión o sea un error evidente.
+
+            Usa comentarios inline para problemas concretos en líneas específicas.
+            Al final deja un solo comentario general con un resumen breve. Sé
+            concreto y no comentes lo que ya está bien. No apruebes ni pidas
+            cambios formalmente: tu review es un apoyo, la aprobación es del equipo.
+          claude_args: |
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
