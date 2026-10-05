@@ -1,33 +1,7 @@
-\documentclass[11pt]{article}
-
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage[spanish,es-tabla]{babel}
-\usepackage{amsmath}
-\usepackage{booktabs}
-\usepackage{tabularx}
-\usepackage{ragged2e}
-\usepackage{caption}
-\usepackage{csquotes}
-\usepackage[style=apa,backend=biber]{biblatex}
-\DeclareLanguageMapping{spanish}{spanish-apa}
-\addbibresource{referencias.bib}
-
-% Paragraphs
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{1\baselineskip}
-
-\title{Untitled}
-\author{Author Name}
-\date{\today}
-
-\begin{document}
-
-
 \section{Trabajo relacionado}
 \label{sec:trabajo-relacionado}
 
-Esta sección revisa trabajos que enfrentan problemas con una estructura similar a la del reto: asignar elementos a posiciones o momentos de modo que se reduzca la competencia, la interferencia o la incompatibilidad entre ellos. Primero se analizan cinco referencias académicas sobre reducción de competencia en reforestación, agricultura, telecomunicaciones y manejo forestal (Sección~\ref{sec:reduccion-competencia}). Después se revisan los problemas de coloración de grafos y su posible uso para representar la distribución de especies (Sección~\ref{sec:coloracion}).
+Esta sección revisa trabajos que enfrentan problemas con una estructura similar a la del reto: asignar elementos a posiciones o momentos de modo que se reduzca la competencia, la interferencia o la incompatibilidad entre ellos. Primero se analizan cinco referencias académicas sobre reducción de competencia en reforestación, agricultura, telecomunicaciones y manejo forestal (\cref{sec:reduccion-competencia}). Después se revisan los problemas de coloración de grafos y su posible uso para representar la distribución de especies (\cref{sec:coloracion}).
 
 %==================================================
 \subsection{Reducción de competencia}
@@ -97,9 +71,9 @@ Para cada referencia se identifica el problema estudiado, las variables o elemen
 
 \subsubsection{Síntesis}
 
-La Tabla~\ref{tab:comparacion-competencia} resume las cinco referencias.
+La \cref{tab:comparacion-competencia} resume las cinco referencias.
 
-\begin{table}[ht]
+\begin{table*}[t]
   \centering
   \caption{Comparación de las referencias sobre reducción de competencia.}
   \label{tab:comparacion-competencia}
@@ -115,7 +89,7 @@ La Tabla~\ref{tab:comparacion-competencia} resume las cinco referencias.
     \parencite{kobal2025} & Manejo forestal & Índices de competencia según tamaño y distancia de vecinos & Regresión con optimización de umbrales \\
     \bottomrule
   \end{tabularx}
-\end{table}
+\end{table*}
 
 Las referencias muestran tres formas de medir la competencia: coeficientes asociados a pares de elementos vecinos en un grafo \parencite{elizalde2025,eisenblatter2002,liu2026}, penalizaciones por el efecto del elemento previo o cercano \parencite{akplogan2011} e índices que combinan tamaño y distancia \parencite{kobal2025}. En cuanto a los métodos, los modelos exactos pierden escalabilidad al crecer el problema \parencite{elizalde2025,akplogan2011}, lo que justifica el uso de heurísticas y metaheurísticas \parencite{elizalde2025,eisenblatter2002}. Por otro lado, solo \textcite{liu2026} incorpora incertidumbre mediante escenarios Monte Carlo, aunque la aplica a rendimientos, precios y costos. Ninguna de las cinco estima la cantidad de plantas que se deben adquirir cuando se desconocen las plantas preexistentes, que es el segundo componente del reto y donde la simulación Monte Carlo resulta necesaria.
 
@@ -137,9 +111,9 @@ Una variante es la coloración fuerte de aristas adyacentes \parencite{zhang2002
 
 \subsubsection{Representación del problema de reforestación mediante un grafo}
 
-La distribución de especies en un polígono puede representarse con un grafo donde cada elemento del problema tiene un equivalente (Tabla~\ref{tab:grafo-reforestacion}). Esta representación coincide con la de \textcite{elizalde2025}, que modelan el terreno como un grafo de posiciones de siembra y vecindades, y con la matriz de adyacencia de \textcite{liu2026}. La definición de vecindad puede variar (por ejemplo, solo vecinos horizontales y verticales o también diagonales) y determina la densidad del grafo.
+La distribución de especies en un polígono puede representarse con un grafo donde cada elemento del problema tiene un equivalente (\cref{tab:grafo-reforestacion}). Esta representación coincide con la de \textcite{elizalde2025}, que modelan el terreno como un grafo de posiciones de siembra y vecindades, y con la matriz de adyacencia de \textcite{liu2026}. La definición de vecindad puede variar (por ejemplo, solo vecinos horizontales y verticales o también diagonales) y determina la densidad del grafo.
 
-\begin{table}[ht]
+\begin{table*}[t]
   \centering
   \caption{Representación propuesta del problema de reforestación como un grafo.}
   \label{tab:grafo-reforestacion}
@@ -154,16 +128,12 @@ La distribución de especies en un polígono puede representarse con un grafo do
     Peso de arista & Nivel de competencia o incompatibilidad entre las especies asignadas a sus extremos \\
     \bottomrule
   \end{tabularx}
-\end{table}
+\end{table*}
 
-\paragraph{Coloración de vértices como referencia.} Una coloración propia exigiría que posiciones vecinas tengan especies distintas, pero no considera por sí sola la demanda por especie ni que la competencia entre pares de especies sea parcial. Por ello, el problema se parece más a las generalizaciones que minimizan una penalización total que a la coloración propia. Se observa además que el modelo de mínima interferencia de \textcite{eisenblatter2002} y el modelo de \textcite{elizalde2025} tienen la misma estructura: variables binarias de asignación (canal o especie por vértice), una restricción que asigna exactamente un valor a cada vértice y variables auxiliares que activan una penalización en cada arista cuando sus extremos toman valores incompatibles, con el objetivo de minimizar la suma. Esto convierte a la coloración de vértices con penalización en la referencia más cercana para desarrollar la estrategia de distribución de especies, y a las heurísticas de coloración (como DSATUR) en candidatas a construir soluciones iniciales.
+\paragraph{Coloración de vértices como referencia} Una coloración propia exigiría que posiciones vecinas tengan especies distintas, pero no considera por sí sola la demanda por especie ni que la competencia entre pares de especies sea parcial. Por ello, el problema se parece más a las generalizaciones que minimizan una penalización total que a la coloración propia. Se observa además que el modelo de mínima interferencia de \textcite{eisenblatter2002} y el modelo de \textcite{elizalde2025} tienen la misma estructura: variables binarias de asignación (canal o especie por vértice), una restricción que asigna exactamente un valor a cada vértice y variables auxiliares que activan una penalización en cada arista cuando sus extremos toman valores incompatibles, con el objetivo de minimizar la suma. Esto convierte a la coloración de vértices con penalización en la referencia más cercana para desarrollar la estrategia de distribución de especies, y a las heurísticas de coloración (como DSATUR) en candidatas a construir soluciones iniciales.
 
-\paragraph{Coloración de aristas.} Las aristas del grafo (pares de posiciones vecinas) no tienen un equivalente natural de especie, por lo que esta coloración no sirve directamente para decidir qué especie va en cada posición. Una posibilidad, que aquí se plantea únicamente como hipótesis de trabajo, es emplearla para el orden de plantación, interpretando los colores como etapas o turnos en los que se atienden las interacciones entre posiciones vecinas, de forma análoga a los usos en programación de horarios señalados por \textcite{dewerra2015}.
+\paragraph{Coloración de aristas} Las aristas del grafo (pares de posiciones vecinas) no tienen un equivalente natural de especie, por lo que esta coloración no sirve directamente para decidir qué especie va en cada posición. Una posibilidad, que aquí se plantea únicamente como hipótesis de trabajo, es emplearla para el orden de plantación, interpretando los colores como etapas o turnos en los que se atienden las interacciones entre posiciones vecinas, de forma análoga a los usos en programación de horarios señalados por \textcite{dewerra2015}.
 
 \subsubsection{Conclusión de la sección}
 
-Los problemas de coloración de vértices, y en particular sus generalizaciones con penalización por conflicto, ofrecen un marco adecuado y bien estudiado para la distribución de especies, y la literatura revisada indica que, al crecer el tamaño, conviene recurrir a heurísticas o metaheurísticas. La coloración de aristas aporta, en todo caso, una idea complementaria para el orden de plantación. La estimación de la cantidad de plantas a adquirir queda fuera de estos modelos y se aborda con las herramientas de probabilidad y simulación de la Sección~3.
-
-\printbibliography
-
-\end{document}
+Los problemas de coloración de vértices, y en particular sus generalizaciones con penalización por conflicto, ofrecen un marco adecuado y bien estudiado para la distribución de especies, y la literatura revisada indica que, al crecer el tamaño, conviene recurrir a heurísticas o metaheurísticas. La coloración de aristas aporta, en todo caso, una idea complementaria para el orden de plantación. La estimación de la cantidad de plantas a adquirir queda fuera de estos modelos y se aborda con las herramientas de probabilidad y simulación de la \cref{sec:incertidumbre}.
