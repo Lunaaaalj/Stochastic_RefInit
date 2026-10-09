@@ -1,0 +1,63 @@
+\section{Modelo de distribución espacial}
+\label{sec:modelo-espacial}
+
+El segundo nivel asigna las plantas adquiridas a posiciones del terreno de modo que se minimice la competencia entre vecinas. Se adopta un esquema de sobreplantación: las $\sum_sx_{is}$ plantas determinadas en la \cref{sec:modelo-compra} se plantan en su totalidad, y la mortalidad del primer año reduce la densidad hacia la meta de 658 plantas/ha. Para que la solución sea aplicable en campo, la asignación no se calcula para cada posición del polígono, sino para un mosaico de tamaño reducido que se repite periódicamente sobre el terreno.
+
+\subsection{Retícula y grafo de vecindad}
+\label{subsec:espacial-reticula}
+
+La geometría de la retícula depende de la pendiente del polígono: en pendientes superiores al 20\% se emplea el arreglo al tresbolillo (retícula triangular) y en las restantes, el arreglo en cuadros. Para una densidad de plantación $\rho_i=\sum_sx_{is}/A_i$ (plantas/m$^2$), la separación entre posiciones contiguas es
+\begin{equation}
+d_i=\begin{cases}
+\sqrt{2/(\sqrt{3}\,\rho_i)} & \text{tresbolillo},\\[2pt]
+\sqrt{1/\rho_i} & \text{cuadros}.
+\end{cases}
+\label{eq:separacion}
+\end{equation}
+Con 658 plantas/ha, \eqref{eq:separacion} da 4.19~m y 3.90~m, respectivamente.
+
+La retícula se representa con un grafo $G=(V,\mathcal{E})$ cuyos vértices son las posiciones de plantación y cuyas aristas unen posiciones a distancia no mayor que un radio de influencia $r$. A cada arista $(u,v)$ se le asigna el peso $w_{uv}=d_i/\lVert u-v\rVert$, que decrece con la distancia. Con $r=d_i$, la retícula triangular tiene seis vecinos por vértice, todos con $w_{uv}=1$; con $r=\sqrt{2}\,d_i$, la retícula en cuadros tiene cuatro vecinos ortogonales con $w_{uv}=1$ y cuatro diagonales con $w_{uv}=1/\sqrt{2}$.
+
+\subsection{Matriz de interacción}
+\label{subsec:espacial-interaccion}
+
+La competencia entre especies se resume en una matriz simétrica $W\in\mathbb{R}^{|\mathcal{S}|\times|\mathcal{S}|}$, donde $W_{ab}$ es la penalización asociada a que una planta de la especie $a$ y una de la especie $b$ ocupen posiciones vecinas. La matriz se define por par de especies, a la manera de los coeficientes de interferencia en la asignación de frecuencias \autocite{eisenblatter2002} y de los coeficientes de competencia de \textcite{elizalde2025}. Su estimación, a partir de la literatura o de medidas de asociación espacial entre especies, se aborda en una etapa posterior; la formulación siguiente es válida para cualquier $W$ simétrica.
+
+\subsection{Mosaico periódico}
+\label{subsec:espacial-mosaico}
+
+El mosaico es un bloque de $T=a\times b$ posiciones ($a$ filas y $b$ columnas) sobre la misma retícula. Para que las copias contiguas encajen, sus bordes se identifican de forma periódica (topología de toro): la última columna es vecina de la primera y la última fila de la primera. En la retícula triangular, el desfase alterno entre filas exige que $a$ sea par.
+
+El número de posiciones del mosaico asignadas a la especie $s$, $m_s$, se obtiene redondeando $T\pi_s$, con $\pi_s=x_{is}/\sum_tx_{it}$, por el método del mayor residuo, de modo que $\sum_sm_s=T$. El tamaño $T$ se elige como el menor valor tal que la composición del mosaico respete la banda de la \cref{sec:modelo-compra}, $\lvert m_s/T-\pi_s\rvert\leq\delta\,\pi_s$ para toda $s$. Con la composición del plan corregida por la mortalidad del primer año, esta condición se cumple con $T=52$ ($4\times13$) para $\delta=0.10$, y con $T=124$ para $\delta=0.05$.
+
+\subsection{Formulación}
+\label{subsec:espacial-formulacion}
+
+Sea $G_T=(V_T,\mathcal{E}_T)$ el grafo del mosaico con bordes periódicos. Se busca una asignación $\sigma:V_T\to\mathcal{S}$ que resuelva
+\begin{align}
+\min_{\sigma}\quad & F(\sigma)=\sum_{(u,v)\in\mathcal{E}_T}w_{uv}\,W_{\sigma(u)\sigma(v)} \label{eq:obj-espacial}\\
+\text{s.a.}\quad & \lvert\{v\in V_T:\sigma(v)=s\}\rvert=m_s,\quad s\in\mathcal{S}. \label{eq:conteo}
+\end{align}
+El problema es un caso particular del problema de asignación cuadrática \autocite{koopmans1957} y una generalización de la coloración de vértices con penalización por conflicto \autocite{eisenblatter2002}; ambos son NP-difíciles, lo que justifica el uso de una metaheurística.
+
+Si $W$ penaliza principalmente la vecindad intraespecífica, la geometría impone una cota estructural. El conjunto de posiciones de una especie sin vecinas de la misma especie es un conjunto independiente del grafo, cuya densidad máxima es $1/3$ en la retícula triangular y $1/4$ en la retícula en cuadros con diagonales. \textit{A.~salmiana} representa cerca del 28\% de la plantación, de modo que puede aislarse por completo en tresbolillo, aunque con escaso margen, pero no en cuadros. En terrenos con pendiente menor al 20\%, por tanto, la composición elegida en la \cref{sec:modelo-compra} condiciona el valor mínimo alcanzable de $F$.
+
+\subsection{Método de solución}
+\label{subsec:espacial-solucion}
+
+El problema \eqref{eq:obj-espacial}--\eqref{eq:conteo} se resuelve mediante recocido simulado \autocite{kirkpatrick1983}. El movimiento elemental intercambia las especies de dos posiciones $u,v$ con $\sigma(u)=a\neq b=\sigma(v)$, lo que preserva \eqref{eq:conteo} por construcción. El cambio en el objetivo solo involucra los vecindarios $N(u)$ y $N(v)$:
+\begin{equation}
+\begin{split}
+\Delta F={}&\sum_{z\in N(u)\setminus\{v\}}w_{uz}\left(W_{b\sigma(z)}-W_{a\sigma(z)}\right)\\
+&+\sum_{z\in N(v)\setminus\{u\}}w_{vz}\left(W_{a\sigma(z)}-W_{b\sigma(z)}\right),
+\end{split}
+\label{eq:delta}
+\end{equation}
+donde el término de la arista $(u,v)$, si existe, no cambia por la simetría de $W$. El intercambio se acepta si $\Delta F\leq0$ y, en caso contrario, con probabilidad $e^{-\Delta F/\tau}$, donde la temperatura $\tau$ decrece geométricamente, $\tau_{k+1}=\beta\tau_k$ con $\beta\in(0,1)$. Como cada evaluación de \eqref{eq:delta} cuesta $O(\deg G)$, se realizan del orden de $10^5$ iteraciones en segundos. Se ejecutan varias corridas independientes y se conserva la mejor asignación.
+
+La corrida parte de la secuencia de 22 posiciones vigente, aplicada fila por fila sobre el mosaico, que sirve además como línea base. La calidad de la solución se evalúa con $F$ y con la proporción de aristas que unen plantas de la misma especie, comparadas con la línea base y con el valor esperado bajo asignación aleatoria.
+
+\subsection{Implementación en campo}
+\label{subsec:espacial-campo}
+
+La cuadrilla recibe el mosaico como una tabla de $a$ filas por $b$ columnas de claves de especie y lo replica a lo largo de cada fila y entre filas sucesivas. Las plantas existentes no ocupan posiciones de la retícula: cuando una posición queda a menos de $d_i/2$ de una planta establecida, la planta nueva se desplaza al punto libre más próximo que respete esa distancia, conservando su especie, de modo que la composición plantada coincide con $\{x_{is}\}$. Dado que las plantas existentes siguen un proceso de Poisson, su efecto sobre la competencia local puede cuantificarse por simulación, superponiendo realizaciones de sus posiciones al patrón óptimo.
