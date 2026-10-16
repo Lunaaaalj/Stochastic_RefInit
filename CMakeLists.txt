@@ -29,15 +29,26 @@ if(NOT highs_FOUND)
   FetchContent_MakeAvailable(highs)
 endif()
 
+FetchContent_Declare(cli11
+  GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+  GIT_TAG v2.4.2
+  GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(cli11)
+
 add_library(refor_core
   src/datos.cpp
   src/simulacion.cpp
   src/exacto.cpp
   src/mochila.cpp
-  src/modelo.cpp)
+  src/modelo.cpp
+  src/salida.cpp)
 target_include_directories(refor_core PUBLIC src)
 target_link_libraries(refor_core PUBLIC highs::highs)
 target_compile_options(refor_core PRIVATE -Wall -Wextra -Wpedantic)
+
+add_executable(refor src/main.cpp)
+target_link_libraries(refor PRIVATE refor_core CLI11::CLI11)
+target_compile_options(refor PRIVATE -Wall -Wextra -Wpedantic)
 
 if(REFOR_TESTS)
   FetchContent_Declare(catch2
