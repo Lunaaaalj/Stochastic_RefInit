@@ -6,7 +6,7 @@ El problema se descompone en dos niveles: la determinación de la cantidad de pl
 \subsection{Datos y parámetros}
 \label{subsec:compra-parametros}
 
-Sea $\mathcal{S}$ el conjunto de las diez especies e $i$ un polígono de superficie $A_i$ (ha). Para cada $s\in\mathcal{S}$, $n_s^0$ denota la densidad del plan de reforestación ($\sum_sn_s^0=658$ plantas/ha), $c_s$ el costo unitario de la planta excluida la logística, $q_s$ la supervivencia al primer año observada en el monitoreo de 2022 y $\lambda_s$ la densidad media de plantas existentes, estimada como $\hat{\lambda}_s=\sum_iE_{is}/\sum_iA_i$ a partir de los conteos $E_{is}$ de los 30 polígonos ($\sum_iA_i=183.01$ ha). Los valores se reportan en la \cref{tab:compra-parametros}. Se consideran además cuatro parámetros de política: el presupuesto por hectárea $B$, para el cual se evalúan los dos valores comunicados por el socio formador (\$12{,}500 y \$13{,}200); el sobrecosto logístico $\theta\in[0.05,0.10]$, expresado como fracción del costo de la planta; la desviación máxima por especie respecto al plan, $\delta=0.10$; y el riesgo admisible de incumplimiento, $\alpha=0.05$.
+Sea $\mathcal{S}$ el conjunto de las diez especies e $i$ un polígono de superficie $A_i$ (ha). Para cada $s\in\mathcal{S}$, $n_s^0$ denota la densidad del plan de reforestación ($\sum_sn_s^0=658$ plantas/ha), $c_s$ el costo unitario de la planta excluida la logística, $q_s$ y $q_{2\mid1,s}$ las supervivencias del primer año y del segundo año condicionada a la del primero, observadas en el monitoreo de 2022 y 2023, respectivamente, y $\lambda_s$ la densidad media de plantas existentes, estimada como $\hat{\lambda}_s=\sum_iE_{is}/\sum_iA_i$ a partir de los conteos $E_{is}$ de los 30 polígonos ($\sum_iA_i=183.01$ ha). Los valores se reportan en la \cref{tab:compra-parametros}. Se consideran además cuatro parámetros de política: el presupuesto por hectárea $B$, fijado por el socio formador en \$12{,}500; el sobrecosto logístico $\theta\in[0.05,0.10]$, expresado como fracción del costo de la planta; la desviación máxima por especie respecto al plan, $\delta=0.10$; y el riesgo admisible de incumplimiento, $\alpha=0.05$.
 
 \begin{table*}[t]
 \centering
@@ -17,16 +17,16 @@ Sea $\mathcal{S}$ el conjunto de las diez especies e $i$ un polígono de superfi
 \toprule
 Especie & $n_s^0$ (plantas/ha) & $c_s$ (\$) & $\hat{\lambda}_s$ (plantas/ha) & $\hat{\phi}_s$ & $q_s$ & $q_{2\mid1,s}$ \\
 \midrule
-\textit{Agave lechuguilla}        &  42 & 26.0 &  8.1 & 1.45 & 0.943 & 0.982 \\
-\textit{Agave salmiana}           & 196 & 26.0 & 38.0 & 0.85 & 0.959 & 0.947 \\
-\textit{Agave scabra}             &  42 & 26.0 &  8.0 & 0.93 & 0.825 & 0.904 \\
-\textit{Agave striata}            &  42 & 26.0 &  7.7 & 1.03 & 0.952 & 0.960 \\
-\textit{Opuntia cantabrigiensis}  &  49 & 18.0 & 10.0 & 1.26 & 0.927 & 0.894 \\
-\textit{Opuntia engelmannii}      &  38 & 21.0 &  8.0 & 0.87 & 0.899 & 0.912 \\
-\textit{Opuntia robusta}          &  73 & 18.0 & 15.0 & 0.58 & 0.958 & 0.961 \\
-\textit{Opuntia streptacantha}    &  64 & 18.0 & 12.5 & 1.13 & 0.886 & 0.962 \\
-\textit{Prosopis laevigata}       &  86 & 26.5 & 16.5 & 1.35 & 0.821 & 0.996 \\
-\textit{Yucca filifera}           &  26 & 26.0 &  5.0 & 0.90 & 0.884 & 0.821 \\
+\textit{Agave lechuguilla}        &  42 & 26.0 &  8.1 & 1.45 & 0.943 & 0.927 \\
+\textit{Agave salmiana}           & 196 & 26.0 & 38.0 & 0.85 & 0.959 & 0.908 \\
+\textit{Agave scabra}             &  42 & 26.0 &  8.0 & 0.93 & 0.825 & 0.745 \\
+\textit{Agave striata}            &  42 & 26.0 &  7.7 & 1.03 & 0.952 & 0.914 \\
+\textit{Opuntia cantabrigiensis}  &  49 & 18.0 & 10.0 & 1.26 & 0.927 & 0.829 \\
+\textit{Opuntia engelmannii}      &  38 & 21.0 &  8.0 & 0.87 & 0.899 & 0.819 \\
+\textit{Opuntia robusta}          &  73 & 18.0 & 15.0 & 0.58 & 0.958 & 0.920 \\
+\textit{Opuntia streptacantha}    &  64 & 18.0 & 12.5 & 1.13 & 0.886 & 0.853 \\
+\textit{Prosopis laevigata}       &  86 & 26.5 & 16.5 & 1.35 & 0.821 & 0.818 \\
+\textit{Yucca filifera}           &  26 & 26.0 &  5.0 & 0.90 & 0.884 & 0.726 \\
 \midrule
 Total                             & 658 &      & 128.8 &     &       &       \\
 \bottomrule
@@ -41,7 +41,38 @@ El número de plantas existentes de la especie $s$ en el polígono $i$ se modela
 \subsection{Formulación}
 \label{subsec:compra-formulacion}
 
-Sean $n_{is}\in\mathbb{Z}_{\geq0}$ la meta de plantas de la especie $s$ en el polígono $i$ y $x_{is}\in\mathbb{Z}_{\geq0}$ la cantidad a adquirir. Para cada polígono se resuelve
+Sean $n_{is}\in\mathbb{Z}_{\geq0}$ la meta de plantas de la especie $s$ en el polígono $i$ y $x_{is}\in\mathbb{Z}_{\geq0}$ la cantidad a adquirir. La \cref{tab:compra-notacion} resume la notación del modelo. Para cada polígono se resuelve
+
+\begin{table*}[t]
+\centering
+\caption{Notación del modelo de compra.}
+\label{tab:compra-notacion}
+\small
+\begin{tabular}{@{}lp{0.17\textwidth}p{0.47\textwidth}p{0.2\textwidth}@{}}
+\toprule
+Símbolo & Tipo & Descripción & Unidad o valor \\
+\midrule
+$\mathcal{S}$, $s$ & Conjunto e índice & Especies a plantar & 10 especies \\
+$i$ & Índice & Polígono de reforestación & 30 polígonos \\
+$A_i$ & Dato & Superficie del polígono $i$ & ha \\
+$n_s^0$ & Dato & Plantas de la especie $s$ por hectárea según el plan de reforestación & plantas/ha; $\sum_sn_s^0=658$ \\
+$c_s$ & Dato & Costo unitario de la planta, sin logística & \$/planta \\
+$\lambda_s$ & Parámetro estimado & Densidad media de plantas existentes de la especie $s$ & plantas/ha \\
+$q_s$ & Parámetro estimado & Probabilidad de que una planta nueva sobreviva el primer año & $[0,1]$ \\
+$B$ & Parámetro de política & Presupuesto por hectárea & \$12{,}500 \\
+$\theta$ & Parámetro de política & Sobrecosto logístico como fracción del costo de la planta & $[0.05,\,0.10]$ \\
+$\delta$ & Parámetro de política & Desviación relativa máxima de la meta de cada especie respecto al plan & 0.10 \\
+$\alpha$ & Parámetro de política & Probabilidad admisible de no alcanzar la meta de una especie & 0.05 \\
+$c_s^R$ & Parámetro de política & Costo unitario de reposición, incluida la logística & \$/planta \\
+$E_{is}$ & Variable aleatoria & Plantas existentes de la especie $s$ en el polígono $i$; $E_{is}\sim\operatorname{Poisson}(\lambda_sA_i)$ & plantas \\
+$S_{is}(x)$ & Variable aleatoria & Sobrevivientes al primer año de $x$ plantas nuevas; $S_{is}(x)\sim\operatorname{Bin}(x,q_s)$ & plantas \\
+$D_{is}$ & Variable aleatoria & Déficit al término del primer año, $\left(n_{is}-E_{is}-S_{is}\right)^{+}$ & plantas \\
+$n_{is}$ & Variable de decisión & Meta de plantas de la especie $s$ en el polígono $i$ & plantas; entera \\
+$x_{is}$ & Variable de decisión & Plantas de la especie $s$ a adquirir y plantar en el polígono $i$ & plantas; entera \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
 \begin{align}
 \min_{n,\,x}\quad & (1+\theta)\sum_{s}c_sx_{is}+\sum_{s}c_s^{R}\,\mathbb{E}\!\left[D_{is}\right] \label{eq:obj}\\
 \text{s.a.}\quad & \sum_{s}n_{is}=658\,A_i, \label{eq:total}\\
@@ -67,4 +98,4 @@ El procedimiento constituye una aproximación por promedio muestral (SAA) del pr
 \subsection{Supuestos y extensiones}
 \label{subsec:compra-supuestos}
 
-El modelo descansa en cuatro supuestos. (i) La supervivencia es independiente entre individuos; los eventos que afectan a toda la plantación, como la sequía, incrementan la varianza de $S_{is}$ y pueden incorporarse sorteando por escenario una tasa común $q_s^{(k)}$, aunque un solo año de monitoreo no permite estimar su dispersión. (ii) Las plantas existentes no mueren durante el horizonte; si se conoce su supervivencia anual $r_s$, basta sustituir $\lambda_s$ por $\lambda_sr_s$ (adelgazamiento de Poisson). (iii) El horizonte es de un año, aunque la mortalidad persiste en el segundo ($q_{2\mid1,s}$ entre 0.821 y 0.996); para obligaciones de reposición multianuales, el término de reposición se extiende mediante una cadena de Markov por posición con estados \{vacía, plántula, establecida\}, estimada con $q_s$ y $q_{2\mid1,s}$. (iv) El costo logístico es proporcional al costo de la planta; los costos fijos por viaje o por vivero se incorporan con variables binarias de activación sin alterar la estructura del modelo.
+El modelo descansa en cuatro supuestos. (i) La supervivencia es independiente entre individuos; los eventos que afectan a toda la plantación, como la sequía, incrementan la varianza de $S_{is}$ y pueden incorporarse sorteando por escenario una tasa común $q_s^{(k)}$, aunque un solo año de monitoreo no permite estimar su dispersión. (ii) Las plantas existentes no mueren durante el horizonte; si se conoce su supervivencia anual $r_s$, basta sustituir $\lambda_s$ por $\lambda_sr_s$ (adelgazamiento de Poisson). (iii) El horizonte es de un año, aunque la mortalidad del segundo año es incluso mayor que la del primero (15.4\% frente a 9.5\% en promedio, con $q_{2\mid1,s}$ entre 0.726 y 0.927); para obligaciones de reposición multianuales, el término de reposición se extiende mediante una cadena de Markov por posición con estados \{vacía, plántula, establecida\}, estimada con $q_s$ y $q_{2\mid1,s}$. (iv) El costo logístico es proporcional al costo de la planta; los costos fijos por viaje o por vivero se incorporan con variables binarias de activación sin alterar la estructura del modelo.
