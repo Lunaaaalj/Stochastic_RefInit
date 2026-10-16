@@ -21,3 +21,16 @@ El algoritmo combina un algoritmo genético, que explora mediante recombinación
 \paragraph{Búsqueda tabú} Cada hijo se mejora con búsqueda tabú \autocite{glover1989,hertz1987} sobre intercambios de especie entre dos posiciones, que conservan la composición y cuyo efecto se evalúa solo en las vecinas de ambas. Se aplica el mejor intercambio no prohibido y se prohíbe revertirlo durante 5 a 15 iteraciones, salvo que produzca una nueva mejor solución; la búsqueda termina tras 500 iteraciones sin mejora.
 
 \paragraph{Reemplazo y paro} El hijo sustituye al peor individuo si lo mejora y no es una copia de otro, con la distancia medida como el número de posiciones distintas minimizado sobre las traslaciones del mosaico, lo que preserva la diversidad. El algoritmo termina tras 1{,}000 generaciones o 100 sin mejora. Se ejecutan 30 corridas independientes y se reportan la mejor competencia, su media y su desviación estándar; los parámetros se calibrarán experimentalmente.
+
+\subsection{Modelo de programación entera}
+\label{subsec:espacial-entera}
+
+Sea $G=(V,\mathcal{E})$ el grafo del mosaico con bordes periódicos, $w_{uv}$ el peso por distancia de la arista $(u,v)$, $W_{ab}$ la penalización entre las especies $a$ y $b$, y $m_s$ el número de posiciones de la especie $s$. Con $y_{vs}\in\{0,1\}$, igual a 1 si la posición $v$ recibe la especie $s$, y $z_{uvab}\geq0$, que representa el producto $y_{ua}y_{vb}$, se resuelve
+\begin{align}
+\min\quad & \sum_{(u,v)\in\mathcal{E}}w_{uv}\sum_{a,b\in\mathcal{S}}W_{ab}\,z_{uvab} \label{eq:ent-obj}\\
+\text{s.a.}\quad & \textstyle\sum_{s}y_{vs}=1, && v\in V, \label{eq:ent-una}\\
+& \textstyle\sum_{v}y_{vs}=m_s, && s\in\mathcal{S}, \label{eq:ent-conteo}\\
+& \textstyle\sum_{b}z_{uvab}=y_{ua}, && (u,v)\in\mathcal{E},\ a\in\mathcal{S}, \label{eq:ent-lin1}\\
+& \textstyle\sum_{a}z_{uvab}=y_{vb}, && (u,v)\in\mathcal{E},\ b\in\mathcal{S}. \label{eq:ent-lin2}
+\end{align}
+Las restricciones \eqref{eq:ent-una} y \eqref{eq:ent-conteo} imponen una especie por posición y la composición; \eqref{eq:ent-lin1}--\eqref{eq:ent-lin2} linealizan el objetivo cuadrático, pues con $y$ binaria fuerzan $z_{uvab}=y_{ua}y_{vb}$ sin depender del signo de $W$. Como el mosaico es invariante bajo traslaciones, se fija la especie más abundante en una posición, lo que elimina soluciones equivalentes sin pérdida de optimalidad. Con un mosaico de 52 posiciones al tresbolillo, el modelo tiene 520 variables binarias y cerca de $1.6\times10^4$ continuas, y se resuelve con un solver de programación entera mixta con límite de tiempo; la cota inferior reportada mide la brecha del algoritmo memético.
