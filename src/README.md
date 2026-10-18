@@ -1,4 +1,4 @@
-# `refor`: modelo de compra bajo incertidumbre
+# `refor`: modelo de compra bajo incertidumbre y distribución espacial
 
 CLI en C++20 que resuelve el modelo de compra del reporte E2
 (`reports/e2/secciones/modelo-compra.tex`): para cada polígono, cuántas plantas
@@ -35,14 +35,29 @@ Los datos de entrada son los CSV de `data/processed/` (`especies.csv`,
 # Factibilidad en la rejilla α × B
 ./build/refor barrido --alphas 0.05,0.20 --B-min 13000 --B-max 16000 --B-paso 250
 
-# Cualquier subcomando: -f csv|json -o archivo, --help para ver todo
-./build/refor compra -f csv -o compra.csv
+# Orquestador: compra para un (α, B) y mosaico memético con esa composición
+./build/refor plan --alpha 0.05 -B 15000
+
+# Cualquier subcomando: -f tabla|csv|json, --help para ver todo
+./build/refor compra -f csv            # escribe docs/res/compra.csv
+./build/refor frontera -o -            # a la terminal en lugar de docs/res/
 ```
+
+Los resultados se escriben en `docs/res/` (ignorada por git; se regeneran con
+la CLI): `compra`, `barrido` y `frontera` en `docs/res/<subcomando>.<ext>`
+(`-o` cambia la ruta, `--dir` el directorio), y `plan` en `docs/res/plan/`:
+`compra.<ext>`, `espacial.<ext>` y, con `-f csv`, `mosaicos.csv` con la clave de
+plantación en formato largo.
 
 Opciones comunes: `--theta` (sobrecosto logístico, 0.05), `--delta` (desviación
 máxima respecto al plan, 0.10), `-K` (escenarios, 10,000), `--semilla` (42),
 `--metodo mc|exacto`, `--hilos`. Con la misma semilla, el resultado es idéntico
 sin importar el número de hilos ni la plataforma.
+
+Opciones de `plan`: `--filas`/`--columnas` del mosaico (4 × 13 = 52 posiciones,
+mínimo 3 por lado), `--corridas` (30), `--poblacion` (20), `--generaciones`
+(1,000), `--sin-mejora` (100), `--tabu-iter` (500) y `--competencia` (por
+defecto `<datos>/competencia.csv`).
 
 ## Modelo implementado
 
@@ -59,6 +74,11 @@ sin importar el número de hilos ni la plataforma.
   $\sum_s n_s=\text{round}(658A_i)$. Una DP exacta da el óptimo sin
   presupuesto y la compra mínima $B^*$; HiGHS resuelve el MILP solo cuando el
   presupuesto queda entre ambos.
+- **Distribución espacial** (`plan.cpp`, `memetico/`): las plantas $x_s$ de
+  cada polígono se reparten en el mosaico por mayor residuo. Los polígonos con
+  la misma composición comparten mosaico, y cada uno se resuelve con 30
+  corridas del memético (semillas derivadas, en paralelo). Se reportan la
+  mejor competencia, media ± d.e. y el coeficiente respecto al azar.
 
 ## Estructura
 
@@ -70,5 +90,7 @@ sin importar el número de hilos ni la plataforma.
 | `exacto.*` | Curva exacta con la binomial |
 | `mochila.*` | DP y MILP (HiGHS) |
 | `modelo.*` | Cálculo paralelo de curvas y resolución por polígono |
+| `memetico/*` | Mosaico, matriz W, búsqueda tabú y algoritmo memético |
+| `plan.*` | Orquestación compra → composición → memético |
 | `salida.*` | Tabla, CSV y JSON |
 | `main.cpp` | Subcomandos de la CLI |
