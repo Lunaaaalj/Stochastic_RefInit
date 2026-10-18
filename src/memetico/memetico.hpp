@@ -1,4 +1,3 @@
-@'
 #pragma once
 
 #include <cstdint>
@@ -57,4 +56,3 @@ ResultadoMemetico ejecutar_memetico(const std::vector<int>& m_s, const Mosaico& 
                            const ParametrosMemetico& p, std::optional<Individuo> linea_base = std::nullopt);
 
 }  // namespace refor::memetico
-'@ | Set-Content -Path "src\memetico\memetico.hpp" -Encoding utf8
