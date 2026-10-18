@@ -153,3 +153,53 @@ TEST_CASE("memetico corre un ejercicio chico y regresa una solución válida", "
   CHECK(conteo == m_s);
   CHECK(r.competencia == Catch::Approx(competencia_total(r.mejor, m, w)));
 }
+TEST_CASE("memetico registra la historia y avisa cada generación", "[memetico]") {
+  const Datos d = cargar_datos(REFOR_DATOS_DIR);
+  const Competencia w = cargar_competencia(d);
+  Mosaico m(7, 3);
+  std::vector<int> m_s(d.especies.size(), 0);
+  m_s[0] = 6;
+  m_s[1] = 8;
+  m_s[5] = 7;
+
+  ParametrosMemetico p;
+  p.poblacion = 5;
+  p.generaciones_max = 20;
+  p.generaciones_sin_mejora_max = 20;
+  p.tabu.iteraciones_sin_mejora = 30;
+  p.semilla = 9;
+  int avisos = 0, ultima = 0;
+  p.al_generar = [&](int gen, double) {
+    ++avisos;
+    ultima = gen;
+  };
+
+  const auto r = ejecutar_memetico(m_s, m, w, p);
+  REQUIRE(r.historia.size() == static_cast<std::size_t>(r.generaciones + 1));
+  for (std::size_t g = 1; g < r.historia.size(); ++g) CHECK(r.historia[g] <= r.historia[g - 1]);
+  CHECK(r.historia.back() == Catch::Approx(r.competencia));
+  CHECK(avisos == r.generaciones);
+  CHECK(ultima == r.generaciones);
+  CHECK_FALSE(r.cancelado);
+}
+
+TEST_CASE("memetico cancelado termina sin generaciones con una solución válida", "[memetico]") {
+  const Datos d = cargar_datos(REFOR_DATOS_DIR);
+  const Competencia w = cargar_competencia(d);
+  Mosaico m(4, 13);
+  std::vector<int> m_s(d.especies.size(), 0);
+  m_s[0] = 20;
+  m_s[1] = 32;
+
+  const std::atomic<bool> cancelar{true};
+  ParametrosMemetico p;
+  p.cancelar = &cancelar;
+  const auto r = ejecutar_memetico(m_s, m, w, p);
+
+  CHECK(r.cancelado);
+  CHECK(r.generaciones == 0);
+  std::vector<int> conteo(d.especies.size(), 0);
+  for (int s : r.mejor) ++conteo[s];
+  CHECK(conteo == m_s);
+  CHECK(r.competencia == Catch::Approx(competencia_total(r.mejor, m, w)));
+}
