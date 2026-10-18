@@ -5,7 +5,31 @@ El segundo nivel asigna las plantas adquiridas en la \cref{sec:modelo-compra} a 
 
 \paragraph{Retícula} En pendientes superiores al 20\% se emplea el tresbolillo, una retícula triangular con seis vecinas equidistantes por posición que reduce la erosión; en pendientes menores, el arreglo en cuadros, con cuatro vecinas ortogonales y cuatro diagonales de menor peso por su mayor distancia. La configuración determina la competencia mínima alcanzable: \textit{A.~salmiana}, cercana al 28\% de la plantación, puede aislarse de sus congéneres al tresbolillo, pero no en cuadros.
 
-\paragraph{Matriz de competencia} Una matriz simétrica cuantifica, para cada par de especies, la penalización por ocupar posiciones vecinas; su diagonal representa la competencia intraespecífica. Se construirá con funciones de correlación de pares bivariadas sobre la distribución de las plantas establecidas, que indican asociación o segregación entre especies \autocite{wiegand2014}, complementadas con literatura ecológica del matorral desértico. El método de solución no depende de sus valores, lo que permite analizar la sensibilidad a distintas estimaciones.
+\paragraph{Matriz de competencia} Una matriz simétrica cuantifica, para cada par de especies, la penalización por ocupar posiciones vecinas; su diagonal representa la competencia intraespecífica. Se construirá con funciones de correlación de pares bivariadas sobre la distribución de las plantas establecidas, que indican asociación o segregación entre especies \autocite{wiegand2014}, complementadas con literatura ecológica del matorral desértico. La \cref{tab:matriz-competencia} presenta la estimación preliminar: el valor 1 corresponde a ausencia de penalización, los valores mayores que 1 a penalización y los menores que 1 a una interacción favorable. Solo cinco pares superan la unidad, todos intraespecíficos (\textit{P.~laevigata}, \textit{O.~streptacantha}, \textit{Y.~filifera}, \textit{A.~salmiana} y \textit{O.~engelmannii}), y \textit{P.~laevigata} presenta los valores más bajos con el resto de las especies. Como cada arista aporta exactamente un término al objetivo, la asignación óptima es invariante ante cualquier transformación afín positiva de la matriz, de modo que su reescalamiento no altera la solución.
+
+\begin{table}[t]
+\centering
+\caption{Matriz de competencia $W_{ab}$ preliminar. ALE: \textit{A.~lechuguilla}; ASA: \textit{A.~salmiana}; ASC: \textit{A.~scabra}; AST: \textit{A.~striata}; OCA: \textit{O.~cantabrigiensis}; OEN: \textit{O.~engelmannii}; ORO: \textit{O.~robusta}; OST: \textit{O.~streptacantha}; PLA: \textit{P.~laevigata}; YFI: \textit{Y.~filifera}. En negritas, los valores mayores que 1.}
+\label{tab:matriz-competencia}
+\scriptsize
+\setlength{\tabcolsep}{2.4pt}
+\begin{tabular}{@{}lrrrrrrrrrr@{}}
+\toprule
+ & ALE & ASA & ASC & AST & OCA & OEN & ORO & OST & PLA & YFI \\
+\midrule
+ALE & 0.20 & 0.50 & 0.30 & 0.21 & 0.30 & 0.42 & 0.24 & 0.54 & 0.20 & 0.49 \\
+ASA & 0.50 & \textbf{1.29} & 0.67 & 0.57 & 0.67 & 0.79 & 0.61 & 0.90 & 0.20 & 0.82 \\
+ASC & 0.30 & 0.67 & 0.72 & 0.38 & 0.48 & 0.60 & 0.42 & 0.71 & 0.20 & 0.65 \\
+AST & 0.21 & 0.57 & 0.38 & 0.43 & 0.38 & 0.50 & 0.32 & 0.62 & 0.20 & 0.56 \\
+OCA & 0.30 & 0.67 & 0.48 & 0.38 & 0.72 & 0.60 & 0.42 & 0.72 & 0.17 & 0.63 \\
+OEN & 0.42 & 0.79 & 0.60 & 0.50 & 0.60 & \textbf{1.07} & 0.54 & 0.84 & 0.17 & 0.74 \\
+ORO & 0.24 & 0.61 & 0.42 & 0.32 & 0.42 & 0.54 & 0.54 & 0.66 & 0.17 & 0.58 \\
+OST & 0.54 & 0.90 & 0.71 & 0.62 & 0.72 & 0.84 & 0.66 & \textbf{1.43} & 0.17 & 0.84 \\
+PLA & 0.20 & 0.20 & 0.20 & 0.20 & 0.17 & 0.17 & 0.17 & 0.17 & \textbf{1.50} & 0.45 \\
+YFI & 0.49 & 0.82 & 0.65 & 0.56 & 0.63 & 0.74 & 0.58 & 0.84 & 0.45 & \textbf{1.43} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \paragraph{Planteamiento} La optimización se realiza sobre un mosaico de pocas decenas de posiciones con bordes periódicos, que la cuadrilla replica sobre el polígono como una tabla de claves de especie. El objetivo es la competencia total, suma sobre los pares de posiciones vecinas de la penalización de sus especies ponderada por la distancia. Se reporta además un coeficiente de competencia, cociente entre la competencia de la asignación y su valor esperado bajo una asignación aleatoria de igual composición, de modo que valores menores que uno indican una reducción respecto al azar. El problema es una coloración de vértices con penalización, NP-difícil \autocite{eisenblatter2002}, y se resuelve con dos métodos que comparten el objetivo: un algoritmo memético y un modelo de programación entera cuyo óptimo, o cota inferior, mide la brecha del primero. La secuencia vigente de 21 posiciones sirve de línea base.
 
