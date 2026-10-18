@@ -7,7 +7,9 @@
 #include "datos.hpp"
 #include "memetico/competencia.hpp"
 #include "memetico/individuo.hpp"
+#include "memetico/memetico.hpp"
 #include "memetico/mosaico.hpp"
+#include "memetico/tabu.hpp"
 
 using namespace refor;
 using namespace refor::memetico;
@@ -57,4 +59,97 @@ TEST_CASE("la competencia esperada aleatoria es simétrica en la composición", 
 
   Individuo ind(m.num_posiciones(), 0);
   CHECK(competencia_total(ind, m, w) == Catch::Approx(libre));
+}
+
+
+namespace {
+
+Competencia cargar_competencia(const Datos& d) {
+  return Competencia(d, std::filesystem::path(REFOR_DATOS_DIR) / "competencia.csv");
+}
+
+}  // namespace
+
+TEST_CASE("trasladar y distancia_traslacion reconocen el mismo esquema desplazado", "[memetico]") {
+  Mosaico m(7, 3);
+  const Datos d = cargar_datos(REFOR_DATOS_DIR);
+  std::mt19937_64 rng(1);
+  std::vector<int> m_s(d.especies.size(), 0);
+  m_s[0] = 10;
+  m_s[1] = 11;
+  const Individuo a = individuo_aleatorio(m_s, m.num_posiciones(), rng);
+  const Individuo b = trasladar(a, m, 2, 1);
+
+  CHECK(distancia_traslacion(a, b, m) == 0);
+  CHECK(distancia_traslacion(a, a, m) == 0);
+}
+
+TEST_CASE("busqueda_tabu nunca empeora la solución inicial", "[memetico]") {
+  const Datos d = cargar_datos(REFOR_DATOS_DIR);
+  const Competencia w = cargar_competencia(d);
+  Mosaico m(7, 3);
+  std::vector<int> m_s(d.especies.size(), 0);
+  m_s[0] = 7;
+  m_s[1] = 7;
+  m_s[2] = 7;
+
+  std::mt19937_64 rng(7);
+  Individuo ind = individuo_aleatorio(m_s, m.num_posiciones(), rng);
+  const double inicial = competencia_total(ind, m, w);
+
+  ParametrosTabu p;
+  p.iteraciones_sin_mejora = 100;
+  const double final = busqueda_tabu(ind, m, w, p, rng);
+
+  CHECK(final <= inicial + 1e-9);
+  CHECK(final == Catch::Approx(competencia_total(ind, m, w)));
+}
+
+TEST_CASE("cruzar produce un hijo con la composición exacta de m_s", "[memetico]") {
+  const Datos d = cargar_datos(REFOR_DATOS_DIR);
+  const Competencia w = cargar_competencia(d);
+  Mosaico m(7, 3);
+  std::vector<int> m_s(d.especies.size(), 0);
+  m_s[0] = 8;
+  m_s[3] = 6;
+  m_s[7] = 7;
+
+  std::mt19937_64 rng(3);
+  const Individuo p1 = individuo_aleatorio(m_s, m.num_posiciones(), rng);
+  const Individuo p2 = individuo_aleatorio(m_s, m.num_posiciones(), rng);
+  const Individuo hijo = cruzar(p1, p2, m_s, m, w, rng);
+
+  REQUIRE(hijo.size() == static_cast<std::size_t>(m.num_posiciones()));
+  std::vector<int> conteo(d.especies.size(), 0);
+  for (int s : hijo) {
+    REQUIRE(s >= 0);
+    ++conteo[s];
+  }
+  CHECK(conteo == m_s);
+}
+
+TEST_CASE("memetico corre un ejercicio chico y regresa una solución válida", "[memetico]") {
+  const Datos d = cargar_datos(REFOR_DATOS_DIR);
+  const Competencia w = cargar_competencia(d);
+  Mosaico m(7, 3);  // 21 posiciones
+  std::vector<int> m_s(d.especies.size(), 0);
+  m_s[0] = 3;
+  m_s[1] = 4;
+  m_s[4] = 5;
+  m_s[8] = 9;
+
+  ParametrosMemetico p;
+  p.poblacion = 6;
+  p.generaciones_max = 30;
+  p.generaciones_sin_mejora_max = 15;
+  p.tabu.iteraciones_sin_mejora = 50;
+  p.semilla = 123;
+
+  const auto r = ejecutar_memetico(m_s, m, w, p);
+
+  REQUIRE(r.mejor.size() == static_cast<std::size_t>(m.num_posiciones()));
+  std::vector<int> conteo(d.especies.size(), 0);
+  for (int s : r.mejor) ++conteo[s];
+  CHECK(conteo == m_s);
+  CHECK(r.competencia == Catch::Approx(competencia_total(r.mejor, m, w)));
 }
