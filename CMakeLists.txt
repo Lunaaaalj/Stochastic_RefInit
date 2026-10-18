@@ -42,6 +42,7 @@ add_library(refor_core
   src/mochila.cpp
   src/modelo.cpp
   src/salida.cpp
+  src/plan.cpp
   src/memetico/mosaico.cpp
   src/memetico/competencia.cpp
   src/memetico/individuo.cpp
@@ -69,7 +70,8 @@ if(REFOR_TESTS)
     tests/test_datos.cpp
     tests/test_simulacion.cpp
     tests/test_mochila.cpp
-    tests/test_memetico.cpp)
+    tests/test_memetico.cpp
+    tests/test_plan.cpp)
   target_link_libraries(refor_tests PRIVATE refor_core Catch2::Catch2WithMain)
   target_compile_definitions(refor_tests PRIVATE
     REFOR_DATOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data/processed")
