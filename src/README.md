@@ -59,6 +59,31 @@ mínimo 3 por lado), `--corridas` (30), `--poblacion` (20), `--generaciones`
 (1,000), `--sin-mejora` (100), `--tabu-iter` (500) y `--competencia` (por
 defecto `<datos>/competencia.csv`).
 
+## Interfaz gráfica
+
+`refor_gui` es una app de escritorio (Dear ImGui + ImPlot sobre GLFW y OpenGL)
+para configurar el modelo, ejecutarlo sin bloquear la ventana y explorar los
+resultados. Se compila por defecto (`-DREFOR_GUI=OFF` para omitirla); GLFW se
+toma del sistema (`brew install glfw`, `apt install libglfw3-dev`) o se
+descarga. Se corre desde la raíz del repo:
+
+```bash
+./build/refor_gui                 # o ./build/refor_gui otro/directorio/de/datos
+```
+
+- **Configuración**: datos, polígonos, parámetros de la compra y del memético;
+  *Ejecutar plan* con barra de avance y *Cancelar*; *Guardar* escribe
+  `docs/res/plan/` en txt, csv y json.
+- **Mosaico**: la clave de plantación en hexágonos, coloreada por género
+  (Agave, Opuntia, Otras) o por competencia local; grafo de vecindad pesado
+  por W, réplica 3 × 3 para ver el borde periódico, detalle al pasar el ratón
+  y la clave como tabla para copiar.
+- **Compra**: tabla ordenable por polígono, detalle por especie y plantas por
+  género.
+- **Convergencia**: mejor competencia por generación de cada corrida y
+  distribución de los resultados.
+- **Matriz de competencia**, **Frontera B\*(α)** y **Barrido α × B**.
+
 ## Modelo implementado
 
 - Las plantas existentes $E_{is}$ son los **conteos observados**. La única
@@ -94,3 +119,4 @@ defecto `<datos>/competencia.csv`).
 | `plan.*` | Orquestación compra → composición → memético |
 | `salida.*` | Tabla, CSV y JSON |
 | `main.cpp` | Subcomandos de la CLI |
+| `../gui/*` | Interfaz gráfica `refor_gui` (vistas, estilo y trabajos en segundo plano) |
