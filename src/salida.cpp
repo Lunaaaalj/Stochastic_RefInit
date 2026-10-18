@@ -241,7 +241,115 @@ void frontera_json(std::ostream& out, const std::vector<Frontera>& res,
   out << "  ]\n}\n";
 }
 
+// ---------------------------------------------------------------- espacial
+
+// Clave corta de la especie: inicial del género y dos letras del epíteto
+// (Agave salmiana → Asa), que es lo que la cuadrilla lee en campo.
+std::string clave(const std::string& nombre) {
+  const auto esp = nombre.find(' ');
+  if (esp == std::string::npos || esp + 2 >= nombre.size()) return nombre.substr(0, 3);
+  return nombre.substr(0, 1) + nombre.substr(esp + 1, 2);
+}
+
+std::string lista_ids(const std::vector<int>& ids, const char* sep) {
+  std::string s;
+  for (std::size_t i = 0; i < ids.size(); ++i) s += (i ? sep : "") + std::to_string(ids[i]);
+  return s;
+}
+
+void espacial_tabla(std::ostream& out, const Datos& d, const std::vector<Espacial>& res,
+                    const memetico::Mosaico& m, int corridas) {
+  out << std::format("Distribución espacial: mosaico {} × {} ({} posiciones al tresbolillo, borde "
+                     "periódico), {} corridas por mosaico\n",
+                     m.filas(), m.columnas(), m.num_posiciones(), corridas);
+  out << "Claves:";
+  for (const auto& e : d.especies) out << std::format("  {} = {}", clave(e.nombre), e.nombre);
+  out << '\n';
+
+  for (std::size_t g = 0; g < res.size(); ++g) {
+    const auto& r = res[g];
+    out << std::format("\nMosaico {} — polígonos {}\n", g + 1, lista_ids(r.poligonos, ", "));
+    out << "  Composición:";
+    for (std::size_t s = 0; s < r.m_s.size(); ++s)
+      if (r.m_s[s]) out << std::format(" {} {}", clave(d.especies[s].nombre), r.m_s[s]);
+    out << '\n';
+    out << std::format("  Competencia: mejor {:.2f}, media {:.2f} ± {:.2f}, azar {:.2f} → coeficiente "
+                       "{:.3f} (medio {:.3f})\n",
+                       r.mejor_competencia, r.media, r.desviacion, r.esperada, r.coeficiente(),
+                       r.coeficiente_medio());
+    // Cada fila se desplaza media posición: así se ve el tresbolillo.
+    out << "  Clave de plantación:\n";
+    for (int f = 0; f < m.filas(); ++f) {
+      out << std::string(4 + 2 * f, ' ');
+      for (int c = 0; c < m.columnas(); ++c)
+        out << std::format("{}{:<3}", c ? " " : "", clave(d.especies[r.mejor[m.indice(f, c)]].nombre));
+      out << '\n';
+    }
+  }
+}
+
+void espacial_csv(std::ostream& out, const std::vector<Espacial>& res, const memetico::Mosaico& m) {
+  out << "mosaico,poligonos,posiciones,competencia_mejor,competencia_media,desviacion,esperada_azar,"
+         "coeficiente,coeficiente_medio,generaciones_media\n";
+  for (std::size_t g = 0; g < res.size(); ++g) {
+    const auto& r = res[g];
+    out << std::format("{},{},{},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.1f}\n", g + 1,
+                       lista_ids(r.poligonos, ";"), m.num_posiciones(), r.mejor_competencia, r.media,
+                       r.desviacion, r.esperada, r.coeficiente(), r.coeficiente_medio(),
+                       r.generaciones_media);
+  }
+}
+
+void espacial_json(std::ostream& out, const Datos& d, const std::vector<Espacial>& res,
+                   const memetico::Mosaico& m, int corridas) {
+  out << std::format("{{\n  \"filas\": {}, \"columnas\": {}, \"corridas\": {},\n  \"mosaicos\": [\n",
+                     m.filas(), m.columnas(), corridas);
+  for (std::size_t g = 0; g < res.size(); ++g) {
+    const auto& r = res[g];
+    out << std::format("    {{\"mosaico\": {}, \"poligonos\": [{}],\n     \"composicion\": {{", g + 1,
+                       lista_ids(r.poligonos, ", "));
+    bool primero = true;
+    for (std::size_t s = 0; s < r.m_s.size(); ++s) {
+      if (!r.m_s[s]) continue;
+      out << std::format("{}\"{}\": {}", primero ? "" : ", ", d.especies[s].nombre, r.m_s[s]);
+      primero = false;
+    }
+    out << std::format("}},\n     \"competencia_mejor\": {:.4f}, \"competencia_media\": {:.4f}, "
+                       "\"desviacion\": {:.4f}, \"esperada_azar\": {:.4f}, \"coeficiente\": {:.4f},\n"
+                       "     \"clave\": [",
+                       r.mejor_competencia, r.media, r.desviacion, r.esperada, r.coeficiente());
+    for (int f = 0; f < m.filas(); ++f) {
+      out << (f ? ",\n       [" : "\n       [");
+      for (int c = 0; c < m.columnas(); ++c)
+        out << std::format("{}\"{}\"", c ? ", " : "", clave(d.especies[r.mejor[m.indice(f, c)]].nombre));
+      out << ']';
+    }
+    out << (g + 1 < res.size() ? "]},\n" : "]}\n");
+  }
+  out << "  ]\n}\n";
+}
+
 }  // namespace
+
+void escribir_espacial(std::ostream& out, const Datos& datos, const std::vector<Espacial>& res,
+                       const memetico::Mosaico& m, int corridas, Formato f) {
+  switch (f) {
+    case Formato::Tabla: return espacial_tabla(out, datos, res, m, corridas);
+    case Formato::Csv: return espacial_csv(out, res, m);
+    case Formato::Json: return espacial_json(out, datos, res, m, corridas);
+  }
+}
+
+void escribir_mosaicos_csv(std::ostream& out, const Datos& datos, const std::vector<Espacial>& res,
+                           const memetico::Mosaico& m) {
+  out << "mosaico,fila,columna,clave,especie\n";
+  for (std::size_t g = 0; g < res.size(); ++g)
+    for (int f = 0; f < m.filas(); ++f)
+      for (int c = 0; c < m.columnas(); ++c) {
+        const auto& e = datos.especies[res[g].mejor[m.indice(f, c)]];
+        out << std::format("{},{},{},{},{}\n", g + 1, f, c, clave(e.nombre), e.nombre);
+      }
+}
 
 void escribir_barrido(std::ostream& out, const std::vector<Resultado>& res,
                       const std::vector<double>& alfas, const std::vector<double>& Bs, Formato f) {

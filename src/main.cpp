@@ -1,10 +1,13 @@
-// refor: modelo de compra de plantas bajo incertidumbre (reporte E2).
+// refor: modelo de compra de plantas bajo incertidumbre y su distribución
+// espacial (reporte E2). Los resultados se escriben en docs/res/.
 //
 //   refor compra   --alpha 0.05 --B 12500      compra por polígono y especie
 //   refor barrido  --alphas ... --B-min ...    factibilidad en la rejilla α × B
 //   refor frontera --alphas ...                presupuesto mínimo B*(α)
+//   refor plan     --alpha 0.05 --B 12500      compra + mosaico memético por polígono
 
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -15,12 +18,16 @@
 #include <CLI/CLI.hpp>
 
 #include "datos.hpp"
+#include "memetico/competencia.hpp"
+#include "memetico/mosaico.hpp"
 #include "modelo.hpp"
+#include "plan.hpp"
 #include "salida.hpp"
 
 namespace {
 
 using namespace refor;
+namespace fs = std::filesystem;
 
 struct Comunes {
   std::string datos_dir = "data/processed";
@@ -28,6 +35,7 @@ struct Comunes {
   std::string formato = "tabla";
   std::string metodo = "mc";
   std::string salida;
+  std::string dir_res = "docs/res";
   Parametros p;
 };
 
@@ -53,7 +61,13 @@ void agregar_comunes(CLI::App* cmd, Comunes& c) {
   cmd->add_option("-f,--formato", c.formato, "Formato de salida")
       ->check(CLI::IsMember({"tabla", "csv", "json"}))
       ->capture_default_str();
-  cmd->add_option("-o,--salida", c.salida, "Archivo de salida (por defecto, la terminal)");
+  cmd->add_option("--dir", c.dir_res, "Directorio de resultados")->capture_default_str();
+}
+
+// Solo para los subcomandos que producen un archivo; plan escribe varios en --dir.
+void agregar_salida(CLI::App* cmd, Comunes& c) {
+  cmd->add_option("-o,--salida", c.salida,
+                  "Archivo de salida (por defecto, <dir>/<subcomando>.<ext>; '-' para la terminal)");
 }
 
 std::vector<int> elegir_poligonos(const Datos& d, const std::string& spec) {
@@ -83,37 +97,91 @@ void validar_alfas(const std::vector<double>& alfas) {
   }
 }
 
-// Escribe en el archivo pedido o en la terminal.
+std::string extension(Formato f) {
+  switch (f) {
+    case Formato::Tabla: return ".txt";
+    case Formato::Csv: return ".csv";
+    case Formato::Json: return ".json";
+  }
+  return "";
+}
+
+// Escribe en la terminal si la ruta es "-"; si no, en el archivo (creando sus
+// directorios).
 template <class F>
-void emitir(const std::string& ruta, F&& escribir) {
-  if (ruta.empty()) return escribir(std::cout);
+void emitir(const fs::path& ruta, F&& escribir) {
+  if (ruta == "-") return escribir(std::cout);
+  if (ruta.has_parent_path()) fs::create_directories(ruta.parent_path());
   std::ofstream out(ruta);
-  if (!out) throw std::runtime_error("no se pudo escribir " + ruta);
+  if (!out) throw std::runtime_error("no se pudo escribir " + ruta.string());
   escribir(out);
-  std::cerr << "Resultados escritos en " << ruta << '\n';
+  std::cerr << "Resultados escritos en " << ruta.string() << '\n';
+}
+
+// La ruta pedida con -o o, por defecto, <dir>/<nombre>.<ext>.
+fs::path ruta_de(const Comunes& c, const std::string& nombre, Formato f) {
+  if (!c.salida.empty()) return c.salida;
+  return fs::path(c.dir_res) / (nombre + extension(f));
 }
 
 }  // namespace
 
 int main(int argc, char** argv) {
-  CLI::App app{"Modelo de compra de plantas para reforestación bajo incertidumbre (E2)"};
+  CLI::App app{"Compra de plantas bajo incertidumbre y su distribución espacial (E2)"};
   app.require_subcommand(1);
 
   Comunes c;
   double alfa = 0.05, B = 12'500;
   std::vector<double> alfas{0.01, 0.02, 0.05, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50};
   double B_min = 12'000, B_max = 17'000, B_paso = 250;
+  ParametrosEspacial pe;
+  std::string competencia_csv;
+
+  auto agregar_alfa_B = [&](CLI::App* cmd) {
+    cmd->add_option("-a,--alpha", alfa, "Riesgo admisible de no alcanzar la meta de una especie")
+        ->capture_default_str();
+    cmd->add_option("-B,--presupuesto", B, "Presupuesto por hectárea ($)")
+        ->check(CLI::PositiveNumber)
+        ->capture_default_str();
+  };
 
   auto* compra = app.add_subcommand("compra", "Compra óptima por polígono y especie para un (α, B)");
   agregar_comunes(compra, c);
-  compra->add_option("-a,--alpha", alfa, "Riesgo admisible de no alcanzar la meta de una especie")
+  agregar_salida(compra, c);
+  agregar_alfa_B(compra);
+
+  auto* plan = app.add_subcommand(
+      "plan", "Orquesta ambos niveles: compra para un (α, B) y mosaico memético con esa composición");
+  agregar_comunes(plan, c);
+  agregar_alfa_B(plan);
+  plan->add_option("--competencia", competencia_csv, "Matriz W (por defecto, <datos>/competencia.csv)");
+  // Con menos de 3 en una dirección, el borde periódico repite vecinas.
+  plan->add_option("--filas", pe.filas, "Filas del mosaico (coordenada axial q)")
+      ->check(CLI::Range(3, 100))
       ->capture_default_str();
-  compra->add_option("-B,--presupuesto", B, "Presupuesto por hectárea ($)")
+  plan->add_option("--columnas", pe.columnas, "Columnas del mosaico (coordenada axial r)")
+      ->check(CLI::Range(3, 100))
+      ->capture_default_str();
+  plan->add_option("--corridas", pe.corridas, "Corridas independientes del memético por mosaico")
+      ->check(CLI::PositiveNumber)
+      ->capture_default_str();
+  plan->add_option("--poblacion", pe.memetico.poblacion, "Tamaño de la población P")
+      ->check(CLI::Range(2, 1000))
+      ->capture_default_str();
+  plan->add_option("--generaciones", pe.memetico.generaciones_max, "Generaciones máximas")
+      ->check(CLI::PositiveNumber)
+      ->capture_default_str();
+  plan->add_option("--sin-mejora", pe.memetico.generaciones_sin_mejora_max, "Generaciones sin mejora para parar")
+      ->check(CLI::PositiveNumber)
+      ->capture_default_str();
+  plan->add_option("--tabu-iter", pe.memetico.tabu.iteraciones_sin_mejora,
+                   "Iteraciones sin mejora para parar la búsqueda tabú")
       ->check(CLI::PositiveNumber)
       ->capture_default_str();
 
   auto* barrido = app.add_subcommand("barrido", "Factibilidad y costo en la rejilla α × B");
   agregar_comunes(barrido, c);
+  agregar_salida(barrido, c);
   barrido->add_option("--alphas", alfas, "Valores de α separados por comas")
       ->delimiter(',')
       ->capture_default_str();
@@ -125,6 +193,7 @@ int main(int argc, char** argv) {
 
   auto* frontera = app.add_subcommand("frontera", "Presupuesto mínimo factible B*(α)");
   agregar_comunes(frontera, c);
+  agregar_salida(frontera, c);
   frontera->add_option("--alphas", alfas, "Valores de α separados por comas")
       ->delimiter(',')
       ->capture_default_str();
@@ -136,7 +205,7 @@ int main(int argc, char** argv) {
     const std::vector<int> ids = elegir_poligonos(datos, c.poligonos);
     c.p.metodo = c.metodo == "exacto" ? Metodo::Exacto : Metodo::MonteCarlo;
     const Formato fmt = formato_de(c.formato);
-    if (compra->parsed()) alfas = {alfa};
+    if (compra->parsed() || plan->parsed()) alfas = {alfa};
     validar_alfas(alfas);
     if (barrido->parsed() && B_max < B_min) {
       throw CLI::ValidationError("--B-max", "debe ser mayor o igual que --B-min");
@@ -152,7 +221,30 @@ int main(int argc, char** argv) {
     if (compra->parsed()) {
       std::vector<Resultado> res;
       for (const auto& cp : curvas) res.push_back(resolver_poligono(datos, cp, 0, alfa, B, c.p.theta));
-      emitir(c.salida, [&](std::ostream& o) { escribir_compra(o, datos, res, fmt); });
+      emitir(ruta_de(c, "compra", fmt), [&](std::ostream& o) { escribir_compra(o, datos, res, fmt); });
+    } else if (plan->parsed()) {
+      // Nivel 1: compra. Nivel 2: su composición, distribuida en el mosaico.
+      std::vector<Resultado> compras;
+      for (const auto& cp : curvas) compras.push_back(resolver_poligono(datos, cp, 0, alfa, B, c.p.theta));
+
+      const fs::path w_csv = competencia_csv.empty() ? fs::path(c.datos_dir) / "competencia.csv" : fs::path(competencia_csv);
+      const memetico::Competencia w(datos, w_csv);
+      const memetico::Mosaico m(pe.filas, pe.columnas);
+      pe.semilla = c.p.semilla;
+      pe.hilos = c.p.hilos;
+
+      const auto t1 = std::chrono::steady_clock::now();
+      const auto espacial = resolver_espacial(compras, m, w, pe);
+      const double seg_esp = std::chrono::duration<double>(std::chrono::steady_clock::now() - t1).count();
+      std::cerr << "Memético: " << espacial.size() << " mosaicos distintos × " << pe.corridas << " corridas en "
+                << seg_esp << " s\n";
+
+      const fs::path dir = fs::path(c.dir_res) / "plan";
+      emitir(dir / ("compra" + extension(fmt)), [&](std::ostream& o) { escribir_compra(o, datos, compras, fmt); });
+      emitir(dir / ("espacial" + extension(fmt)),
+             [&](std::ostream& o) { escribir_espacial(o, datos, espacial, m, pe.corridas, fmt); });
+      if (fmt == Formato::Csv)
+        emitir(dir / "mosaicos.csv", [&](std::ostream& o) { escribir_mosaicos_csv(o, datos, espacial, m); });
     } else if (barrido->parsed()) {
       std::vector<double> Bs;
       for (double b = B_min; b <= B_max + 1e-9; b += B_paso) Bs.push_back(b);
@@ -160,12 +252,12 @@ int main(int argc, char** argv) {
       for (std::size_t a = 0; a < alfas.size(); ++a)
         for (double b : Bs)
           for (const auto& cp : curvas) res.push_back(resolver_poligono(datos, cp, a, alfas[a], b, c.p.theta));
-      emitir(c.salida, [&](std::ostream& o) { escribir_barrido(o, res, alfas, Bs, fmt); });
+      emitir(ruta_de(c, "barrido", fmt), [&](std::ostream& o) { escribir_barrido(o, res, alfas, Bs, fmt); });
     } else {
       std::vector<Frontera> res;
       for (std::size_t a = 0; a < alfas.size(); ++a)
         for (const auto& cp : curvas) res.push_back(frontera_poligono(datos, cp, a, alfas[a], c.p.theta));
-      emitir(c.salida, [&](std::ostream& o) { escribir_frontera(o, res, alfas, fmt); });
+      emitir(ruta_de(c, "frontera", fmt), [&](std::ostream& o) { escribir_frontera(o, res, alfas, fmt); });
     }
   } catch (const CLI::Error& e) {
     return app.exit(e);
