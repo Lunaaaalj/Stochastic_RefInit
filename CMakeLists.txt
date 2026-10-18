@@ -41,7 +41,10 @@ add_library(refor_core
   src/exacto.cpp
   src/mochila.cpp
   src/modelo.cpp
-  src/salida.cpp)
+  src/salida.cpp
+  src/memetico/mosaico.cpp
+  src/memetico/competencia.cpp
+  src/memetico/individuo.cpp)
 target_include_directories(refor_core PUBLIC src)
 target_link_libraries(refor_core PUBLIC highs::highs)
 target_compile_options(refor_core PRIVATE -Wall -Wextra -Wpedantic)
@@ -63,7 +66,8 @@ if(REFOR_TESTS)
   add_executable(refor_tests
     tests/test_datos.cpp
     tests/test_simulacion.cpp
-    tests/test_mochila.cpp)
+    tests/test_mochila.cpp
+    tests/test_memetico.cpp)
   target_link_libraries(refor_tests PRIVATE refor_core Catch2::Catch2WithMain)
   target_compile_definitions(refor_tests PRIVATE
     REFOR_DATOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data/processed")
