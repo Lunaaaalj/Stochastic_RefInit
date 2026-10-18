@@ -133,6 +133,9 @@ ResultadoMemetico ejecutar_memetico(const std::vector<int>& m_s, const Mosaico& 
                            const ParametrosMemetico& p, std::optional<Individuo> linea_base) {
   std::mt19937_64 rng(p.semilla);
   std::uniform_int_distribution<int> torneo(0, p.poblacion - 1);
+  ParametrosTabu pt = p.tabu;
+  if (p.cancelar) pt.cancelar = p.cancelar;
+  auto cancelado = [&] { return p.cancelar && p.cancelar->load(std::memory_order_relaxed); };
 
   std::vector<Individuo> pob;
   std::vector<double> aptitud;
@@ -141,12 +144,12 @@ ResultadoMemetico ejecutar_memetico(const std::vector<int>& m_s, const Mosaico& 
 
   if (linea_base) {
     Individuo base = *linea_base;
-    aptitud.push_back(busqueda_tabu(base, m, w, p.tabu, rng));
+    aptitud.push_back(busqueda_tabu(base, m, w, pt, rng));
     pob.push_back(std::move(base));
   }
   while (static_cast<int>(pob.size()) < p.poblacion) {
     Individuo ind = individuo_aleatorio(m_s, m.num_posiciones(), rng);
-    aptitud.push_back(busqueda_tabu(ind, m, w, p.tabu, rng));
+    aptitud.push_back(busqueda_tabu(ind, m, w, pt, rng));
     pob.push_back(std::move(ind));
   }
 
@@ -154,8 +157,9 @@ ResultadoMemetico ejecutar_memetico(const std::vector<int>& m_s, const Mosaico& 
   Individuo mejor_global = pob[mejor_idx];
   double mejor_valor = aptitud[mejor_idx];
 
+  std::vector<double> historia{mejor_valor};
   int gen = 0, sin_mejora = 0;
-  for (; gen < p.generaciones_max && sin_mejora < p.generaciones_sin_mejora_max; ++gen) {
+  for (; gen < p.generaciones_max && sin_mejora < p.generaciones_sin_mejora_max && !cancelado(); ++gen) {
     auto elegir_padre = [&] {
       const int i = torneo(rng), j = torneo(rng);
       return aptitud[i] <= aptitud[j] ? i : j;
@@ -163,7 +167,7 @@ ResultadoMemetico ejecutar_memetico(const std::vector<int>& m_s, const Mosaico& 
     const int i1 = elegir_padre(), i2 = elegir_padre();
 
     Individuo hijo = cruzar(pob[i1], pob[i2], m_s, m, w, rng);
-    const double apt_hijo = busqueda_tabu(hijo, m, w, p.tabu, rng);
+    const double apt_hijo = busqueda_tabu(hijo, m, w, pt, rng);
 
     const int idx_peor = static_cast<int>(std::max_element(aptitud.begin(), aptitud.end()) - aptitud.begin());
     const bool mejora = apt_hijo < aptitud[idx_peor];
@@ -188,9 +192,11 @@ ResultadoMemetico ejecutar_memetico(const std::vector<int>& m_s, const Mosaico& 
     } else {
       ++sin_mejora;
     }
+    historia.push_back(mejor_valor);
+    if (p.al_generar) p.al_generar(gen + 1, mejor_valor);
   }
 
-  return {mejor_global, mejor_valor, gen};
+  return {mejor_global, mejor_valor, gen, std::move(historia), cancelado()};
 }
 
 }  // namespace refor::memetico

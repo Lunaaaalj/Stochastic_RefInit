@@ -1,6 +1,8 @@
 #pragma once
 
+#include <atomic>
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <random>
 #include <vector>
@@ -18,12 +20,21 @@ struct ParametrosMemetico {
   int generaciones_sin_mejora_max = 100;
   ParametrosTabu tabu;
   std::uint64_t semilla = 0;
+  // Se llama al final de cada generación con la mejor competencia hasta ahí.
+  std::function<void(int generacion, double mejor)> al_generar;
+  // Si apunta a true, el run para en la siguiente generación (y la búsqueda
+  // tabú en curso, en su siguiente iteración) y devuelve lo mejor que tenga.
+  const std::atomic<bool>* cancelar = nullptr;
 };
 
 struct ResultadoMemetico {
   Individuo mejor;
   double competencia;
   int generaciones;
+  // historia[g]: mejor competencia al terminar la generación g; historia[0]
+  // es la de la población inicial, así que tiene generaciones + 1 valores.
+  std::vector<double> historia;
+  bool cancelado = false;
 };
 
 // Un individuo aleatorio con la composición m_s dada (m_s[s] posiciones de
