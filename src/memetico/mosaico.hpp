@@ -17,6 +17,12 @@ class Mosaico {
   Mosaico(int filas, int columnas);
 
   int num_posiciones() const { return filas_ * columnas_; }
+  int filas() const { return filas_; }
+  int columnas() const { return columnas_; }
+
+  // Índice de la posición (fila, columna), resuelto con borde periódico;
+  // acepta coordenadas fuera de rango (negativas incluidas).
+  int indice(int fila, int col) const;
 
   // Las 6 vecinas de una posición, ya resueltas con borde periódico.
   const std::vector<int>& vecinas(int v) const { return vecinas_.at(v); }

@@ -4,13 +4,15 @@ namespace refor::memetico {
 
 namespace {
 
-int indice(int fila, int col, int filas, int columnas) {
+int indice_periodico(int fila, int col, int filas, int columnas) {
   const int f = ((fila % filas) + filas) % filas;
   const int c = ((col % columnas) + columnas) % columnas;
   return f * columnas + c;
 }
 
 }  // namespace
+
+int Mosaico::indice(int fila, int col) const { return indice_periodico(fila, col, filas_, columnas_); }
 
 Mosaico::Mosaico(int filas, int columnas) : filas_(filas), columnas_(columnas) {
   // Las 6 direcciones axiales de una posición en el tresbolillo.
@@ -22,7 +24,7 @@ Mosaico::Mosaico(int filas, int columnas) : filas_(filas), columnas_(columnas) {
   for (int f = 0; f < filas; ++f) {
     for (int c = 0; c < columnas; ++c) {
       const int v = f * columnas + c;
-      for (int k = 0; k < 6; ++k) vecinas_[v].push_back(indice(f + df[k], c + dc[k], filas, columnas));
+      for (int k = 0; k < 6; ++k) vecinas_[v].push_back(indice_periodico(f + df[k], c + dc[k], filas, columnas));
     }
   }
 
