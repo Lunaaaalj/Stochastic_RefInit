@@ -107,7 +107,10 @@ void App::vista_config() {
         const auto& p = datos_->poligonos[i];
         bool b = cfg_.poligonos[i];
         if (ImGui::Checkbox(std::to_string(p.id).c_str(), &b)) cfg_.poligonos[i] = b;
-        ImGui::SetItemTooltip("Polígono %d: %.2f ha", p.id, p.area);
+        if (const int e = etiqueta_mapa(p.id); e >= 0)
+          ImGui::SetItemTooltip("Polígono %d: %.2f ha (número %d en el mapa)", p.id, p.area, e);
+        else
+          ImGui::SetItemTooltip("Polígono %d: %.2f ha", p.id, p.area);
       }
       ImGui::EndTable();
     }

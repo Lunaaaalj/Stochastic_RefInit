@@ -61,7 +61,24 @@ void App::cargar() {
   } catch (const std::exception& e) {
     mensaje_ = std::string("No se pudieron cargar los datos: ") + e.what();
     mensaje_es_error_ = true;
+    return;
   }
+  // El mapa es opcional: si falla, el modelo sigue funcionando sin él.
+  try {
+    mapa_ = cargar_mapa(cfg_.datos_dir);
+    mapa_sel_ = -1;
+    mapa_centro_ = ImVec2(-1, -1);
+    sembrar_mapa();
+  } catch (const std::exception& e) {
+    mapa_.clear();
+    mensaje_ += std::string(" Mapa no disponible: ") + e.what();
+  }
+}
+
+int App::etiqueta_mapa(int id) const {
+  for (const auto& p : mapa_)
+    if (p.id == id) return p.etiqueta;
+  return -1;
 }
 
 std::vector<int> App::ids_seleccionados() const {
@@ -214,6 +231,7 @@ void App::recoger() {
     compra_sel_ = -1;
     mosaico_sel_ = 0;
     orden_compras_.clear();
+    sembrar_mapa();
     bool cancelado = false;
     for (const auto& g : plan_->plan.espacial) cancelado = cancelado || g.cancelado;
     mensaje_ = cancelado ? "Plan cancelado: los mosaicos muestran lo mejor encontrado hasta ese momento."
@@ -289,7 +307,7 @@ void App::layout_inicial(ImGuiID dock) {
   ImGuiID izq = 0, der = 0;
   ImGui::DockBuilderSplitNode(dock, ImGuiDir_Left, 0.26f, &izq, &der);
   ImGui::DockBuilderDockWindow(kConfig, izq);
-  for (const char* v : {kMosaico, kComparacion, kCompra, kConvergencia, kCompetencia, kFrontera, kBarrido})
+  for (const char* v : {kMosaico, kMapa, kComparacion, kCompra, kConvergencia, kCompetencia, kFrontera, kBarrido})
     ImGui::DockBuilderDockWindow(v, der);
   ImGui::DockBuilderFinish(dock);
 }
@@ -308,6 +326,7 @@ void App::cuadro() {
   vista_frontera();
   vista_barrido();
   vista_comparacion();
+  vista_mapa();
   vista_mosaico();  // al final: queda como pestaña activa al abrir
 }
 

@@ -74,6 +74,32 @@ struct Resaltado {
   double local_min = 0, local_max = 0;
 };
 
+// Contorno de un polígono del cerco, trazado sobre la lámina del proyecto
+// (scripts/digitalizar_mapa.py). El mapa numera distinto que el modelo.
+struct PoligonoMapa {
+  int etiqueta;           // número en la lámina
+  int id;                 // id del modelo; -1 si quedó fuera del programa
+  std::vector<ImVec2> v;  // vértices en metros, relativos a la esquina suroeste del cerco
+  ImVec2 rotulo;          // punto interior donde va el número
+  float holgura = 0;      // distancia del rótulo al borde (m)
+  double area = 0;        // área trazada (ha), para contrastar con la tabla
+};
+
+// Un polígono del mapa sembrado con el mosaico de su plan: el mosaico se repite
+// al tresbolillo desde la esquina noroeste, con la distancia entre plantas que
+// hace caber justo las plantas compradas.
+struct PlantacionMapa {
+  float a = 0;                          // distancia entre plantas (m)
+  int grupo = -1;                       // índice en plan.espacial
+  ImVec2 lo, hi;                        // caja del polígono (m)
+  std::vector<ImVec2> pos;              // plantas dentro del polígono (m)
+  std::vector<unsigned char> especie;   // de cada planta, indexada como Datos::especies
+};
+
+// Lee mapa.csv del directorio de datos; vacío si no existe (el mapa es
+// opcional). Lanza std::runtime_error si el archivo está mal formado.
+std::vector<PoligonoMapa> cargar_mapa(const std::string& dir);
+
 struct ResultadoBarrido {
   std::shared_ptr<const Datos> datos;
   std::vector<double> alfas, Bs;
@@ -111,11 +137,17 @@ class App {
   void vista_competencia();
   void vista_frontera();
   void vista_barrido();
+  void vista_mapa();
+  void detalle_mapa(int k);         // configuración del polígono mapa_[k]
+  void sembrar_mapa();              // recalcula plantacion_ con el plan actual
+  int etiqueta_mapa(int id) const;  // número del polígono en la lámina, -1 si no está
 
   Config cfg_;
   std::shared_ptr<const Datos> datos_;
   std::shared_ptr<const memetico::Competencia> w_;
   estilo::Generos generos_;
+  std::vector<PoligonoMapa> mapa_;
+  std::vector<PlantacionMapa> plantacion_;  // paralelo a mapa_; vacío sin plan
   std::string mensaje_;  // último error o aviso, en la barra de configuración
   bool mensaje_es_error_ = false;
 
@@ -131,6 +163,12 @@ class App {
   int color_modo_ = 0;    // 0: género, 1: competencia local
   bool replicar_ = false; // mosaico 3 × 3 para ver el borde periódico
   bool aristas_ = false;  // grafo de vecindad pesado por W
+  int mapa_modo_ = 0;     // 0: selección, 1: existentes/ha, 2: estado, 3: compra $/ha
+  int mapa_sel_ = -1;     // índice en mapa_ del polígono en detalle (si no está en el plan)
+  float mapa_zoom_ = 1;   // 1: todo el cerco a la vista
+  ImVec2 mapa_centro_{-1, -1};  // centro de la vista (m); negativo: sin fijar
+  int mapa_encuadrar_ = -1;     // polígono a encuadrar en el próximo cuadro
+  bool mapa_plantas_ = true;
   std::vector<int> orden_compras_;
   bool layout_hecho_ = false;
 
@@ -150,5 +188,6 @@ inline constexpr const char* kCompetencia = "Matriz de competencia";
 inline constexpr const char* kFrontera = "Frontera B*(α)";
 inline constexpr const char* kBarrido = "Barrido α × B";
 inline constexpr const char* kComparacion = "Memético vs. exacto";
+inline constexpr const char* kMapa = "Mapa del cerco";
 
 }  // namespace refor::gui

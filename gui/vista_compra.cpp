@@ -133,7 +133,10 @@ void App::vista_compra() {
   // Detalle del polígono seleccionado.
   if (compra_sel_ >= 0 && compra_sel_ < static_cast<int>(compras.size())) {
     const auto& c = compras[compra_sel_];
-    ImGui::SeparatorText(std::format("Polígono {} ({:.2f} ha)", c.poligono->id, c.poligono->area).c_str());
+    const int e = etiqueta_mapa(c.poligono->id);
+    ImGui::SeparatorText((std::format("Polígono {} ({:.2f} ha)", c.poligono->id, c.poligono->area) +
+                          (e >= 0 ? std::format(" · número {} en el mapa", e) : ""))
+                             .c_str());
     if (const Solucion* s = reportada(c);
         s && ImGui::BeginTable("especies", 8, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH)) {
       for (const char* h : {"Especie", "Clave", "Existentes E", "Plan n0·A", "Meta n", "Compra x*", "Déficit E[D]", "Costo $"})

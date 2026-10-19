@@ -119,6 +119,7 @@ if(REFOR_GUI)
     gui/vista_compra.cpp
     gui/vista_mosaico.cpp
     gui/vista_comparacion.cpp
+    gui/vista_mapa.cpp
     gui/vista_graficas.cpp)
   target_link_libraries(refor_gui PRIVATE refor_core imgui_lib)
   target_compile_options(refor_gui PRIVATE -Wall -Wextra -Wpedantic)
