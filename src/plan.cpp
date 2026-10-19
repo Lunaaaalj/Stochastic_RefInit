@@ -44,7 +44,10 @@ std::vector<Espacial> resolver_espacial(const std::vector<Resultado>& compras, c
     auto m_s = composicion_mosaico(sol->x, m.num_posiciones());
     if (m_s.empty()) continue;
     auto [it, nuevo] = indice.try_emplace(m_s, grupos.size());
-    if (nuevo) grupos.push_back({std::move(m_s), {}, {}});
+    if (nuevo) {
+      grupos.emplace_back();
+      grupos.back().m_s = std::move(m_s);
+    }
     grupos[it->second].poligonos.push_back(r.poligono->id);
   }
 
@@ -55,7 +58,7 @@ std::vector<Espacial> resolver_espacial(const std::vector<Resultado>& compras, c
   unsigned hilos = p.hilos ? p.hilos : std::max(1u, std::min(std::thread::hardware_concurrency(), 8u));
   hilos = std::min<unsigned>(hilos, static_cast<unsigned>(std::max<std::size_t>(tareas, 1)));
 
-  std::atomic<std::size_t> siguiente{0};
+  std::atomic<std::size_t> siguiente{0}, hechas{0};
   std::exception_ptr error;
   std::mutex mtx;
   auto trabajar = [&] {
@@ -64,7 +67,9 @@ std::vector<Espacial> resolver_espacial(const std::vector<Resultado>& compras, c
         const Espacial& g = grupos[t / R];
         memetico::ParametrosMemetico pm = p.memetico;
         pm.semilla = semilla_derivada(p.semilla, g.poligonos.front(), static_cast<int>(t % R));
+        if (p.cancelar) pm.cancelar = p.cancelar;
         res[t] = memetico::ejecutar_memetico(g.m_s, m, w, pm);
+        if (p.avance) p.avance(++hechas, tareas);
       } catch (...) {
         std::lock_guard lock(mtx);
         if (!error) error = std::current_exception();
@@ -88,6 +93,9 @@ std::vector<Espacial> resolver_espacial(const std::vector<Resultado>& compras, c
 
     double suma = 0, suma2 = 0, gens = 0;
     for (auto it = ini; it != ini + static_cast<std::ptrdiff_t>(R); ++it) {
+      g.competencias.push_back(it->competencia);
+      g.historias.push_back(std::move(it->historia));
+      g.cancelado = g.cancelado || it->cancelado;
       suma += it->competencia;
       suma2 += it->competencia * it->competencia;
       gens += it->generaciones;
@@ -98,6 +106,15 @@ std::vector<Espacial> resolver_espacial(const std::vector<Resultado>& compras, c
     g.esperada = memetico::competencia_esperada_aleatoria(g.m_s, m, w);
   }
   return grupos;
+}
+
+PlanCompleto ejecutar_plan(const Datos& datos, const std::vector<CurvasPoligono>& curvas, double alfa, double B,
+                           double theta, const memetico::Mosaico& m, const memetico::Competencia& w,
+                           const ParametrosEspacial& p) {
+  PlanCompleto plan;
+  for (const auto& cp : curvas) plan.compras.push_back(resolver_poligono(datos, cp, 0, alfa, B, theta));
+  plan.espacial = resolver_espacial(plan.compras, m, w, p);
+  return plan;
 }
 
 }  // namespace refor

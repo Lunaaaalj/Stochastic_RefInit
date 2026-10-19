@@ -232,10 +232,6 @@ int main(int argc, char** argv) {
       for (const auto& cp : curvas) res.push_back(resolver_poligono(datos, cp, 0, alfa, B, c.p.theta));
       emitir(ruta_de(c, "compra", fmt), [&](std::ostream& o) { escribir_compra(o, datos, res, fmt); });
     } else if (plan->parsed()) {
-      // Nivel 1: compra. Nivel 2: su composición, distribuida en el mosaico.
-      std::vector<Resultado> compras;
-      for (const auto& cp : curvas) compras.push_back(resolver_poligono(datos, cp, 0, alfa, B, c.p.theta));
-
       const fs::path w_csv = competencia_csv.empty() ? fs::path(c.datos_dir) / "competencia.csv" : fs::path(competencia_csv);
       const memetico::Competencia w(datos, w_csv);
       const memetico::Mosaico m(pe.filas, pe.columnas);
@@ -243,7 +239,8 @@ int main(int argc, char** argv) {
       pe.hilos = c.p.hilos;
 
       const auto t1 = std::chrono::steady_clock::now();
-      const auto espacial = resolver_espacial(compras, m, w, pe);
+      // Nivel 1: compra. Nivel 2: su composición, distribuida en el mosaico.
+      const auto [compras, espacial] = ejecutar_plan(datos, curvas, alfa, B, c.p.theta, m, w, pe);
       const double seg_esp = std::chrono::duration<double>(std::chrono::steady_clock::now() - t1).count();
       std::cerr << "Memético: " << espacial.size() << " mosaicos distintos × " << pe.corridas << " corridas en "
                 << seg_esp << " s\n";

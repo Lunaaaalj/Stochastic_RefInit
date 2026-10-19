@@ -36,6 +36,7 @@ double busqueda_tabu(Individuo& ind, const Mosaico& m, const Competencia& w, con
 
   int sin_mejora = 0;
   for (int it = 1; sin_mejora < p.iteraciones_sin_mejora; ++it) {
+    if (p.cancelar && p.cancelar->load(std::memory_order_relaxed)) break;
     int mejor_u = -1, mejor_v = -1;
     double mejor_delta = std::numeric_limits<double>::infinity();
 
