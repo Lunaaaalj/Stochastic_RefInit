@@ -1,0 +1,40 @@
+\section{Resultados y discusión}
+\label{sec:resultados}
+
+Ambos niveles se resolvieron para los 30 polígonos (183.01 ha) con $\alpha=0.05$, $\theta=0.05$, $\delta=0.10$ y $K=10{,}000$ escenarios; el mosaico es de $4\times13=52$ posiciones al tresbolillo y la matriz es la de la \cref{tab:matriz-competencia}. Todos los resultados se reproducen con la herramienta \texttt{refor} del repositorio (semilla 42).
+
+\subsection{Compra}
+\label{subsec:res-compra}
+
+Con $B=\$12{,}500$/ha ningún polígono es factible. El presupuesto mínimo que satisface \eqref{eq:total}--\eqref{eq:probabilidad} es, en promedio ponderado por superficie, $B^*=\$14{,}496$/ha (entre \$14{,}361 y \$14{,}934), 16\% más que el disponible. La infactibilidad es estructural y no se resuelve aceptando más riesgo: $B^*$ apenas baja de \$14{,}664/ha con $\alpha=0.01$ a \$14{,}117/ha con $\alpha=0.50$, un ahorro menor al 4\% a cambio de multiplicar por cincuenta la probabilidad de incumplimiento. Lo que excede el presupuesto es el déficit mismo, cuyo costo se estimó en la \cref{subsec:compra-formulacion}, no el margen de seguridad. Los polígonos pequeños son los más caros por hectárea (\$14{,}934 en el polígono 1, de 1.28 ha), porque el margen necesario para cumplir con probabilidad $1-\alpha$ crece más lento que la meta y pesa más cuando ésta es chica.
+
+La compra sin restricción de presupuesto suma 108{,}680 plantas y \$2.65 millones (594 plantas/ha). Junto con las 129 plantas/ha existentes, la densidad al plantar es de 723 plantas/ha, 10\% sobre la meta: es la sobreplantación que absorbe la mortalidad del primer año con la confiabilidad exigida. El costo esperado de reposición es de solo \$5/ha, de modo que con $\alpha=0.05$ el costo es casi todo de adquisición. La composición óptima agota la banda \eqref{eq:banda} en la dirección que anticipa el costo por planta sobreviviente $c_s/q_s$: las cuatro especies de \textit{Opuntia} suben 10\%, \textit{P.~laevigata}, \textit{Y.~filifera} y \textit{A.~scabra} bajan 10\%, \textit{A.~lechuguilla} y \textit{A.~striata} 8\%, y \textit{A.~salmiana} se mantiene.
+
+\subsection{Distribución espacial}
+\label{subsec:res-espacial}
+
+Al redondear la composición de cada polígono a 52 posiciones, los 30 polígonos se reducen a seis mosaicos distintos; el primero lo comparten 18 polígonos (\cref{tab:res-mosaicos}). El algoritmo memético reduce la competencia entre 14.5\% y 16.3\% respecto a una asignación aleatoria de igual composición. El resultado es muy estable: la desviación estándar de las 30 corridas no excede 0.006 y la mejora se detiene, en promedio, antes de la generación 25, por lo que el criterio de paro de 100 generaciones sin mejora es holgado.
+
+Las claves obtenidas eliminan toda vecindad intraespecífica salvo una o dos entre plantas de \textit{A.~salmiana}, que ocupa 27--29\% de las posiciones, de 156 pares vecinos por mosaico. \textit{P.~laevigata}, con la mayor penalización intraespecífica (1.50), nunca queda junto a otra de su especie y actúa como separador: cerca de la mitad de sus vecinas son \textit{A.~salmiana} y un tercio \textit{O.~streptacantha}, las dos especies abundantes con penalización intraespecífica alta, con las que la suya es mínima (0.20 y 0.17).
+
+\begin{table}[t]
+\centering
+\caption{Mosaicos de 52 posiciones. $n_p$: polígonos que comparten el mosaico; memético: mejor competencia de 30 corridas (media $\pm$ d.e.); coef.: cociente respecto al azar; cota: cota inferior del modelo entero en 300 s; brecha: distancia máxima del memético al óptimo.}
+\label{tab:res-mosaicos}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}crcccc@{}}
+\toprule
+Mosaico & $n_p$ & Memético & Coef. & Cota & Brecha \\
+\midrule
+1 & 18 & 78.18 ($78.19\pm0.01$) & 0.838 & \textsc{pend} & \textsc{pend} \\
+2 &  5 & 77.37 ($77.39\pm0.01$) & 0.838 & \textsc{pend} & \textsc{pend} \\
+3 &  1 & 81.29 ($81.29\pm0.00$) & 0.855 & \textsc{pend} & \textsc{pend} \\
+4 &  1 & 76.77 ($76.78\pm0.01$) & 0.837 & \textsc{pend} & \textsc{pend} \\
+5 &  4 & 76.80 ($76.80\pm0.00$) & 0.837 & \textsc{pend} & \textsc{pend} \\
+6 &  1 & 81.85 ($81.85\pm0.00$) & 0.853 & \textsc{pend} & \textsc{pend} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% PENDIENTE: comparación con el modelo entero (\cref{subsec:espacial-entera}).
