@@ -5,6 +5,7 @@
 #include <Highs.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <numeric>
 #include <stdexcept>
@@ -116,12 +117,27 @@ ResultadoPLE resolver_ple(const std::vector<int>& m_s, const memetico::Mosaico& 
       highs.setSolution(sol);
     }
   }
+
+  // Traza de cotas y cancelación. HiGHS consulta la interrupción muy seguido
+  // (el aviso de log solo llega con output_flag) y avisa de cada solución
+  // mejor; solo se guarda un punto cuando alguna cota cambia.
+  ResultadoPLE res;
+  highs.setCallback([&res, &p](int tipo, const std::string&, const HighsCallbackOutput* out,
+                               HighsCallbackInput* in, void*) {
+    if (tipo == kCallbackMipInterrupt && p.cancelar && p.cancelar->load()) in->user_interrupt = true;
+    const PuntoTraza pt{out->running_time, out->mip_primal_bound, out->mip_dual_bound};
+    if (!res.traza.empty() && res.traza.back().primal == pt.primal && res.traza.back().dual == pt.dual) return;
+    res.traza.push_back(pt);
+    if (p.avance) p.avance(pt);
+  });
+  highs.startCallback(kCallbackMipImprovingSolution);
+  highs.startCallback(kCallbackMipInterrupt);
   highs.run();
 
-  ResultadoPLE res;
   const HighsModelStatus estado = highs.getModelStatus();
   res.estado = highs.modelStatusToString(estado);
   res.optimo = (estado == HighsModelStatus::kOptimal);
+  res.cancelado = (estado == HighsModelStatus::kInterrupt);
   res.segundos = highs.getRunTime();
 
   const HighsInfo& info = highs.getInfo();
@@ -143,6 +159,9 @@ ResultadoPLE resolver_ple(const std::vector<int>& m_s, const memetico::Mosaico& 
     res.brecha = res.competencia > 0 ? (res.competencia - res.cota_inferior) / res.competencia : 0.0;
     if (res.brecha < 0) res.brecha = 0;
   }
+  // Punto final, para que la traza llegue hasta el tiempo total.
+  if (std::isfinite(res.competencia) || !res.traza.empty())
+    res.traza.push_back({res.segundos, res.competencia, res.cota_inferior});
   return res;
 }
 

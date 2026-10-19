@@ -3,10 +3,13 @@
 #include <imgui.h>
 
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "asignacion_exacta/ple.hpp"
 #include "datos.hpp"
 #include "estilo.hpp"
 #include "memetico/competencia.hpp"
@@ -28,6 +31,7 @@ struct Config {
   ParametrosEspacial pe;
   std::string alfas = "0.01,0.02,0.05,0.10,0.15,0.20,0.30,0.40,0.50";
   double B_min = 12'000, B_max = 17'000, B_paso = 250;
+  asignacion_exacta::ParametrosPLE ple{.limite_segundos = 60};
 };
 
 // Los resultados guardan los datos con que se calcularon: los Resultado y
@@ -49,6 +53,27 @@ struct ResultadoFrontera {
   std::vector<Frontera> res;
 };
 
+// Mosaicos del plan actual resueltos con el modelo entero: (índice en
+// plan.espacial, resultado). Un cálculo puede resolver uno o varios.
+struct ResultadoExacto {
+  std::vector<std::pair<int, asignacion_exacta::ResultadoPLE>> res;
+};
+
+// Cotas del solver en curso; las escribe el hilo de trabajo y la vista de
+// comparación las dibuja mientras resuelve.
+struct TrazaViva {
+  std::mutex mtx;
+  int mosaico = -1;
+  std::vector<asignacion_exacta::PuntoTraza> puntos;
+};
+
+// Extras del lienzo al comparar dos claves: posiciones que difieren y un
+// rango común para la escala de competencia local.
+struct Resaltado {
+  std::vector<char> distintas;
+  double local_min = 0, local_max = 0;
+};
+
 struct ResultadoBarrido {
   std::shared_ptr<const Datos> datos;
   std::vector<double> alfas, Bs;
@@ -63,8 +88,11 @@ class App {
  private:
   void cargar();
   std::vector<int> ids_seleccionados() const;
-  bool ocupado() const { return t_plan_.ocupado() || t_frontera_.ocupado() || t_barrido_.ocupado(); }
+  bool ocupado() const {
+    return t_plan_.ocupado() || t_frontera_.ocupado() || t_barrido_.ocupado() || t_exacto_.ocupado();
+  }
   void lanzar_plan();
+  void lanzar_exacto(int mosaico);  // -1: todos los que aún no se resuelven
   void lanzar_frontera();
   void lanzar_barrido();
   void recoger();
@@ -76,7 +104,9 @@ class App {
   void barra_progreso();
   void vista_compra();
   void vista_mosaico();
-  void lienzo_mosaico(const ResultadoPlan& r, const Espacial& g);
+  void lienzo_mosaico(const ResultadoPlan& r, const memetico::Individuo& asig, const Resaltado* res = nullptr);
+  void leyenda_generos(const Datos& d);
+  void vista_comparacion();
   void vista_convergencia();
   void vista_competencia();
   void vista_frontera();
@@ -92,6 +122,8 @@ class App {
   std::optional<ResultadoPlan> plan_;
   std::optional<ResultadoFrontera> frontera_;
   std::optional<ResultadoBarrido> barrido_;
+  std::vector<std::optional<asignacion_exacta::ResultadoPLE>> exacto_;  // uno por mosaico del plan
+  std::shared_ptr<TrazaViva> traza_viva_;
 
   // Selección compartida entre vistas.
   int compra_sel_ = -1;   // índice en plan_->plan.compras
@@ -106,6 +138,7 @@ class App {
   Trabajo<ResultadoPlan> t_plan_;
   Trabajo<ResultadoFrontera> t_frontera_;
   Trabajo<ResultadoBarrido> t_barrido_;
+  Trabajo<ResultadoExacto> t_exacto_;
 };
 
 // Nombres de las ventanas, para el acomodo inicial.
@@ -116,5 +149,6 @@ inline constexpr const char* kConvergencia = "Convergencia";
 inline constexpr const char* kCompetencia = "Matriz de competencia";
 inline constexpr const char* kFrontera = "Frontera B*(α)";
 inline constexpr const char* kBarrido = "Barrido α × B";
+inline constexpr const char* kComparacion = "Memético vs. exacto";
 
 }  // namespace refor::gui

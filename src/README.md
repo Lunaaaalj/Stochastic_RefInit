@@ -38,6 +38,10 @@ Los datos de entrada son los CSV de `data/processed/` (`especies.csv`,
 # Orquestador: compra para un (α, B) y mosaico memético con esa composición
 ./build/refor plan --alpha 0.05 -B 15000
 
+# Lo mismo, y cada mosaico también con el modelo entero (secc. 2.2) para
+# medir qué tan lejos queda el memético del óptimo
+./build/refor plan --alpha 0.05 -B 15000 --exacto --limite-exacto 120 -f json
+
 # Cualquier subcomando: -f tabla|csv|json, --help para ver todo
 ./build/refor compra -f csv            # escribe docs/res/compra.csv
 ./build/refor frontera -o -            # a la terminal en lugar de docs/res/
@@ -47,7 +51,12 @@ Los resultados se escriben en `docs/res/` (ignorada por git; se regeneran con
 la CLI): `compra`, `barrido` y `frontera` en `docs/res/<subcomando>.<ext>`
 (`-o` cambia la ruta, `--dir` el directorio), y `plan` en `docs/res/plan/`:
 `compra.<ext>`, `espacial.<ext>` y, con `-f csv`, `mosaicos.csv` con la clave de
-plantación en formato largo.
+plantación en formato largo. Con `--exacto` se agrega `exacto.<ext>`: por
+mosaico, la competencia del memético y del exacto, la cota inferior probada, la
+brecha del memético (exacta si el solver probó el óptimo; si no, una cota
+superior) y las posiciones en que difieren ambas claves tras alinearlas por
+traslación. El json lleva además la clave del exacto y la traza de cotas del
+solver en el tiempo (`[segundos, primal, dual]`).
 
 Opciones comunes: `--theta` (sobrecosto logístico, 0.05), `--delta` (desviación
 máxima respecto al plan, 0.10), `-K` (escenarios, 10,000), `--semilla` (42),
@@ -57,7 +66,14 @@ sin importar el número de hilos ni la plataforma.
 Opciones de `plan`: `--filas`/`--columnas` del mosaico (4 × 13 = 52 posiciones,
 mínimo 3 por lado), `--corridas` (30), `--poblacion` (20), `--generaciones`
 (1,000), `--sin-mejora` (100), `--tabu-iter` (500) y `--competencia` (por
-defecto `<datos>/competencia.csv`).
+defecto `<datos>/competencia.csv`). Con `--exacto`: `--limite-exacto` (300 s
+por mosaico) y `--brecha-exacto` (0: probar el óptimo; 0.01 para al 1 %). El
+modelo entero arranca desde la mejor solución del memético, así que nunca
+reporta algo peor que ella.
+
+`refor_ple` resuelve el modelo entero por sí solo, con una composición
+proporcional a la densidad de cada especie (`--filas`, `--columnas`,
+`--limite`, `--brecha`, `--verbose`).
 
 ## Interfaz gráfica
 
@@ -82,6 +98,15 @@ descarga. Se corre desde la raíz del repo:
   género.
 - **Convergencia**: mejor competencia por generación de cada corrida y
   distribución de los resultados.
+- **Memético vs. exacto**: resuelve el mosaico elegido (o todos los
+  pendientes) con el modelo entero en segundo plano, con el límite y la brecha
+  de *Configuración*. Una tabla resume todos los mosaicos; para el elegido
+  muestra la distancia del memético al óptimo, las cotas del solver en el
+  tiempo (en vivo mientras resuelve) frente a la mejor solución y la media del
+  memético, el histograma de las corridas con el exacto y la cota inferior, y
+  ambas claves lado a lado, alineadas por traslación, con las posiciones
+  distintas marcadas. *Guardar* agrega `exacto.*` cuando todos los mosaicos
+  están resueltos.
 - **Matriz de competencia**, **Frontera B\*(α)** y **Barrido α × B**.
 
 ## Modelo implementado
@@ -117,6 +142,7 @@ descarga. Se corre desde la raíz del repo:
 | `modelo.*` | Cálculo paralelo de curvas y resolución por polígono |
 | `memetico/*` | Mosaico, matriz W, búsqueda tabú y algoritmo memético |
 | `plan.*` | Orquestación compra → composición → memético |
+| `asignacion_exacta/*` | Modelo entero de asignación espacial (HiGHS) y su comparación con el memético |
 | `salida.*` | Tabla, CSV y JSON |
 | `main.cpp` | Subcomandos de la CLI |
 | `../gui/*` | Interfaz gráfica `refor_gui` (vistas, estilo y trabajos en segundo plano) |

@@ -28,7 +28,8 @@ int distancia(const Individuo& a, const Individuo& bt) {
   return dist;
 }
 
-// La traslación de b que más coincide con a (menor distancia).
+}  // namespace
+
 Individuo alinear(const Individuo& a, const Individuo& b, const Mosaico& m) {
   Individuo mejor_b = b;
   int mejor_dist = static_cast<int>(a.size()) + 1;
@@ -44,8 +45,6 @@ Individuo alinear(const Individuo& a, const Individuo& b, const Mosaico& m) {
   }
   return mejor_b;
 }
-
-}  // namespace
 
 int distancia_traslacion(const Individuo& a, const Individuo& b, const Mosaico& m) {
   int mejor = static_cast<int>(a.size());

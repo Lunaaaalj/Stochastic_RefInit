@@ -2,8 +2,11 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <algorithm>
+#include <atomic>
+#include <cmath>
 #include <limits>
 #include <numeric>
+#include <random>
 #include <vector>
 
 #include "asignacion_exacta/ple.hpp"
@@ -70,4 +73,60 @@ TEST_CASE("El óptimo exacto no es peor que el memético") {
   p.semilla = 1;
   const auto mem = memetico::ejecutar_memetico(m_s, m, w, p);
   REQUIRE(exacto.competencia <= mem.competencia + 1e-6);
+}
+
+TEST_CASE("La traza de cotas termina en el resultado y la dual nunca rebasa la primal") {
+  const auto datos = cargar_datos(REFOR_DATOS_DIR);
+  const memetico::Competencia w(datos, std::string(REFOR_DATOS_DIR) + "/competencia.csv");
+  const memetico::Mosaico m(3, 4);
+
+  std::vector<int> m_s(datos.especies.size(), 0);
+  m_s[1] = 5; m_s[8] = 3; m_s[7] = 2; m_s[9] = 2;
+
+  int avisos = 0;
+  asignacion_exacta::ParametrosPLE p;
+  p.avance = [&avisos](const asignacion_exacta::PuntoTraza&) { ++avisos; };
+  const auto r = asignacion_exacta::resolver_ple(m_s, m, w, p);
+  REQUIRE(r.optimo);
+  REQUIRE(r.traza.size() >= 2);
+  REQUIRE(avisos == static_cast<int>(r.traza.size()) - 1);  // el punto final no se avisa
+  REQUIRE_THAT(r.traza.back().primal, Catch::Matchers::WithinAbs(r.competencia, 1e-9));
+  for (std::size_t i = 0; i < r.traza.size(); ++i) {
+    const auto& pt = r.traza[i];
+    if (std::isfinite(pt.primal) && std::isfinite(pt.dual)) REQUIRE(pt.dual <= pt.primal + 1e-6);
+    if (i > 0) REQUIRE(pt.segundos >= r.traza[i - 1].segundos);
+  }
+}
+
+TEST_CASE("Cancelar el modelo entero devuelve la solución inicial") {
+  const auto datos = cargar_datos(REFOR_DATOS_DIR);
+  const memetico::Competencia w(datos, std::string(REFOR_DATOS_DIR) + "/competencia.csv");
+  const memetico::Mosaico m(4, 13);
+
+  std::vector<int> m_s(datos.especies.size(), 0);
+  m_s[1] = 20; m_s[8] = 14; m_s[7] = 10; m_s[9] = 8;
+  memetico::ParametrosMemetico pm;
+  pm.semilla = 3;
+  pm.generaciones_max = 5;
+  const auto mem = memetico::ejecutar_memetico(m_s, m, w, pm);
+
+  std::atomic<bool> cancelar{true};  // cancelado desde antes de empezar
+  asignacion_exacta::ParametrosPLE p;
+  p.cancelar = &cancelar;
+  const auto r = asignacion_exacta::resolver_ple(m_s, m, w, p, &mem.mejor);
+  REQUIRE(r.cancelado);
+  REQUIRE_FALSE(r.optimo);
+  REQUIRE(r.segundos < 30);
+  REQUIRE(r.competencia <= mem.competencia + 1e-6);
+  // El exacto arranca de la clave del memético: la misma, salvo traslación.
+  if (r.competencia >= mem.competencia - 1e-6) REQUIRE(memetico::distancia_traslacion(r.asignacion, mem.mejor, m) == 0);
+}
+
+TEST_CASE("alinear deshace una traslación") {
+  const memetico::Mosaico m(4, 5);
+  std::mt19937_64 rng(7);
+  const auto a = memetico::individuo_aleatorio({8, 7, 5}, m.num_posiciones(), rng);
+  const auto b = memetico::trasladar(a, m, 2, 3);
+  REQUIRE(memetico::alinear(a, b, m) == a);
+  REQUIRE(memetico::distancia_traslacion(a, b, m) == 0);
 }

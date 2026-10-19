@@ -43,6 +43,7 @@ void App::barra_progreso() {
   if (t_plan_.ocupado()) pr = t_plan_.progreso(), seg = t_plan_.segundos();
   else if (t_frontera_.ocupado()) pr = t_frontera_.progreso(), seg = t_frontera_.segundos();
   else if (t_barrido_.ocupado()) pr = t_barrido_.progreso(), seg = t_barrido_.segundos();
+  else if (t_exacto_.ocupado()) pr = t_exacto_.progreso(), seg = t_exacto_.segundos();
   if (!pr) return;
 
   const std::size_t total = pr->total, hechas = pr->hechas;
@@ -60,6 +61,7 @@ void App::barra_progreso() {
     t_plan_.cancelar();
     t_frontera_.cancelar();
     t_barrido_.cancelar();
+    t_exacto_.cancelar();
   }
 }
 
@@ -146,6 +148,18 @@ void App::vista_config() {
   ayuda("Generaciones seguidas sin mejorar la mejor solución para detener una corrida.");
   entero("Iter. tabú", cfg_.pe.memetico.tabu.iteraciones_sin_mejora, 1, 100'000, 50);
   ayuda("Iteraciones sin mejora para detener la búsqueda tabú de cada hijo.");
+
+  titulo("Modelo exacto");
+  ImGui::InputDouble("Límite (s)", &cfg_.ple.limite_segundos, 10, 60, "%.0f");
+  cfg_.ple.limite_segundos = std::clamp(cfg_.ple.limite_segundos, 1.0, 86'400.0);
+  ayuda("Tiempo máximo del modelo entero por mosaico. Si se agota, queda la mejor solución y la cota inferior "
+        "probada, que acota cuánto puede mejorar el memético.");
+  double brecha_pct = 100 * cfg_.ple.brecha_relativa;
+  ImGui::InputDouble("Brecha (%)", &brecha_pct, 0.5, 1, "%.1f");
+  cfg_.ple.brecha_relativa = std::clamp(brecha_pct, 0.0, 100.0) / 100;
+  ayuda("El solver para en cuanto prueba que su solución está a lo más a esta distancia del óptimo; 0 exige "
+        "probar el óptimo.");
+  ImGui::TextDisabled("Se resuelve desde la pestaña «%s».", kComparacion);
 
   titulo("Frontera y barrido");
   ImGui::InputText("Valores de α", &cfg_.alfas);

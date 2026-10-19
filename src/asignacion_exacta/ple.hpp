@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -9,10 +11,20 @@
 
 namespace refor::asignacion_exacta {
 
+// Cotas del solver en un instante: la primal es la mejor solución hallada
+// (inf si aún no hay) y la dual, la cota inferior probada.
+struct PuntoTraza {
+  double segundos = 0, primal = 0, dual = 0;
+};
+
 struct ParametrosPLE {
   double limite_segundos = 300.0;  // límite de tiempo del solver
   double brecha_relativa = 0.0;    // 0 = exigir optimalidad (HiGHS: mip_rel_gap)
   bool verbose = false;            // imprime el log de HiGHS
+  // Se llama desde el hilo del solver cada vez que cambia alguna cota.
+  std::function<void(const PuntoTraza&)> avance;
+  // Si apunta a true, el solver para pronto y devuelve lo mejor que tenga.
+  const std::atomic<bool>* cancelar = nullptr;
 };
 
 struct ResultadoPLE {
@@ -23,6 +35,8 @@ struct ResultadoPLE {
   bool optimo = false;             // true si el solver probó optimalidad
   std::string estado;              // estado de HiGHS ("Optimal", "Time limit reached", ...)
   double segundos = 0.0;           // tiempo de reloj del solver
+  bool cancelado = false;
+  std::vector<PuntoTraza> traza;   // evolución de las cotas, un punto por cambio
 };
 
 // Modelo de programación entera de la sección 2.2 del reporte E2:

@@ -2,11 +2,15 @@
 
 #include <imgui_internal.h>  // DockBuilder
 
+#include <algorithm>
+#include <cmath>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 
+#include "asignacion_exacta/salida_ple.hpp"
 #include "salida.hpp"
 
 namespace refor::gui {
@@ -106,6 +110,47 @@ void App::lanzar_plan() {
   });
 }
 
+void App::lanzar_exacto(int mosaico) {
+  if (!plan_) return;
+  const auto& grupos = plan_->plan.espacial;
+  // Solo la composición y el arranque de cada mosaico: el plan puede
+  // reemplazarse mientras el solver corre.
+  std::vector<std::pair<int, std::pair<std::vector<int>, memetico::Individuo>>> pendientes;
+  for (int k = 0; k < static_cast<int>(grupos.size()); ++k)
+    if (mosaico < 0 ? !exacto_[k] : k == mosaico) pendientes.push_back({k, {grupos[k].m_s, grupos[k].mejor}});
+  if (pendientes.empty()) return;
+
+  auto viva = std::make_shared<TrazaViva>();
+  traza_viva_ = viva;
+  t_exacto_.lanzar([w = plan_->w, m = plan_->mosaico, pendientes, pp = cfg_.ple, viva](Progreso& pr) {
+    pr.total = pendientes.size();
+    ResultadoExacto r;
+    for (const auto& [k, g] : pendientes) {
+      if (pr.cancelar) break;
+      {
+        std::lock_guard lock(viva->mtx);
+        viva->mosaico = k;
+        viva->puntos.clear();
+      }
+      const std::string etapa = std::format("Modelo entero, mosaico {}", k + 1);
+      pr.etapa(etapa);
+      auto p = pp;
+      p.cancelar = &pr.cancelar;
+      p.avance = [&](const asignacion_exacta::PuntoTraza& pt) {
+        {
+          std::lock_guard lock(viva->mtx);
+          viva->puntos.push_back(pt);
+        }
+        if (std::isfinite(pt.primal) && std::isfinite(pt.dual))
+          pr.etapa(std::format("{}: el óptimo está entre {:.2f} y {:.2f}", etapa, pt.dual, pt.primal));
+      };
+      r.res.emplace_back(k, asignacion_exacta::resolver_ple(g.first, m, *w, p, &g.second));
+      ++pr.hechas;
+    }
+    return r;
+  });
+}
+
 void App::lanzar_frontera() {
   const auto ids = ids_seleccionados();
   std::vector<double> alfas;
@@ -165,6 +210,7 @@ void App::lanzar_barrido() {
 void App::recoger() {
   if (auto r = t_plan_.recoger()) {
     plan_ = std::move(*r);
+    exacto_.assign(plan_->plan.espacial.size(), std::nullopt);
     compra_sel_ = -1;
     mosaico_sel_ = 0;
     orden_compras_.clear();
@@ -174,9 +220,21 @@ void App::recoger() {
                          : "Plan listo en " + std::to_string(static_cast<int>(plan_->segundos + 0.5)) + " s.";
     mensaje_es_error_ = cancelado;
   }
+  if (auto r = t_exacto_.recoger()) {
+    bool cancelado = r->res.empty();
+    for (auto& [k, res] : r->res) {
+      cancelado = cancelado || res.cancelado;
+      if (k < static_cast<int>(exacto_.size())) exacto_[k] = std::move(res);
+    }
+    mensaje_ = cancelado ? "Modelo entero cancelado: se muestra lo mejor que encontró y la cota que alcanzó a probar."
+                         : std::format("Modelo entero listo: {} mosaico(s) en {:.0f} s.", r->res.size(),
+                                       t_exacto_.segundos());
+    mensaje_es_error_ = cancelado;
+  }
   if (auto r = t_frontera_.recoger()) frontera_ = std::move(*r);
   if (auto r = t_barrido_.recoger()) barrido_ = std::move(*r);
-  for (auto e : {t_plan_.recoger_error(), t_frontera_.recoger_error(), t_barrido_.recoger_error()}) {
+  for (auto e : {t_plan_.recoger_error(), t_frontera_.recoger_error(), t_barrido_.recoger_error(),
+                 t_exacto_.recoger_error()}) {
     if (!e) continue;
     mensaje_ = "Error: " + *e;
     mensaje_es_error_ = true;
@@ -197,7 +255,26 @@ void App::guardar_plan() {
     }
     escribir_archivo(dir / "mosaicos.csv",
                      [&](std::ostream& o) { escribir_mosaicos_csv(o, *r.datos, r.plan.espacial, r.mosaico); });
-    mensaje_ = "Resultados guardados en " + dir.string() + "/ (txt, csv y json).";
+    // La comparación con el modelo entero, solo si se resolvieron todos los mosaicos.
+    const auto resueltos = std::count_if(exacto_.begin(), exacto_.end(), [](const auto& e) { return e.has_value(); });
+    const bool exacto_completo = !exacto_.empty() && resueltos == static_cast<std::ptrdiff_t>(exacto_.size());
+    if (exacto_completo) {
+      std::vector<asignacion_exacta::ResultadoPLE> ex;
+      for (const auto& e : exacto_) ex.push_back(*e);
+      for (Formato f : {Formato::Tabla, Formato::Csv, Formato::Json}) {
+        const std::string ext = f == Formato::Tabla ? ".txt" : f == Formato::Csv ? ".csv" : ".json";
+        escribir_archivo(dir / ("exacto" + ext), [&](std::ostream& o) {
+          asignacion_exacta::escribir_exacto(o, *r.datos, r.plan.espacial, ex, r.mosaico, f);
+        });
+      }
+    }
+    mensaje_ = "Resultados guardados en " + dir.string() + "/ (txt, csv y json)";
+    if (exacto_completo)
+      mensaje_ += ", con la comparación del modelo entero.";
+    else if (resueltos > 0)
+      mensaje_ += "; la comparación con el modelo entero se guarda cuando estén resueltos todos los mosaicos.";
+    else
+      mensaje_ += ".";
     mensaje_es_error_ = false;
   } catch (const std::exception& e) {
     mensaje_ = std::string("No se pudo guardar: ") + e.what();
@@ -212,7 +289,7 @@ void App::layout_inicial(ImGuiID dock) {
   ImGuiID izq = 0, der = 0;
   ImGui::DockBuilderSplitNode(dock, ImGuiDir_Left, 0.26f, &izq, &der);
   ImGui::DockBuilderDockWindow(kConfig, izq);
-  for (const char* v : {kMosaico, kCompra, kConvergencia, kCompetencia, kFrontera, kBarrido})
+  for (const char* v : {kMosaico, kComparacion, kCompra, kConvergencia, kCompetencia, kFrontera, kBarrido})
     ImGui::DockBuilderDockWindow(v, der);
   ImGui::DockBuilderFinish(dock);
 }
@@ -230,6 +307,7 @@ void App::cuadro() {
   vista_competencia();
   vista_frontera();
   vista_barrido();
+  vista_comparacion();
   vista_mosaico();  // al final: queda como pestaña activa al abrir
 }
 

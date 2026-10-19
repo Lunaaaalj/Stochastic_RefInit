@@ -1,20 +1,16 @@
 #include "asignacion_exacta/salida_ple.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <format>
 #include <iostream>
 #include <string>
 
+#include "memetico/memetico.hpp"
+
 namespace refor::asignacion_exacta {
 
 namespace {
-
-// Misma clave de tres letras que usa salida.cpp (p. ej. "Agave salmiana" -> "Asa").
-std::string clave_especie(const std::string& nombre) {
-  const auto esp = nombre.find(' ');
-  if (esp == std::string::npos || esp + 2 >= nombre.size()) return nombre.substr(0, 3);
-  return nombre.substr(0, 1) + nombre.substr(esp + 1, 2);
-}
 
 std::string ids(const std::vector<int>& v, const char* sep) {
   std::string s;
@@ -22,11 +18,8 @@ std::string ids(const std::vector<int>& v, const char* sep) {
   return s;
 }
 
-// Brecha (%) del memético respecto a la cota inferior del exacto; nunca negativa.
-double brecha_memetico(const Espacial& g, const ResultadoPLE& r) {
-  if (g.mejor_competencia <= 0) return 0.0;
-  return std::max(0.0, 100.0 * (g.mejor_competencia - r.cota_inferior) / g.mejor_competencia);
-}
+// Número para json: null si no es finito (sin solución, cota aún en -inf).
+std::string json_num(double v) { return std::isfinite(v) ? std::format("{:.4f}", v) : "null"; }
 
 void tabla(std::ostream& out, const Datos& d, const std::vector<Espacial>& esp,
            const std::vector<ResultadoPLE>& ex, const memetico::Mosaico& m) {
@@ -59,6 +52,8 @@ void tabla(std::ostream& out, const Datos& d, const std::vector<Espacial>& esp,
     else
       out << std::format("  El memético está, a lo más, a {:.2f} % del óptimo (según la cota inferior)\n",
                          brecha_memetico(e, r));
+    out << std::format("  Claves distintas en {} de {} posiciones (alineadas por traslación)\n",
+                       posiciones_distintas(e, r, m), m.num_posiciones());
     out << "  Clave de plantación (exacto):\n";
     for (int f = 0; f < m.filas(); ++f) {
       out << std::string(4 + 2 * f, ' ');
@@ -72,20 +67,61 @@ void tabla(std::ostream& out, const Datos& d, const std::vector<Espacial>& esp,
 void csv(std::ostream& out, const std::vector<Espacial>& esp, const std::vector<ResultadoPLE>& ex,
          const memetico::Mosaico& m) {
   out << "mosaico,poligonos,posiciones,competencia_memetico,competencia_exacto,cota_inferior,"
-         "brecha_exacto_pct,brecha_memetico_pct,optimo,estado,segundos\n";
+         "brecha_exacto_pct,brecha_memetico_pct,posiciones_distintas,optimo,estado,segundos\n";
   for (std::size_t g = 0; g < esp.size(); ++g) {
     const auto& e = esp[g];
     const auto& r = ex[g];
     const bool hay = !r.asignacion.empty();
-    out << std::format("{},{},{},{:.4f},{},{:.4f},{},{:.4f},{},{},{:.1f}\n", g + 1, ids(e.poligonos, ";"),
+    out << std::format("{},{},{},{:.4f},{},{:.4f},{},{:.4f},{},{},{},{:.1f}\n", g + 1, ids(e.poligonos, ";"),
                        m.num_posiciones(), e.mejor_competencia,
                        hay ? std::format("{:.4f}", r.competencia) : std::string(), r.cota_inferior,
                        hay ? std::format("{:.4f}", 100.0 * r.brecha) : std::string(), brecha_memetico(e, r),
-                       r.optimo ? "si" : "no", r.estado, r.segundos);
+                       hay ? std::to_string(posiciones_distintas(e, r, m)) : std::string(), r.optimo ? "si" : "no",
+                       r.estado, r.segundos);
   }
 }
 
+void json(std::ostream& out, const Datos& d, const std::vector<Espacial>& esp, const std::vector<ResultadoPLE>& ex,
+          const memetico::Mosaico& m) {
+  out << std::format("{{\n  \"filas\": {}, \"columnas\": {},\n  \"mosaicos\": [\n", m.filas(), m.columnas());
+  for (std::size_t g = 0; g < esp.size(); ++g) {
+    const auto& e = esp[g];
+    const auto& r = ex[g];
+    const bool hay = !r.asignacion.empty();
+    out << std::format(
+        "    {{\"mosaico\": {}, \"poligonos\": [{}],\n     \"competencia_memetico\": {:.4f}, "
+        "\"competencia_exacto\": {}, \"cota_inferior\": {},\n     \"brecha_exacto_pct\": {}, "
+        "\"brecha_memetico_pct\": {:.4f}, \"posiciones_distintas\": {},\n     \"optimo\": {}, \"estado\": \"{}\", "
+        "\"segundos\": {:.2f},\n     \"traza\": [",
+        g + 1, ids(e.poligonos, ", "), e.mejor_competencia, json_num(r.competencia), json_num(r.cota_inferior),
+        hay ? json_num(100.0 * r.brecha) : "null", brecha_memetico(e, r),
+        hay ? std::to_string(posiciones_distintas(e, r, m)) : "null", r.optimo, r.estado, r.segundos);
+    for (std::size_t i = 0; i < r.traza.size(); ++i)
+      out << std::format("{}[{:.2f}, {}, {}]", i ? ", " : "", r.traza[i].segundos, json_num(r.traza[i].primal),
+                         json_num(r.traza[i].dual));
+    out << "],\n     \"clave\": [";
+    for (int f = 0; hay && f < m.filas(); ++f) {
+      out << (f ? ",\n       [" : "\n       [");
+      for (int c = 0; c < m.columnas(); ++c)
+        out << std::format("{}\"{}\"", c ? ", " : "", clave_especie(d.especies[r.asignacion[m.indice(f, c)]].nombre));
+      out << ']';
+    }
+    out << (g + 1 < esp.size() ? "]},\n" : "]}\n");
+  }
+  out << "  ]\n}\n";
+}
+
 }  // namespace
+
+double brecha_memetico(const Espacial& g, const ResultadoPLE& r) {
+  if (g.mejor_competencia <= 0 || !std::isfinite(r.cota_inferior)) return 0.0;
+  return std::max(0.0, 100.0 * (g.mejor_competencia - r.cota_inferior) / g.mejor_competencia);
+}
+
+int posiciones_distintas(const Espacial& g, const ResultadoPLE& r, const memetico::Mosaico& m) {
+  if (r.asignacion.empty() || g.mejor.size() != r.asignacion.size()) return -1;
+  return memetico::distancia_traslacion(r.asignacion, g.mejor, m);
+}
 
 std::vector<ResultadoPLE> resolver_exacto(const std::vector<Espacial>& espacial, const memetico::Mosaico& m,
                                           const memetico::Competencia& w, const ParametrosPLE& p) {
@@ -101,10 +137,11 @@ std::vector<ResultadoPLE> resolver_exacto(const std::vector<Espacial>& espacial,
 
 void escribir_exacto(std::ostream& out, const Datos& datos, const std::vector<Espacial>& espacial,
                      const std::vector<ResultadoPLE>& exacto, const memetico::Mosaico& m, Formato f) {
-  if (f == Formato::Csv)
-    csv(out, espacial, exacto, m);
-  else
-    tabla(out, datos, espacial, exacto, m);
+  switch (f) {
+    case Formato::Tabla: return tabla(out, datos, espacial, exacto, m);
+    case Formato::Csv: return csv(out, espacial, exacto, m);
+    case Formato::Json: return json(out, datos, espacial, exacto, m);
+  }
 }
 
 }  // namespace refor::asignacion_exacta
