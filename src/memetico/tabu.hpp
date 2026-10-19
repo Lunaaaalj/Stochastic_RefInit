@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <atomic>
 #include <random>
 
 #include "memetico/competencia.hpp"
@@ -12,6 +13,9 @@ struct ParametrosTabu {
   int iteraciones_sin_mejora = 500;  // paro de la búsqueda
   int tenure_min = 5;                // iteraciones mínimas que un intercambio queda prohibido
   int tenure_max = 15;               // iteraciones máximas
+  // Si apunta a true, la búsqueda para en la siguiente iteración y deja en
+  // ind la mejor solución encontrada hasta ese momento.
+  const std::atomic<bool>* cancelar = nullptr;
 };
 
 // Mejora ind in situ con búsqueda tabú sobre intercambios de especie entre

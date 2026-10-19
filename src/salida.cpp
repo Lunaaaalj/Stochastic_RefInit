@@ -7,6 +7,29 @@
 
 namespace refor {
 
+std::string clave_especie(const std::string& nombre) {
+  const auto esp = nombre.find(' ');
+  if (esp == std::string::npos || esp + 2 >= nombre.size()) return nombre.substr(0, 3);
+  return nombre.substr(0, 1) + nombre.substr(esp + 1, 2);
+}
+
+AgregadoFrontera agregar_frontera(const std::vector<Frontera>& res, double alfa) {
+  double area = 0, b = 0, c = 0;
+  double bmin = INFINITY, bmax = -INFINITY;
+  for (const auto& f : res) {
+    if (f.alfa != alfa) continue;
+    if (!f.B_minimo || !f.costo_libre) return {};
+    const double a = f.poligono->area;
+    area += a;
+    b += *f.B_minimo * a;
+    c += *f.costo_libre * a;
+    bmin = std::min(bmin, *f.B_minimo);
+    bmax = std::max(bmax, *f.B_minimo);
+  }
+  if (area == 0) return {};
+  return {b / area, c / area, bmin, bmax};
+}
+
 namespace {
 
 // Solución que se reporta: la factible, o la libre si no hay factible.
@@ -174,35 +197,13 @@ void barrido_json(std::ostream& out, const std::vector<Resultado>& res) {
 
 // ---------------------------------------------------------------- frontera
 
-struct Agregado {
-  std::optional<double> B_minimo, costo_libre, B_min_pol, B_max_pol;
-};
-
-// Promedios ponderados por área; vacíos si algún polígono no tiene valor.
-Agregado agregar(const std::vector<Frontera>& res, double alfa) {
-  double area = 0, b = 0, c = 0;
-  double bmin = INFINITY, bmax = -INFINITY;
-  for (const auto& f : res) {
-    if (f.alfa != alfa) continue;
-    if (!f.B_minimo || !f.costo_libre) return {};
-    const double a = f.poligono->area;
-    area += a;
-    b += *f.B_minimo * a;
-    c += *f.costo_libre * a;
-    bmin = std::min(bmin, *f.B_minimo);
-    bmax = std::max(bmax, *f.B_minimo);
-  }
-  if (area == 0) return {};
-  return {b / area, c / area, bmin, bmax};
-}
-
 void frontera_tabla(std::ostream& out, const std::vector<Frontera>& res,
                     const std::vector<double>& alfas) {
   out << "Presupuesto mínimo B*(α) en $/ha (promedio ponderado por área)\n";
   out << std::format("{:>7}{:>12}{:>12}{:>12}{:>16}\n", "α", "B* prom.", "B* mín.", "B* máx.",
                      "Costo óptimo");
   for (double a : alfas) {
-    const Agregado g = agregar(res, a);
+    const AgregadoFrontera g = agregar_frontera(res, a);
     out << std::format("{:>7.3f}{:>12}{:>12}{:>12}{:>16}\n", a, num(g.B_minimo, 0),
                        num(g.B_min_pol, 0), num(g.B_max_pol, 0), num(g.costo_libre, 0));
   }
@@ -216,7 +217,7 @@ void frontera_csv(std::ostream& out, const std::vector<Frontera>& res,
                        num(f.B_minimo), num(f.costo_libre));
   }
   for (double a : alfas) {
-    const Agregado g = agregar(res, a);
+    const AgregadoFrontera g = agregar_frontera(res, a);
     out << std::format("todos,,{},{},{}\n", a, num(g.B_minimo), num(g.costo_libre));
   }
 }
@@ -233,7 +234,7 @@ void frontera_json(std::ostream& out, const std::vector<Frontera>& res,
   }
   out << "  ],\n  \"agregado\": [\n";
   for (std::size_t i = 0; i < alfas.size(); ++i) {
-    const Agregado g = agregar(res, alfas[i]);
+    const AgregadoFrontera g = agregar_frontera(res, alfas[i]);
     out << std::format("    {{\"alfa\": {}, \"B_minimo\": {}, \"costo_libre\": {}}}{}\n", alfas[i],
                        json_num(g.B_minimo), json_num(g.costo_libre),
                        i + 1 < alfas.size() ? "," : "");
@@ -242,14 +243,6 @@ void frontera_json(std::ostream& out, const std::vector<Frontera>& res,
 }
 
 // ---------------------------------------------------------------- espacial
-
-// Clave corta de la especie: inicial del género y dos letras del epíteto
-// (Agave salmiana → Asa), que es lo que la cuadrilla lee en campo.
-std::string clave(const std::string& nombre) {
-  const auto esp = nombre.find(' ');
-  if (esp == std::string::npos || esp + 2 >= nombre.size()) return nombre.substr(0, 3);
-  return nombre.substr(0, 1) + nombre.substr(esp + 1, 2);
-}
 
 std::string lista_ids(const std::vector<int>& ids, const char* sep) {
   std::string s;
@@ -263,7 +256,7 @@ void espacial_tabla(std::ostream& out, const Datos& d, const std::vector<Espacia
                      "periódico), {} corridas por mosaico\n",
                      m.filas(), m.columnas(), m.num_posiciones(), corridas);
   out << "Claves:";
-  for (const auto& e : d.especies) out << std::format("  {} = {}", clave(e.nombre), e.nombre);
+  for (const auto& e : d.especies) out << std::format("  {} = {}", clave_especie(e.nombre), e.nombre);
   out << '\n';
 
   for (std::size_t g = 0; g < res.size(); ++g) {
@@ -271,7 +264,7 @@ void espacial_tabla(std::ostream& out, const Datos& d, const std::vector<Espacia
     out << std::format("\nMosaico {} — polígonos {}\n", g + 1, lista_ids(r.poligonos, ", "));
     out << "  Composición:";
     for (std::size_t s = 0; s < r.m_s.size(); ++s)
-      if (r.m_s[s]) out << std::format(" {} {}", clave(d.especies[s].nombre), r.m_s[s]);
+      if (r.m_s[s]) out << std::format(" {} {}", clave_especie(d.especies[s].nombre), r.m_s[s]);
     out << '\n';
     out << std::format("  Competencia: mejor {:.2f}, media {:.2f} ± {:.2f}, azar {:.2f} → coeficiente "
                        "{:.3f} (medio {:.3f})\n",
@@ -282,7 +275,7 @@ void espacial_tabla(std::ostream& out, const Datos& d, const std::vector<Espacia
     for (int f = 0; f < m.filas(); ++f) {
       out << std::string(4 + 2 * f, ' ');
       for (int c = 0; c < m.columnas(); ++c)
-        out << std::format("{}{:<3}", c ? " " : "", clave(d.especies[r.mejor[m.indice(f, c)]].nombre));
+        out << std::format("{}{:<3}", c ? " " : "", clave_especie(d.especies[r.mejor[m.indice(f, c)]].nombre));
       out << '\n';
     }
   }
@@ -321,7 +314,7 @@ void espacial_json(std::ostream& out, const Datos& d, const std::vector<Espacial
     for (int f = 0; f < m.filas(); ++f) {
       out << (f ? ",\n       [" : "\n       [");
       for (int c = 0; c < m.columnas(); ++c)
-        out << std::format("{}\"{}\"", c ? ", " : "", clave(d.especies[r.mejor[m.indice(f, c)]].nombre));
+        out << std::format("{}\"{}\"", c ? ", " : "", clave_especie(d.especies[r.mejor[m.indice(f, c)]].nombre));
       out << ']';
     }
     out << (g + 1 < res.size() ? "]},\n" : "]}\n");
@@ -347,7 +340,7 @@ void escribir_mosaicos_csv(std::ostream& out, const Datos& datos, const std::vec
     for (int f = 0; f < m.filas(); ++f)
       for (int c = 0; c < m.columnas(); ++c) {
         const auto& e = datos.especies[res[g].mejor[m.indice(f, c)]];
-        out << std::format("{},{},{},{},{}\n", g + 1, f, c, clave(e.nombre), e.nombre);
+        out << std::format("{},{},{},{},{}\n", g + 1, f, c, clave_especie(e.nombre), e.nombre);
       }
 }
 

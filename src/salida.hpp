@@ -1,6 +1,8 @@
 #pragma once
 
+#include <optional>
 #include <ostream>
+#include <string>
 #include <vector>
 
 #include "datos.hpp"
@@ -11,6 +13,17 @@
 namespace refor {
 
 enum class Formato { Tabla, Csv, Json };
+
+// Clave corta de la especie: inicial del género y dos letras del epíteto
+// (Agave salmiana → Asa), que es lo que la cuadrilla lee en campo.
+std::string clave_especie(const std::string& nombre);
+
+// B*(α) y costo óptimo agregados sobre los polígonos (promedios ponderados por
+// área) y el rango de B* entre polígonos; vacíos si algún polígono no tiene valor.
+struct AgregadoFrontera {
+  std::optional<double> B_minimo, costo_libre, B_min_pol, B_max_pol;
+};
+AgregadoFrontera agregar_frontera(const std::vector<Frontera>& res, double alfa);
 
 // Compra por polígono y especie. Si el polígono es infactible con B, las
 // cantidades reportadas son las del óptimo sin presupuesto.

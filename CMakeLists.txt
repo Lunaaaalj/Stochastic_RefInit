@@ -11,6 +11,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 option(REFOR_TESTS "Compilar las pruebas" ON)
+option(REFOR_GUI "Compilar la interfaz gráfica refor_gui (Dear ImGui + GLFW + OpenGL)" ON)
 
 include(FetchContent)
 
@@ -55,6 +56,62 @@ target_compile_options(refor_core PRIVATE -Wall -Wextra -Wpedantic)
 add_executable(refor src/main.cpp)
 target_link_libraries(refor PRIVATE refor_core CLI11::CLI11)
 target_compile_options(refor PRIVATE -Wall -Wextra -Wpedantic)
+
+if(REFOR_GUI)
+  # GLFW del sistema (brew install glfw, apt install libglfw3-dev) o descargado.
+  find_package(glfw3 3.3 CONFIG QUIET)
+  if(NOT glfw3_FOUND)
+    message(STATUS "GLFW no encontrado; se descarga 3.4")
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(glfw
+      GIT_REPOSITORY https://github.com/glfw/glfw.git
+      GIT_TAG 3.4
+      GIT_SHALLOW TRUE)
+    FetchContent_MakeAvailable(glfw)
+  endif()
+  find_package(OpenGL REQUIRED)
+
+  FetchContent_Declare(imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG v1.92.8-docking
+    GIT_SHALLOW TRUE)
+  FetchContent_Declare(implot
+    GIT_REPOSITORY https://github.com/epezent/implot.git
+    GIT_TAG v1.0
+    GIT_SHALLOW TRUE)
+  FetchContent_MakeAvailable(imgui implot)
+
+  add_library(imgui_lib STATIC
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+    ${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
+    ${implot_SOURCE_DIR}/implot.cpp
+    ${implot_SOURCE_DIR}/implot_items.cpp)
+  target_include_directories(imgui_lib PUBLIC
+    ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends ${imgui_SOURCE_DIR}/misc/cpp ${implot_SOURCE_DIR})
+  target_link_libraries(imgui_lib PUBLIC glfw OpenGL::GL)
+  if(APPLE)
+    target_compile_definitions(imgui_lib PUBLIC GL_SILENCE_DEPRECATION)
+  endif()
+
+  add_executable(refor_gui
+    gui/main.cpp
+    gui/app.cpp
+    gui/estilo.cpp
+    gui/vista_config.cpp
+    gui/vista_compra.cpp
+    gui/vista_mosaico.cpp
+    gui/vista_graficas.cpp)
+  target_link_libraries(refor_gui PRIVATE refor_core imgui_lib)
+  target_compile_options(refor_gui PRIVATE -Wall -Wextra -Wpedantic)
+endif()
 
 if(REFOR_TESTS)
   FetchContent_Declare(catch2
