@@ -47,7 +47,7 @@ void hexagono(ImVec2 (&pts)[6], ImVec2 c, float r) {
 
 }  // namespace
 
-void App::lienzo_mosaico(const ResultadoPlan& r, const Espacial& g) {
+void App::lienzo_mosaico(const ResultadoPlan& r, const memetico::Individuo& asig, const Resaltado* res) {
   const auto& m = r.mosaico;
   const auto& d = *r.datos;
   const auto& w = *r.w;
@@ -56,12 +56,14 @@ void App::lienzo_mosaico(const ResultadoPlan& r, const Espacial& g) {
   // Competencia local de cada posición: Σ W con sus 6 vecinas.
   std::vector<double> local(m.num_posiciones(), 0.0);
   for (int v = 0; v < m.num_posiciones(); ++v)
-    for (int x : m.vecinas(v)) local[v] += w(g.mejor[v], g.mejor[x]);
-  const auto [lmin, lmax] = std::minmax_element(local.begin(), local.end());
+    for (int x : m.vecinas(v)) local[v] += w(asig[v], asig[x]);
+  const auto [it_min, it_max] = std::minmax_element(local.begin(), local.end());
+  const double* lmin = res ? &res->local_min : &*it_min;
+  const double* lmax = res ? &res->local_max : &*it_max;
   double wmin = DBL_MAX, wmax = -DBL_MAX;
   for (const auto& [u, v] : m.aristas()) {
-    wmin = std::min(wmin, w(g.mejor[u], g.mejor[v]));
-    wmax = std::max(wmax, w(g.mejor[u], g.mejor[v]));
+    wmin = std::min(wmin, w(asig[u], asig[v]));
+    wmax = std::max(wmax, w(asig[u], asig[v]));
   }
   auto norm = [](double v, double lo, double hi) { return hi > lo ? static_cast<float>((v - lo) / (hi - lo)) : 0.5f; };
 
@@ -94,7 +96,7 @@ void App::lienzo_mosaico(const ResultadoPlan& r, const Espacial& g) {
   dl->PushClipRect(p0, ImVec2(p0.x + tam.x, p0.y + tam.y), true);
 
   auto relleno = [&](int v) {
-    return color_modo_ == 0 ? estilo::categorico[generos_.de_especie[g.mejor[v]]]
+    return color_modo_ == 0 ? estilo::categorico[generos_.de_especie[asig[v]]]
                             : estilo::secuencial(norm(local[v], *lmin, *lmax));
   };
   auto tinta_sobre = [&](int v) {
@@ -123,7 +125,7 @@ void App::lienzo_mosaico(const ResultadoPlan& r, const Espacial& g) {
         const int v = m.indice(f, c);
         for (const auto& [df, dc] : kAdelante) {
           const int u = m.indice(f + df, c + dc);
-          const float t = norm(w(g.mejor[v], g.mejor[u]), wmin, wmax);
+          const float t = norm(w(asig[v], asig[u]), wmin, wmax);
           const bool completa = dentro(f + df, c + dc);
           const float a = central(f, c) || (completa && central(f + df, c + dc)) ? 1.0f : 0.35f;
           const ImVec2 A = geo.centro(f, c), B = geo.centro(f + df, c + dc);
@@ -142,7 +144,7 @@ void App::lienzo_mosaico(const ResultadoPlan& r, const Espacial& g) {
     for (int f = f0; f < f1; ++f)
       for (int c = c0; c < c1; ++c) {
         const int v = m.indice(f, c);
-        const std::string k = clave_especie(d.especies[g.mejor[v]].nombre);
+        const std::string k = clave_especie(d.especies[asig[v]].nombre);
         const ImVec2 ts = fuente->CalcTextSizeA(letra, FLT_MAX, 0, k.c_str());
         const ImVec2 ctr = geo.centro(f, c);
         dl->AddText(fuente, letra, ImVec2(ctr.x - ts.x / 2, ctr.y - ts.y / 2),
@@ -160,6 +162,16 @@ void App::lienzo_mosaico(const ResultadoPlan& r, const Espacial& g) {
         }
   }
 
+  // Posiciones marcadas al comparar dos claves.
+  if (res && !res->distintas.empty()) {
+    for (int f = f0; f < f1; ++f)
+      for (int c = c0; c < c1; ++c)
+        if (res->distintas[m.indice(f, c)]) {
+          hexagono(pts, geo.centro(f, c), s * 0.86f);
+          dl->AddPolyline(pts, 6, con_alfa(estilo::aviso, central(f, c) ? 1.0f : 0.4f), ImDrawFlags_Closed, 2.5f);
+        }
+  }
+
   // Resaltado y detalle de la posición bajo el ratón.
   if (hv >= 0) {
     for (const auto& [df, dc] : kVecinas) {
@@ -170,18 +182,35 @@ void App::lienzo_mosaico(const ResultadoPlan& r, const Espacial& g) {
     dl->AddPolyline(pts, 6, estilo::tinta, ImDrawFlags_Closed, 2.5f);
 
     const int fr = ((hf % F) + F) % F, cr = ((hc % C) + C) % C;
-    const auto& e = d.especies[g.mejor[hv]];
+    const auto& e = d.especies[asig[hv]];
     ImGui::BeginTooltip();
     ImGui::Text("%s (%s)", e.nombre.c_str(), clave_especie(e.nombre).c_str());
     ImGui::TextDisabled("Fila %d, columna %d   competencia local %.2f", fr + 1, cr + 1, local[hv]);
     ImGui::Separator();
     for (int x : m.vecinas(hv)) {
-      const auto& ex = d.especies[g.mejor[x]];
-      ImGui::Text("%-4s %-26s W = %.2f", clave_especie(ex.nombre).c_str(), ex.nombre.c_str(), w(g.mejor[hv], g.mejor[x]));
+      const auto& ex = d.especies[asig[x]];
+      ImGui::Text("%-4s %-26s W = %.2f", clave_especie(ex.nombre).c_str(), ex.nombre.c_str(), w(asig[hv], asig[x]));
     }
     ImGui::EndTooltip();
   }
   dl->PopClipRect();
+}
+
+void App::leyenda_generos(const Datos& d) {
+  for (std::size_t k = 0; k < generos_.nombres.size(); ++k) {
+    std::string especies;
+    for (std::size_t s = 0; s < d.especies.size(); ++s)
+      if (generos_.de_especie[s] == static_cast<int>(k))
+        especies += (especies.empty() ? "" : ", ") + clave_especie(d.especies[s].nombre);
+    const ImVec2 p = ImGui::GetCursorScreenPos();
+    const float h = ImGui::GetTextLineHeight();
+    ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x, p.y + 2), ImVec2(p.x + h - 4, p.y + h - 2),
+                                              estilo::categorico[k], 3);
+    ImGui::Dummy(ImVec2(h, h));
+    ImGui::SameLine();
+    ImGui::Text("%s (%s)", generos_.nombres[k].c_str(), especies.c_str());
+    if (k + 1 < generos_.nombres.size()) ImGui::SameLine(0, ImGui::GetFontSize() * 1.5f);
+  }
 }
 
 void App::vista_mosaico() {
@@ -243,25 +272,12 @@ void App::vista_mosaico() {
   const float alto_tabla = tabla_abierta ? ImGui::GetTextLineHeightWithSpacing() * (r.mosaico.filas() + 3.5f)
                                          : ImGui::GetFrameHeightWithSpacing();
   ImGui::BeginChild("lienzo", ImVec2(0, std::max(160.0f, ImGui::GetContentRegionAvail().y - alto_leyenda - alto_tabla)));
-  lienzo_mosaico(r, g);
+  lienzo_mosaico(r, g.mejor);
   ImGui::EndChild();
 
   // Leyenda: colores por género con sus especies, o la escala de competencia.
   if (color_modo_ == 0) {
-    for (std::size_t k = 0; k < generos_.nombres.size(); ++k) {
-      std::string especies;
-      for (std::size_t s = 0; s < d.especies.size(); ++s)
-        if (generos_.de_especie[s] == static_cast<int>(k))
-          especies += (especies.empty() ? "" : ", ") + clave_especie(d.especies[s].nombre);
-      const ImVec2 p = ImGui::GetCursorScreenPos();
-      const float h = ImGui::GetTextLineHeight();
-      ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x, p.y + 2), ImVec2(p.x + h - 4, p.y + h - 2),
-                                                estilo::categorico[k], 3);
-      ImGui::Dummy(ImVec2(h, h));
-      ImGui::SameLine();
-      ImGui::Text("%s (%s)", generos_.nombres[k].c_str(), especies.c_str());
-      if (k + 1 < generos_.nombres.size()) ImGui::SameLine(0, ImGui::GetFontSize() * 1.5f);
-    }
+    leyenda_generos(d);
   } else {
     double lmin = DBL_MAX, lmax = -DBL_MAX;
     for (int v = 0; v < r.mosaico.num_posiciones(); ++v) {

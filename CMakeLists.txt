@@ -48,14 +48,24 @@ add_library(refor_core
   src/memetico/competencia.cpp
   src/memetico/individuo.cpp
   src/memetico/tabu.cpp
-  src/memetico/memetico.cpp)
+  src/memetico/memetico.cpp
+  src/asignacion_exacta/ple.cpp
+  src/asignacion_exacta/salida_ple.cpp)
 target_include_directories(refor_core PUBLIC src)
 target_link_libraries(refor_core PUBLIC highs::highs)
 target_compile_options(refor_core PRIVATE -Wall -Wextra -Wpedantic)
 
 add_executable(refor src/main.cpp)
 target_link_libraries(refor PRIVATE refor_core CLI11::CLI11)
+if(APPLE)
+# libc++ de Apple trae std::jthread solo como funcion experimental
+target_compile_options(refor_core PUBLIC -fexperimental-library)
+target_link_options(refor_core PUBLIC -fexperimental-library)
+endif()
 target_compile_options(refor PRIVATE -Wall -Wextra -Wpedantic)
+add_executable(refor_ple src/asignacion_exacta/ple_cli.cpp)
+target_link_libraries(refor_ple PRIVATE refor_core CLI11::CLI11)
+target_compile_options(refor_ple PRIVATE -Wall -Wextra -Wpedantic)
 
 if(REFOR_GUI)
   # GLFW del sistema (brew install glfw, apt install libglfw3-dev) o descargado.
@@ -108,6 +118,7 @@ if(REFOR_GUI)
     gui/vista_config.cpp
     gui/vista_compra.cpp
     gui/vista_mosaico.cpp
+    gui/vista_comparacion.cpp
     gui/vista_graficas.cpp)
   target_link_libraries(refor_gui PRIVATE refor_core imgui_lib)
   target_compile_options(refor_gui PRIVATE -Wall -Wextra -Wpedantic)
@@ -128,7 +139,8 @@ if(REFOR_TESTS)
     tests/test_simulacion.cpp
     tests/test_mochila.cpp
     tests/test_memetico.cpp
-    tests/test_plan.cpp)
+    tests/test_plan.cpp
+    tests/test_ple.cpp)
   target_link_libraries(refor_tests PRIVATE refor_core Catch2::Catch2WithMain)
   target_compile_definitions(refor_tests PRIVATE
     REFOR_DATOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data/processed")

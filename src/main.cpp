@@ -5,6 +5,8 @@
 //   refor barrido  --alphas ... --B-min ...    factibilidad en la rejilla α × B
 //   refor frontera --alphas ...                presupuesto mínimo B*(α)
 //   refor plan     --alpha 0.05 --B 12500      compra + mosaico memético por polígono
+//   refor plan ... --exacto                + modelo entero (secc. 2.2) por mosaico, para medir la brecha del memético
+//   refor plan ... --exacto -f json        + la traza de cotas del solver y la clave del exacto
 
 #include <chrono>
 #include <filesystem>
@@ -17,6 +19,7 @@
 
 #include <CLI/CLI.hpp>
 
+#include "asignacion_exacta/salida_ple.hpp"
 #include "datos.hpp"
 #include "memetico/competencia.hpp"
 #include "memetico/mosaico.hpp"
@@ -136,6 +139,8 @@ int main(int argc, char** argv) {
   double B_min = 12'000, B_max = 17'000, B_paso = 250;
   ParametrosEspacial pe;
   std::string competencia_csv;
+  bool con_exacto = false;
+  double limite_exacto = 300, brecha_exacto = 0;
 
   auto agregar_alfa_B = [&](CLI::App* cmd) {
     cmd->add_option("-a,--alpha", alfa, "Riesgo admisible de no alcanzar la meta de una especie")
@@ -177,6 +182,15 @@ int main(int argc, char** argv) {
   plan->add_option("--tabu-iter", pe.memetico.tabu.iteraciones_sin_mejora,
                    "Iteraciones sin mejora para parar la búsqueda tabú")
       ->check(CLI::PositiveNumber)
+      ->capture_default_str();
+  plan->add_flag("--exacto", con_exacto,
+                 "Resuelve también cada mosaico con el modelo entero (secc. 2.2) y compara con el memético");
+  plan->add_option("--limite-exacto", limite_exacto, "Límite de tiempo del modelo entero por mosaico (s)")
+      ->check(CLI::PositiveNumber)
+      ->capture_default_str();
+  plan->add_option("--brecha-exacto", brecha_exacto,
+                   "Brecha relativa con la que el modelo entero se da por satisfecho (0: probar el óptimo)")
+      ->check(CLI::Range(0.0, 1.0))
       ->capture_default_str();
 
   auto* barrido = app.add_subcommand("barrido", "Factibilidad y costo en la rejilla α × B");
@@ -242,6 +256,15 @@ int main(int argc, char** argv) {
              [&](std::ostream& o) { escribir_espacial(o, datos, espacial, m, pe.corridas, fmt); });
       if (fmt == Formato::Csv)
         emitir(dir / "mosaicos.csv", [&](std::ostream& o) { escribir_mosaicos_csv(o, datos, espacial, m); });
+
+      if (con_exacto) {
+        asignacion_exacta::ParametrosPLE pp;
+        pp.limite_segundos = limite_exacto;
+        pp.brecha_relativa = brecha_exacto;
+        const auto exactos = asignacion_exacta::resolver_exacto(espacial, m, w, pp);
+        emitir(dir / ("exacto" + extension(fmt)),
+               [&](std::ostream& o) { asignacion_exacta::escribir_exacto(o, datos, espacial, exactos, m, fmt); });
+      }
     } else if (barrido->parsed()) {
       std::vector<double> Bs;
       for (double b = B_min; b <= B_max + 1e-9; b += B_paso) Bs.push_back(b);
