@@ -48,7 +48,8 @@ add_library(refor_core
   src/memetico/individuo.cpp
   src/memetico/tabu.cpp
   src/memetico/memetico.cpp
-  src/asignacion_exacta/ple.cpp)
+  src/asignacion_exacta/ple.cpp
+  src/asignacion_exacta/salida_ple.cpp)
 target_include_directories(refor_core PUBLIC src)
 target_link_libraries(refor_core PUBLIC highs::highs)
 target_compile_options(refor_core PRIVATE -Wall -Wextra -Wpedantic)

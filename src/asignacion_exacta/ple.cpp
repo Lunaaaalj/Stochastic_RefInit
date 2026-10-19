@@ -1,5 +1,7 @@
 #include "asignacion_exacta/ple.hpp"
 
+#include "memetico/memetico.hpp"
+
 #include <Highs.h>
 
 #include <algorithm>
@@ -11,7 +13,8 @@
 namespace refor::asignacion_exacta {
 
 ResultadoPLE resolver_ple(const std::vector<int>& m_s, const memetico::Mosaico& m,
-                          const memetico::Competencia& w, const ParametrosPLE& p) {
+                          const memetico::Competencia& w, const ParametrosPLE& p,
+                          const memetico::Individuo* inicial) {
   const int n = m.num_posiciones();
   const int S = static_cast<int>(m_s.size());
   const auto& aristas = m.aristas();
@@ -46,13 +49,13 @@ ResultadoPLE resolver_ple(const std::vector<int>& m_s, const memetico::Mosaico& 
     for (int a = 0; a < S; ++a)
       for (int b = 0; b < S; ++b) lp.col_cost_[z(e, a, b)] = w(a, b);  // w_uv = 1
 
+  // Ruptura de simetría: la especie más abundante en la posición 0.
   const int s_fija = static_cast<int>(std::max_element(m_s.begin(), m_s.end()) - m_s.begin());
   lp.col_lower_[y(0, s_fija)] = 1.0;
 
   // Restricciones, por filas.
   lp.a_matrix_.format_ = MatrixFormat::kRowwise;
-  lp.a_matrix_.start_.assign(1, 0);
-    
+  lp.a_matrix_.start_.assign(1, 0);  // HiGHS ya inicia start_ con un 0; se reinicia explícitamente
   auto fila = [&lp](double lo, double hi, const std::vector<std::pair<int, double>>& coef) {
     for (const auto& [col, val] : coef) {
       lp.a_matrix_.index_.push_back(col);
@@ -95,6 +98,24 @@ ResultadoPLE resolver_ple(const std::vector<int>& m_s, const memetico::Mosaico& 
   highs.setOptionValue("time_limit", p.limite_segundos);
   highs.setOptionValue("mip_rel_gap", p.brecha_relativa);
   if (highs.passModel(model) == HighsStatus::kError) throw std::runtime_error("HiGHS rechazó el modelo");
+
+  // Arranque desde una solución conocida. Se traslada para que la especie fija
+  // quede en la posición 0 (el mosaico es un toro: la competencia no cambia).
+  if (inicial != nullptr && static_cast<int>(inicial->size()) == n) {
+    memetico::Individuo ind = *inicial;
+    int v0 = -1;
+    for (int v = 0; v < n && v0 < 0; ++v)
+      if (ind[v] == s_fija) v0 = v;
+    const bool valido = std::all_of(ind.begin(), ind.end(), [S](int s) { return s >= 0 && s < S; });
+    if (v0 >= 0 && valido) {
+      ind = memetico::trasladar(ind, m, -(v0 / m.columnas()), -(v0 % m.columnas()));
+      HighsSolution sol;
+      sol.col_value.assign(num_col, 0.0);
+      for (int v = 0; v < n; ++v) sol.col_value[y(v, ind[v])] = 1.0;
+      for (int e = 0; e < nE; ++e) sol.col_value[z(e, ind[aristas[e].first], ind[aristas[e].second])] = 1.0;
+      highs.setSolution(sol);
+    }
+  }
   highs.run();
 
   ResultadoPLE res;
