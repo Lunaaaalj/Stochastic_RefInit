@@ -1,0 +1,249 @@
+/* Deck ejecutivo «Carta de campo». Los tokens y las reglas están en DESIGN.md. */
+
+:root {
+  --papel: #FCF0DA;
+  --papel-hondo: #F3E2C2;
+  --tierra: #4C4541;
+  --tierra-suave: #6E655F;
+  --tinta: #2E2A27;
+  --salvia: #AEAC78;
+  --salvia-honda: #6F6D43;
+  --ocre: #F2C46A;
+  --ocre-hondo: #8C6418;
+  --linea: rgb(76 69 65 / .15);
+  --marco: #1C1917;
+
+  --f-display: "Libre Caslon Display", "Libre Caslon Text", Georgia, serif;
+  --f-texto: "Libre Caslon Text", Georgia, serif;
+  --f-rotulo: "Instrument Sans", system-ui, sans-serif;
+
+  --t-xs: 16px;  --t-s: 21px;  --t-m: 28px;  --t-l: 37px;
+  --t-xl: 50px;  --t-2xl: 67px; --t-3xl: 140px;
+
+  --ease-camara: cubic-bezier(.65, 0, .35, 1);
+  --ease-salida: cubic-bezier(.2, .7, .2, 1);
+  --d-camara: 1600ms;
+  --d-contenido: 450ms;
+  --d-datos: 750ms;
+  --d-respuesta: 180ms;
+
+  color-scheme: light;
+}
+
+html, body { height: 100%; margin: 0; }
+[hidden] { display: none !important; }
+body { background: var(--marco); color: var(--tierra); overflow: hidden; }
+::selection { background: rgb(242 196 106 / .6); color: var(--tinta); }
+
+/* ---------- Escenario: lienzo de 1920 × 1080 escalado a la ventana ---------- */
+.escenario { height: 100%; display: grid; place-items: center; }
+.marco { position: relative; width: calc(1920px * var(--k, .5)); height: calc(1080px * var(--k, .5)); }
+.lienzo {
+  position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden;
+  transform: scale(var(--k, .5)); transform-origin: 0 0;
+  background: var(--papel); font-family: var(--f-texto); color: var(--tierra);
+  font-kerning: normal; font-variant-numeric: lining-nums;
+}
+
+#vista { position: absolute; inset: 0; transform-origin: 50% 60%; will-change: transform;
+  transition: transform var(--d-camara) var(--ease-camara); }
+#vista.inclinado { transform: perspective(2400px) rotateX(42deg) scale(1.22) translateY(-30px); }
+#giro { position: absolute; inset: 0; will-change: transform, opacity; transition: opacity 900ms var(--ease-salida); }
+/* Deriva lenta de la portada: solo transforma la capa ya compuesta, sin volver a pintar el mapa. */
+#giro.deriva { animation: deriva 16s var(--ease-camara) infinite alternate; }
+@keyframes deriva { from { transform: rotate(-2deg) scale(1.03); } to { transform: rotate(2deg) scale(1.03); } }
+#terreno, #mapa { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+.capa-oculta { display: none; }
+.grano { position: absolute; inset: 0; pointer-events: none; opacity: .06; will-change: transform;   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .3  0 0 0 0 .27  0 0 0 0 .25  0 0 0 .55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+
+/* Capas del mapa */
+.poligono { fill: rgb(252 240 218 / .55); stroke: var(--tierra); stroke-width: 1.25; vector-effect: non-scaling-stroke;
+  transition: fill var(--d-datos) var(--ease-salida), stroke var(--d-respuesta) var(--ease-salida); }
+.poligono.fuera { fill: none; stroke: var(--tierra-suave); stroke-dasharray: 4 4; }
+.poligono.insinuado { fill: var(--papel-hondo); stroke: rgb(76 69 65 / .35); }
+.resalte { fill: none; stroke: var(--ocre-hondo); stroke-width: 2.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; pointer-events: none; }
+.id-poligono { font: 500 var(--t-xs) var(--f-rotulo); fill: var(--tierra-suave); text-anchor: middle; dominant-baseline: central;
+  paint-order: stroke; stroke: var(--papel); stroke-width: 3px; stroke-linejoin: round; pointer-events: none;
+  transition: opacity var(--d-contenido) var(--ease-salida); }
+.curvas path { fill: none; stroke: var(--salvia); vector-effect: non-scaling-stroke; }
+@keyframes trazo { from { stroke-dashoffset: var(--largo); } to { stroke-dashoffset: 0; } }
+.plantado { pointer-events: none; transition: opacity 900ms var(--ease-salida); }
+
+/* Cartela cartográfica: esquina, escala y norte, que siguen a la cámara */
+.cartela { position: absolute; left: 96px; bottom: 26px; display: flex; align-items: center; gap: 22px;
+  font: 400 var(--t-xs)/1.3 var(--f-rotulo); color: var(--tierra-suave); font-variant-numeric: tabular-nums; pointer-events: none;
+  transition: opacity var(--d-contenido) var(--ease-salida); }
+.cartela svg { overflow: visible; display: block; }
+.cartela .nota { font-style: normal; opacity: .9; }
+
+/* ---------- Láminas ---------- */
+.lamina { position: absolute; inset: 0; pointer-events: none; visibility: hidden; opacity: 0; will-change: opacity; }
+.lamina.activa { visibility: visible; opacity: 1; }
+.lamina.sale { visibility: visible; opacity: 0; transition: opacity 220ms var(--ease-salida); }
+.lamina.entra > * { animation: entra var(--d-contenido) var(--ease-salida) both; }
+.lamina.entra > :nth-child(2) { animation-delay: 60ms; }
+.lamina.entra > :nth-child(3) { animation-delay: 120ms; }
+.lamina.entra > :nth-child(4) { animation-delay: 180ms; }
+@keyframes entra {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+.lamina :is(a, button, .interactivo) { pointer-events: auto; }
+
+.panel { position: absolute; box-sizing: border-box; padding: 44px 48px 40px; pointer-events: auto;
+  background: rgb(252 240 218 / .92); border: 1px solid var(--linea); border-radius: 2px;
+  box-shadow: 0 18px 48px rgb(76 69 65 / .09); display: flex; flex-direction: column; gap: 24px; }
+.panel-a { right: 96px; top: 80px; width: 724px; max-height: 920px; }
+.panel-a.ancho { width: 984px; }
+.panel-b { right: 96px; top: 80px; width: 1064px; max-height: 920px; }
+
+h1, h2, h3, p { margin: 0; }
+h1 { font: 400 var(--t-2xl)/1.1 var(--f-display); color: var(--tierra); text-wrap: balance; letter-spacing: -.005em; }
+h2 { font: 400 var(--t-xl)/1.15 var(--f-display); color: var(--tierra); text-wrap: balance; letter-spacing: -.003em; }
+h3 { font: 400 var(--t-m)/1.35 var(--f-texto); color: var(--tierra); }
+.texto { font: 400 var(--t-m)/1.5 var(--f-texto); max-width: 34em; text-wrap: pretty; }
+.apoyo { font: 400 var(--t-l)/1.35 var(--f-texto); text-wrap: pretty; }
+.chico { font: 400 var(--t-s)/1.45 var(--f-texto); text-wrap: pretty; }
+i, em, .binomial { font-style: italic; }
+.rotulo { font: 400 var(--t-xs)/1.3 var(--f-rotulo); color: var(--tierra-suave); }
+.fuente { font: 400 var(--t-xs)/1.3 var(--f-rotulo); color: var(--tierra-suave); margin-top: auto; padding-top: 4px; }
+.fuente code, code { font-family: var(--f-rotulo); font-weight: 500; }
+.acento { color: var(--ocre-hondo); }
+.cifra { font-family: var(--f-display); font-variant-numeric: lining-nums tabular-nums; color: var(--tierra); }
+.num { font-variant-numeric: lining-nums tabular-nums; }
+
+/* Composición C: titular directo sobre el terreno, sin panel */
+.titular { position: absolute; left: 96px; top: 80px; width: 1320px; display: flex; flex-direction: column; gap: 28px; }
+/* Sobre el mapa, el texto lleva un contorno de papel bajo la tinta, como la rotulación de una carta. */
+.sobre-mapa :is(h1, h2, p, span) { -webkit-text-stroke: 7px var(--papel); paint-order: stroke fill; }
+.sobre-mapa .rotulo, .sobre-mapa.rotulo, .sobre-mapa .chico { -webkit-text-stroke: 3px var(--papel); paint-order: stroke fill; }
+.centrado { left: 50%; transform: translateX(-50%); text-align: center; align-items: center; }
+
+/* Gráficas */
+.grafica { display: block; overflow: visible; font-family: var(--f-rotulo); }
+.grafica text { fill: var(--tierra-suave); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
+.grafica .fuerte { fill: var(--tierra); font-weight: 500; }
+.grafica .bin { font-family: var(--f-texto); font-style: italic; font-size: var(--t-s); fill: var(--tierra); }
+.grafica .ab { font-size: var(--t-s); font-weight: 500; fill: var(--tierra); }
+.grafica .eje { stroke: var(--tierra-suave); stroke-width: 1; fill: none; }
+.grafica .crece { transform-box: fill-box; transform-origin: left center; }
+.lamina.datos .crece { animation: crece var(--d-datos) var(--ease-salida) both; animation-delay: calc(var(--i, 0) * 40ms + 200ms); }
+.grafica .crece.centro { transform-origin: right center; }
+.grafica .crece.vertical { transform-origin: center bottom; }
+@keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.lamina.datos .traza { stroke-dasharray: var(--largo); animation: trazo var(--d-datos) var(--ease-salida) both 200ms; }
+
+/* Lámina 4: herbario */
+.herbario { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px 16px; }
+.lamina-herbario { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.lamina-herbario svg { width: 100%; height: 150px; display: block; }
+.etiqueta-herbario { border: 1px solid var(--tierra); border-radius: 1px; padding: 6px 8px 7px; display: grid; gap: 2px; background: var(--papel); }
+.etiqueta-herbario .binomial { font: italic 400 var(--t-s)/1.15 var(--f-texto); color: var(--tinta); }
+.etiqueta-herbario .rotulo { font-variant-numeric: tabular-nums; }
+
+/* Lámina 6: tubería */
+.tuberia { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; counter-reset: paso; }
+.tuberia li { display: grid; grid-template-columns: 52px 1fr 220px; gap: 20px; align-items: center; padding-bottom: 18px; border-bottom: 1px solid var(--linea); }
+.tuberia li:last-child { border-bottom: 0; padding-bottom: 0; }
+.tuberia .n { font: 400 var(--t-xl)/1 var(--f-display); color: var(--ocre-hondo); }
+.tuberia h3 { margin-bottom: 4px; }
+
+/* Lámina 9: mosaico */
+.mosaico-ficha { cursor: default; }
+.mosaico-ficha text { font-family: var(--f-rotulo); font-weight: 500; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.controles { position: absolute; left: 96px; top: 916px; display: flex; align-items: center; gap: 28px; padding: 10px 14px;
+  background: rgb(252 240 218 / .92); border: 1px solid var(--linea); border-radius: 2px; pointer-events: auto; }
+.grupo { display: flex; align-items: center; gap: 10px; }
+.grupo > span { font: 400 var(--t-s)/1 var(--f-rotulo); color: var(--tierra-suave); }
+.segmentado { display: flex; border: 1px solid var(--tierra-suave); border-radius: 2px; }
+button { font: 500 var(--t-s)/1 var(--f-rotulo); color: var(--tierra); background: transparent; border: 0;
+  padding: 11px 16px; cursor: pointer; border-radius: 2px;
+  transition: background-color var(--d-respuesta) var(--ease-salida), color var(--d-respuesta) var(--ease-salida); }
+.segmentado button + button { border-left: 1px solid var(--tierra-suave); border-radius: 0; }
+button:hover { background: var(--papel-hondo); }
+button[aria-pressed="true"] { background: var(--tierra); color: var(--papel); }
+button.suelto { border: 1px solid var(--tierra-suave); }
+button:focus-visible, .punto:focus-visible { outline: 2.5px solid var(--ocre-hondo); outline-offset: 3px; }
+button:disabled { color: var(--tierra-suave); cursor: default; background: transparent; }
+.clave-especies { position: absolute; left: 96px; top: 772px; width: 1150px; margin: 0; padding: 0; list-style: none;
+  display: flex; flex-wrap: wrap; gap: 14px 30px; }
+.clave-especies li { display: flex; align-items: center; gap: 8px; }
+.clave-especies b { font: 500 var(--t-s)/1 var(--f-rotulo); color: var(--tierra); }
+.clave-especies .binomial { font: italic 400 var(--t-s)/1 var(--f-texto); color: var(--tierra-suave); }
+.clave-especies .rango { font: 400 var(--t-s)/1 var(--f-rotulo); color: var(--tierra); font-variant-numeric: tabular-nums; }
+.clave-especies .titulo { font: 400 var(--t-s)/1 var(--f-texto); }
+.comparacion { position: absolute; left: 1300px; top: 486px; width: 524px; display: grid; gap: 18px; }
+.serie { display: grid; gap: 6px; }
+.serie .nombre { font: 400 var(--t-s)/1.2 var(--f-rotulo); color: var(--tierra-suave); }
+.serie .fila { display: flex; align-items: center; gap: 14px; }
+.barra { height: 22px; box-sizing: border-box; flex: none; }
+.barra.azar { border: 1.25px solid var(--tierra-suave); }
+.barra.optima { background: var(--salvia-honda); }
+.comparacion .valor { font: 400 var(--t-s) var(--f-rotulo); font-variant-numeric: tabular-nums; }
+.comparacion .valor.grande { font: 400 var(--t-2xl)/1 var(--f-display); font-variant-numeric: lining-nums tabular-nums; }
+.regla { position: relative; height: 26px; border-top: 1px solid var(--tierra-suave); width: 380px; }
+.regla span { position: absolute; top: 4px; transform: translateX(-50%); }
+.regla span:first-child { transform: none; }
+.regla span:last-child { transform: translateX(-100%); }
+
+/* Lámina 11: ventana de la herramienta */
+.ventana { position: absolute; left: 96px; top: 300px; width: 860px; height: 560px; border: 1px solid var(--tierra);
+  border-radius: 3px; background: transparent; box-shadow: 0 18px 48px rgb(76 69 65 / .1); }
+.ventana .barra-titulo { height: 40px; border-bottom: 1px solid var(--tierra); display: flex; align-items: center; padding: 0 16px;
+  font: 500 var(--t-xs) var(--f-rotulo); color: var(--tierra); background: rgb(252 240 218 / .95); }
+.ventana .pendiente { position: absolute; left: 24px; bottom: 20px; font: 400 var(--t-xs) var(--f-rotulo); color: var(--tierra-suave);
+  background: rgb(252 240 218 / .9); padding: 6px 10px; border: 1px dashed var(--tierra-suave); }
+.vistas { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.vistas li { display: grid; grid-template-columns: 230px 1fr; gap: 16px; font: 400 var(--t-s)/1.4 var(--f-texto); }
+.vistas b { font: 500 var(--t-s)/1.4 var(--f-rotulo); color: var(--tierra); }
+
+/* Lámina 12: decisiones */
+.decisiones { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
+.decisiones li { display: grid; grid-template-columns: 52px 1fr; gap: 16px; }
+.decisiones .n { font: 400 var(--t-xl)/1 var(--f-display); color: var(--ocre-hondo); }
+.decisiones h3 { margin-bottom: 4px; }
+.capas-futuras { display: flex; gap: 26px; flex-wrap: wrap; }
+.capas-futuras span { display: inline-flex; align-items: center; gap: 8px; }
+.capas-futuras i { font-style: normal; display: inline-block; width: 34px; height: 18px; border: 1.5px dashed var(--tierra-suave); }
+
+/* Lámina 13 */
+.qr { width: 150px; height: 150px; display: block; padding: 14px; background: var(--papel); border: 1px solid var(--linea); }
+.cierre-pie { display: flex; align-items: center; gap: 28px; text-align: left; }
+
+/* Barra de avance: hilera al tresbolillo */
+#avance { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); overflow: visible; }
+.punto { cursor: pointer; }
+.punto circle { transition: fill var(--d-respuesta) var(--ease-salida), stroke var(--d-respuesta) var(--ease-salida); }
+#numero { position: absolute; right: 96px; bottom: 26px; font: 400 var(--t-xs) var(--f-rotulo); color: var(--tierra-suave); font-variant-numeric: tabular-nums; }
+
+/* Etiqueta flotante (polígonos y mosaico): recuadro de herbario */
+.etiqueta { position: absolute; z-index: 20; pointer-events: none; min-width: 250px; padding: 12px 16px 14px;
+  background: var(--papel); border: 1px solid var(--tierra); border-radius: 2px;
+  box-shadow: 0 18px 48px rgb(76 69 65 / .1); display: grid; gap: 4px; }
+.etiqueta .titulo { font: 400 var(--t-s)/1.3 var(--f-texto); color: var(--tinta); }
+.etiqueta .titulo.binomial { font-style: italic; }
+.etiqueta .valor { font: 500 var(--t-s)/1.3 var(--f-rotulo); color: var(--tierra); font-variant-numeric: tabular-nums; }
+.etiqueta .rotulo { font-variant-numeric: tabular-nums; }
+
+/* Movimiento reducido: la cámara funde y las gráficas aparecen completas */
+@media (prefers-reduced-motion: reduce) {
+  #giro { transition: opacity 300ms linear; }
+  #giro.deriva { animation: none; }
+  .lamina.entra > *, .lamina.datos .crece, .lamina.datos .traza { animation: none; }
+}
+
+/* Impresión: una lámina por página, con la cámara en su encuadre final */
+@page { size: 1920px 1080px; margin: 0; }
+@media print {
+  html, body { height: auto; overflow: visible; background: var(--papel); }
+  .escenario { display: block; }
+  .marco { width: 1920px; height: auto; }
+  .lienzo { position: static; transform: none; width: auto; height: auto; overflow: visible; background: none; }
+  /* El mapa queda oculto pero renderizado: sus patrones y recortes sirven a las copias impresas. */
+  #vista { position: absolute !important; width: 0 !important; height: 0 !important; overflow: hidden; visibility: hidden; }
+  .grano, .cartela, #avance, #numero, .etiqueta, .controles { display: none !important; }
+  .lamina { position: relative; width: 1920px; height: 1080px; visibility: visible; opacity: 1; break-after: page;
+    overflow: hidden; background: var(--papel); }
+  .lamina > * { animation: none !important; }
+  .lamina .impresion { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+}

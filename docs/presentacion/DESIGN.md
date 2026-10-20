@@ -120,16 +120,22 @@ gráficas donde no hay especies (lámina 8).
 
 Para las coropletas (láminas 7 y 8) y la vista de competencia del mosaico
 (lámina 9). Sale de la marca: interpolada en OKLab de `--papel-hondo` a
-`--salvia` y `--salvia-honda`, con pasos parejos de luminosidad. Cinco clases,
-con la leyenda escrita junto al mapa.
+`--salvia` y `--salvia-honda`. Cinco clases, con la leyenda escrita junto al
+mapa.
 
-| Token | Hex | Contraste sobre papel | Rótulo encima |
-|---|---|---|---|
-| `--sec-1` | `#F3E2C2` | 1.1 : 1 | tinta |
-| `--sec-2` | `#BDB888` | 1.8 : 1 | tinta |
-| `--sec-3` | `#8E8C5D` | 3.1 : 1 | ninguno: el rótulo va fuera |
-| `--sec-4` | `#64623D` | 5.6 : 1 | papel |
-| `--sec-5` | `#3B3A26` | 10.2 : 1 | papel |
+| Token | Hex | Contraste sobre papel | Rótulo encima | Contraste del rótulo |
+|---|---|---|---|---|
+| `--sec-1` | `#F3E2C2` | 1.1 : 1 | tinta | 11.2 : 1 |
+| `--sec-2` | `#C2BB8D` | 1.7 : 1 | tinta | 7.3 : 1 |
+| `--sec-3` | `#969464` | 2.8 : 1 | tinta | 4.6 : 1 |
+| `--sec-4` | `#64623D` | 5.6 : 1 | papel | 5.6 : 1 |
+| `--sec-5` | `#3B3A26` | 10.2 : 1 | papel | 10.2 : 1 |
+
+Todo paso admite rótulo de al menos 4.5 : 1, porque en la vista de competencia
+la abreviatura no puede salir del hexágono. `--sec-3` es el tono más oscuro de
+la interpolación con el que la tinta aún llega a 4.5 : 1, y `--sec-2` queda a
+medio camino entre el 1 y el 3; los saltos de luminosidad (OKLab) van de 0.13 a
+0.17.
 
 En el mapa no hay especies cuando se usa la rampa, así que su tono verde no se
 confunde con *Agave*. En la vista de competencia del mosaico, la abreviatura
@@ -160,8 +166,8 @@ distinguen además por su rótulo directo.
 | Cuerpo, subtítulos y binomiales | **Libre Caslon Text** | 400, *400 itálica*, 700 | Más robusta para leerse proyectada |
 | Rotulación técnica | **Instrument Sans** | 400, 500 | Ejes, etiquetas de gráficas, coordenadas, escala |
 
-Las tres se cargan desde Google Fonts. Para la presentación en vivo conviene
-servirlas localmente, para no depender de la red.
+Las tres se sirven localmente desde `fuentes/` (woff2, licencia OFL en
+`fuentes/OFL.txt`), así que el deck funciona sin red.
 
 ### Escala (lienzo de 1920 × 1080)
 
@@ -231,9 +237,9 @@ Región ──► Sitio (30 polígonos) ──► Un polígono ──► La ret�
 
 - **Contornos:** `data/processed/mapa.csv`, en UTM. Como UTM ya es una proyección
   plana en metros, las coordenadas se usan directo en el `viewBox` del SVG, sin
-  bibliotecas de mapas ni *tiles* externos. Los generará
-  `scripts/datos_presentacion.py` → `docs/presentacion/datos/mapa.js` (aún no
-  existen; ver Pendientes).
+  bibliotecas de mapas ni *tiles* externos. Los convierte a metros locales
+  `scripts/datos_presentacion.py`, que escribe todo lo que usa el deck en
+  `docs/presentacion/datos/datos.js`.
 - **Numeración:** `mapa.csv` trae dos números. `etiqueta` es el del plano de
   INECOL y `poligono` es el ID del programa, el mismo de `poligonos.csv` y de
   todas las tablas de `refor` (el polígono 1 es la etiqueta 27). El deck
@@ -258,7 +264,7 @@ Región ──► Sitio (30 polígonos) ──► Un polígono ──► La ret�
 | 5 | Incertidumbre | Sobre el polígono 1 | Las plantas existentes parpadean |
 | 6 | Método | Vista del sitio | Un pulso recorre los polígonos siguiendo la tubería |
 | 7 | Compra | Vista del sitio | Coropleta de plantas/ha |
-| 8 | Presupuesto | Vista del sitio | Coropleta de B\*/ha; resaltan los polígonos pequeños |
+| 8 | Presupuesto | Vista del sitio | Coropleta de B\*/ha; resaltan los polígonos 1 y 4, los más caros |
 | 9 | Mosaico | Zoom profundo a la retícula | La retícula se vuelve el mosaico real y se reordena |
 | 10 | Validación | Se aleja un poco | El mosaico se tesela sobre todo el polígono |
 | 11 | Herramienta | El mapa se encoge a la ventana de la GUI | Liga el mapa con `refor_gui` |
@@ -284,6 +290,17 @@ Región ──► Sitio (30 polígonos) ──► Un polígono ──► La ret�
 - El mosaico es periódico (por eso la réplica 3 × 3), así que teselarlo con un
   `<pattern>` de SVG es fiel al modelo y evita dibujar más de 100,000
   hexágonos en la vista del sitio.
+- **Rendimiento.** Cada cuadro de la cámara obliga al navegador a volver a
+  maquetar y pintar todo el SVG, así que:
+  - las curvas de nivel van en un `<canvas>` bajo el SVG, partidas en bloques,
+    y solo se trazan los bloques visibles;
+  - una capa desvanecida sale del render con `display: none`;
+  - la teselación de la lámina 10 y los polígonos plantados son un solo trazo
+    con `<pattern>`, no un elemento por hexágono;
+  - la inclinación y la deriva de la portada, y el atenuado del mapa, son
+    `transform` y `opacity` de CSS sobre capas compuestas (`#vista`, `#giro`):
+    no repintan el mapa.
+- Al imprimir, cada lámina lleva su encuadre final, pero sin curvas de nivel.
 
 ### Estilo cartográfico
 
@@ -378,7 +395,7 @@ su encuadre final.
 | # | Lámina | Mensaje | Visual principal | Composición |
 |---|---|---|---|---|
 | 1 | Portada | Título, equipo, CONAFOR, fecha | Retícula que se planta en ondas desde el centro | C |
-| 2 | Resumen | **$14,496/ha** de presupuesto mínimo · **108,680 plantas** · **−15 % de competencia** | Las cifras frente a la barra de $12,500/ha disponibles | C |
+| 2 | Resumen | **$14,496/ha** de presupuesto mínimo · **108,680 plantas** · **−16 % de competencia** | Las cifras frente a la barra de $12,500/ha disponibles | C |
 | 3 | El reto | 183 ha, 30 polígonos (1.28–8 ha), 10 especies, 658 plantas/ha | El mapa se revela; tooltip por polígono | A |
 | 4 | Dos preguntas | ¿Cuántas plantas comprar? ¿Dónde plantar cada una? | Láminas de herbario de las 10 especies, por género | A |
 | 5 | Lo que no sabemos | Mortalidad, plantas existentes, competencia | Supervivencia *q* por especie con banda de incertidumbre | A |
@@ -386,7 +403,7 @@ su encuadre final.
 | 7 | La compra | 594 plantas/ha + 129 existentes = 723/ha (10 % sobre la meta); Opuntia +10 %; Prosopis, Yucca y A. scabra −10 % | Barras divergentes por especie; barra apilada de densidad | B |
 | 8 | El presupuesto | Con $12,500/ha ningún polígono es factible; aceptar 50 veces más riesgo ahorra menos del 4 % | Frontera B\*(α) con la línea del presupuesto debajo de toda la curva | B |
 | 9 | La clave de plantación | 30 polígonos, 6 claves; el mezquite separa | El mosaico real se reordena del azar al óptimo; conmutador género/competencia y réplica 3 × 3 | C |
-| 10 | Qué tan buena es | 14.5–16.3 % menos competencia que al azar; d.e. ≤ 0.006; brecha con el óptimo exacto | Barras azar / memético / exacto por mosaico; histograma de 30 corridas | B |
+| 10 | Qué tan buena es | 14.5–16.3 % menos competencia que al azar; d.e. ≤ 0.006; brecha con el óptimo exacto | Barras azar / memético / exacto por mosaico, con la cota del exacto | B |
 | 11 | La herramienta | `refor_gui`: configurar, ejecutar, exportar; reproducible | Capturas en un marco de ventana; da paso a la demo en vivo | B |
 | 12 | Recomendaciones | Ajustar presupuesto o meta; validar la matriz W; ampliar el monitoreo | Decisiones numeradas y línea de tiempo de siguientes pasos | A |
 | 13 | Cierre | Gracias y preguntas | El encuadre de la portada, todo plantado; QR al repositorio | C |
@@ -428,8 +445,8 @@ como en el reporte E2.
 
   /* rampa secuencial (coropletas, competencia) */
   --sec-1: #F3E2C2;
-  --sec-2: #BDB888;
-  --sec-3: #8E8C5D;
+  --sec-2: #C2BB8D;
+  --sec-3: #969464;
   --sec-4: #64623D;
   --sec-5: #3B3A26;
 
@@ -453,15 +470,41 @@ como en el reporte E2.
 
 ---
 
-## 11. Pendientes
+## 11. Archivos y cómo presentar
+
+| Archivo | Contenido |
+|---|---|
+| `index.html` | Las 13 láminas |
+| `estilo.css` | Tokens y composición |
+| `deck.js` | Mapa, cámara, navegación, gráficas y el mosaico de la lámina 9 |
+| `herbario.js` | Dibujos provisionales de las 10 especies |
+| `datos/datos.js` | Generado por `scripts/datos_presentacion.py`; no se edita a mano |
+| `fuentes/`, `fuentes.css` | Fuentes locales |
+| `qr-repositorio.svg` | QR de la lámina 13 |
+
+Para regenerar los datos, desde la raíz del repo:
+
+```bash
+./build/refor frontera --alphas 0.01,0.02,0.05,0.10,0.20,0.30,0.50 -f csv
+./build/refor plan --exacto -f json      # unos 30 min: 300 s por mosaico
+python3 scripts/datos_presentacion.py
+```
+
+Se presenta abriendo `index.html` en el navegador, sin servidor. `#n` en la
+URL abre la lámina *n*.
+
+---
+
+## 12. Pendientes
 
 - Duración de la presentación y guion de la demo en vivo.
-- Resultados de `refor plan --exacto` para la lámina 10 (cota y brecha por
-  mosaico).
-- Las 10 ilustraciones de herbario: origen, licencias y vectorización.
-- Capturas de `refor_gui` para la lámina 11.
-- `scripts/datos_presentacion.py`, que genera `docs/presentacion/datos/`
-  (mapa con ID del programa y etiqueta del plano, y los resultados de `refor`).
+- Las 10 ilustraciones de herbario definitivas: origen, licencias y
+  vectorización. Hoy la lámina 4 usa dibujos propios provisionales
+  (`herbario.js`).
+- Capturas de `refor_gui` para la lámina 11 (hoy, marco con «Captura
+  pendiente»).
+- Histograma de las 30 corridas por mosaico en la lámina 10: `refor` solo
+  exporta la media y la desviación estándar, no cada corrida.
 - Validar en el proyector los tonos de especie y la rampa secuencial. En
   simulación ya se comprobó que los tres colores de género se distinguen con
   deuteranopía y protanopía.
