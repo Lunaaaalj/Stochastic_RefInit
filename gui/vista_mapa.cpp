@@ -428,7 +428,7 @@ void App::vista_mapa() {
 
 void App::detalle_mapa(int k) {
   const auto& pm = mapa_[k];
-  ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 1.3f);
+  ImGui::PushFont(estilo::fuente_titulo, ImGui::GetStyle().FontSizeBase * 1.3f);
   ImGui::Text("Polígono %d del mapa", pm.etiqueta);
   ImGui::PopFont();
   int dato = -1;

@@ -13,9 +13,11 @@ namespace {
 
 void titulo(const char* t) {
   ImGui::Spacing();
-  ImGui::PushStyleColor(ImGuiCol_Text, estilo::v4(estilo::tinta_tenue));
+  ImGui::PushFont(estilo::fuente_titulo, 0.0f);
+  ImGui::PushStyleColor(ImGuiCol_Text, estilo::v4(estilo::tinta_2));
   ImGui::SeparatorText(t);
   ImGui::PopStyleColor();
+  ImGui::PopFont();
 }
 
 void ayuda(const char* texto) {

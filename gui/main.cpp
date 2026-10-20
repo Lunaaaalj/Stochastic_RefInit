@@ -20,6 +20,7 @@
 
 #include "app.hpp"
 #include "estilo.hpp"
+#include "fuentes.hpp"
 
 namespace {
 
@@ -27,16 +28,28 @@ namespace estilo = refor::gui::estilo;
 
 void error_glfw(int codigo, const char* descripcion) { std::fprintf(stderr, "GLFW %d: %s\n", codigo, descripcion); }
 
-// Una fuente del sistema con acentos, ñ y letras griegas (α, θ, δ); ImGui
-// carga los glifos al vuelo. Si no hay ninguna, queda la fuente por defecto.
+// Inter embebida: Regular por defecto y SemiBold para títulos. ImGui carga
+// los glifos al vuelo; los que Inter no tenga se buscan en una fuente del
+// sistema fusionada como respaldo, si hay alguna.
 void cargar_fuente(ImGuiIO& io) {
-  for (const char* ruta : {"/System/Library/Fonts/Supplemental/Arial Unicode.ttf", "/Library/Fonts/Arial Unicode.ttf",
-                           "/System/Library/Fonts/Supplemental/Arial.ttf",
-                           "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/TTF/DejaVuSans.ttf",
-                           "C:\\Windows\\Fonts\\segoeui.ttf"}) {
-    if (std::filesystem::exists(ruta) && io.Fonts->AddFontFromFileTTF(ruta, 15.0f)) return;
-  }
-  io.Fonts->AddFontDefault();
+  constexpr float kTam = 15.5f;
+  auto inter = [&](const unsigned char* datos, int tam) {
+    ImFontConfig cfg;
+    cfg.FontDataOwnedByAtlas = false;  // los bytes son estáticos
+    ImFont* f = io.Fonts->AddFontFromMemoryTTF(const_cast<unsigned char*>(datos), tam, kTam, &cfg);
+    for (const char* ruta : {"/System/Library/Fonts/Supplemental/Arial Unicode.ttf", "/Library/Fonts/Arial Unicode.ttf",
+                             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/TTF/DejaVuSans.ttf",
+                             "C:\\Windows\\Fonts\\segoeui.ttf"}) {
+      if (!std::filesystem::exists(ruta)) continue;
+      ImFontConfig respaldo;
+      respaldo.MergeMode = true;
+      io.Fonts->AddFontFromFileTTF(ruta, kTam, &respaldo);
+      break;
+    }
+    return f;
+  };
+  inter(refor::gui::fuentes::inter_regular, refor::gui::fuentes::inter_regular_tam);
+  estilo::fuente_titulo = inter(refor::gui::fuentes::inter_semibold, refor::gui::fuentes::inter_semibold_tam);
 }
 
 }  // namespace

@@ -6,6 +6,7 @@
 
 namespace refor::gui::estilo {
 
+ImFont* fuente_titulo = nullptr;
 ImPlotColormap cmap_secuencial = -1;
 ImPlotColormap cmap_generos = -1;
 

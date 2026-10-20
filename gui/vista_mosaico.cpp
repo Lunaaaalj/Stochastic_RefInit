@@ -246,7 +246,7 @@ void App::vista_mosaico() {
 
   const Espacial& g = grupos[mosaico_sel_];
   // Cifra principal: el coeficiente frente al azar.
-  ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 1.7f);
+  ImGui::PushFont(estilo::fuente_titulo, ImGui::GetStyle().FontSizeBase * 1.7f);
   ImGui::Text("%.3f", g.coeficiente());
   ImGui::PopFont();
   ImGui::SameLine();

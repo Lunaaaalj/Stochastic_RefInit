@@ -111,7 +111,27 @@ if(REFOR_GUI)
     target_compile_definitions(imgui_lib PUBLIC GL_SILENCE_DEPRECATION)
   endif()
 
+  # Las fuentes de gui/fuentes/ se embeben en el binario como arreglos de
+  # bytes, así la app no depende del directorio desde donde se corre.
+  set(fuentes_cpp ${CMAKE_BINARY_DIR}/gui_gen/fuentes.cpp)
+  set(fuentes_contenido "#include \"fuentes.hpp\"\n\nnamespace refor::gui::fuentes {\n")
+  foreach(par "inter_regular:Inter-Regular.ttf" "inter_semibold:Inter-SemiBold.ttf")
+    string(REPLACE ":" ";" par "${par}")
+    list(GET par 0 nombre)
+    list(GET par 1 archivo)
+    set(ruta ${CMAKE_SOURCE_DIR}/gui/fuentes/${archivo})
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${ruta})
+    file(READ ${ruta} hex HEX)
+    file(SIZE ${ruta} tam)
+    string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1," bytes "${hex}")
+    string(APPEND fuentes_contenido
+      "const unsigned char ${nombre}[] = {${bytes}};\nconst int ${nombre}_tam = ${tam};\n")
+  endforeach()
+  string(APPEND fuentes_contenido "}  // namespace refor::gui::fuentes\n")
+  file(CONFIGURE OUTPUT ${fuentes_cpp} CONTENT "${fuentes_contenido}" @ONLY)
+
   add_executable(refor_gui
+    ${fuentes_cpp}
     gui/main.cpp
     gui/app.cpp
     gui/estilo.cpp
@@ -121,6 +141,7 @@ if(REFOR_GUI)
     gui/vista_comparacion.cpp
     gui/vista_mapa.cpp
     gui/vista_graficas.cpp)
+  target_include_directories(refor_gui PRIVATE gui)
   target_link_libraries(refor_gui PRIVATE refor_core imgui_lib)
   target_compile_options(refor_gui PRIVATE -Wall -Wextra -Wpedantic)
 endif()

@@ -36,6 +36,10 @@ inline constexpr ImU32 categorico[3] = {rgb(0x3987e5), rgb(0xd95926), rgb(0x199e
 // con la superficie) a claro (máximo).
 ImU32 secuencial(float t);
 
+// Inter SemiBold para títulos y cifras; la carga main.cpp. Nulo: la fuente
+// por defecto (PushFont(nullptr, …) solo cambia el tamaño).
+extern ImFont* fuente_titulo;
+
 // Colormaps de ImPlot registrados por aplicar(): rampa secuencial y géneros.
 extern ImPlotColormap cmap_secuencial;
 extern ImPlotColormap cmap_generos;

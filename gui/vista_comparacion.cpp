@@ -228,7 +228,7 @@ void App::vista_comparacion() {
   // Cifra principal: la distancia del memético al óptimo (o su cota).
   const double brecha = asignacion_exacta::brecha_memetico(g, *e);
   const bool exacta = e->optimo;
-  ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 1.7f);
+  ImGui::PushFont(estilo::fuente_titulo, ImGui::GetStyle().FontSizeBase * 1.7f);
   if (exacta && brecha < kEps) ImGui::TextColored(estilo::v4(estilo::bueno), "0 %%");
   else ImGui::Text("%s%.2f %%", exacta ? "" : "≤ ", brecha);
   ImGui::PopFont();
