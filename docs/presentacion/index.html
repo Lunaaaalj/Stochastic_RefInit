@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reforestación Dominica–Charcas</title>
+<link rel="stylesheet" href="fuentes.css">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<div class="escenario">
+<div class="marco">
+<div class="lienzo" id="lienzo">
+
+  <!-- #vista lleva la inclinación de la portada; #giro, la deriva y el atenuado. Ambos se componen en la GPU. -->
+  <div id="vista"><div id="giro">
+    <canvas id="terreno" aria-hidden="true"></canvas>
+    <svg id="mapa" viewBox="0 0 1920 1080" aria-hidden="true">
+      <defs id="defs"></defs>
+      <g id="camara"><g id="mundo"></g></g>
+    </svg>
+  </div></div>
+  <div class="grano"></div>
+
+  <!-- 1 · Portada -->
+  <section class="lamina" data-cam="portada" aria-label="Portada">
+    <div class="titular centrado sobre-mapa" style="top: 300px; width: 1500px">
+      <h1>Cuántas plantas comprar y dónde sembrar cada una</h1>
+      <p class="apoyo" style="max-width: 1180px">Compra bajo incertidumbre y distribución espacial para reforestar la Línea de Transmisión Dominica–Charcas, San Luis Potosí</p>
+    </div>
+    <div class="titular centrado sobre-mapa" style="top: 820px; width: 1500px; gap: 10px">
+      <p class="chico">Angel Eduardo-Luna · Irasema Alvarez · Carolina Sánchez Meneses · Andrea Estefanía de la Peña</p>
+      <p class="rotulo">Tecnológico de Monterrey · MA2004B, grupo 202, equipo 5 · para CONAFOR · octubre de 2026</p>
+    </div>
+  </section>
+
+  <!-- 2 · Resumen -->
+  <section class="lamina" data-cam="resumen" aria-label="Resumen">
+    <div class="titular" style="width: 1080px; gap: 40px">
+      <h1>Con $12,500 por hectárea no alcanza para ningún polígono</h1>
+      <div>
+        <p class="rotulo" style="margin-bottom: 6px">Presupuesto mínimo para cumplir la meta con 95 % de probabilidad, por hectárea</p>
+        <p class="cifra" style="font-size: var(--t-3xl); line-height: 1" id="r-bmin"></p>
+        <svg class="grafica" id="r-barra" width="1000" height="96"></svg>
+      </div>
+      <p class="texto" id="r-compra"></p>
+      <p class="texto" id="r-competencia"></p>
+    </div>
+    <p class="fuente" style="position: absolute; left: 96px; top: 952px">Fuente: INECOL; modelo <code>refor</code>, α = 0.05, θ = 0.05, δ = 0.10, K = 10,000, semilla 42.</p>
+  </section>
+
+  <!-- 3 · El reto -->
+  <section class="lamina" data-cam="sitio" aria-label="El reto">
+    <div class="panel panel-a">
+      <h2>30 polígonos, 183 hectáreas</h2>
+      <p class="texto">Línea de Transmisión Dominica–Charcas, en San Luis Potosí. Matorral desértico rosetófilo y micrófilo, deteriorado por el sobrepastoreo.</p>
+      <ul class="chico" style="margin: 0; padding-left: 1.1em; display: grid; gap: 8px">
+        <li>Polígonos de 1.28 a 8 hectáreas.</li>
+        <li>Diez especies nativas: agaves, nopales, mezquite y yuca.</li>
+        <li>Meta de 658 plantas por hectárea, al tresbolillo por los vientos fuertes de la zona.</li>
+      </ul>
+      <p class="rotulo">Pase el cursor por un polígono para ver sus datos.</p>
+      <p class="fuente">Fuente: INECOL. Contornos digitalizados a mano (±5 m): sirven para ubicar, no para deslindar. Números: ID del programa.</p>
+    </div>
+  </section>
+
+  <!-- 4 · Dos preguntas -->
+  <section class="lamina" data-cam="poligono" aria-label="Dos preguntas">
+    <div class="panel panel-a ancho" style="gap: 22px">
+      <h2>¿Cuántas plantas comprar de cada especie, y dónde va cada una?</h2>
+      <div class="herbario" id="herbario"></div>
+      <p class="fuente">Dibujos provisionales del equipo. <i>q</i>: supervivencia; <i>c</i>: costo por planta. Fuente: INECOL.</p>
+    </div>
+  </section>
+
+  <!-- 5 · Lo que no sabemos -->
+  <section class="lamina" data-cam="poligono" aria-label="Lo que no sabemos">
+    <div class="panel panel-a ancho">
+      <h2>Lo que no sabemos de antemano</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 28px">
+        <div class="chico"><h3>Cuántas sobreviven</h3>Cada especie tiene su tasa de supervivencia <i>q</i>. De 100 mezquites plantados sobreviven entre 76 y 88 en 9 de cada 10 lotes.</div>
+        <div class="chico"><h3>Cuántas ya hay</h3><span id="n-existentes"></span></div>
+      </div>
+      <svg class="grafica" id="g-supervivencia" width="888" height="470"></svg>
+      <p class="fuente">Banda: 90 % de lo que sobrevive en un lote de 100 plantas, Bin(100, <i>q</i>). Plantas existentes en el polígono 1: conteos de INECOL; su ubicación en el mapa es ilustrativa. La competencia entre especies (matriz <i>W</i>) es una estimación por validar en campo.</p>
+    </div>
+  </section>
+
+  <!-- 6 · Cómo lo resolvimos -->
+  <section class="lamina" data-cam="sitio" aria-label="Cómo lo resolvimos">
+    <div class="panel panel-a ancho">
+      <h2>Cómo lo resolvimos</h2>
+      <ol class="tuberia">
+        <li><span class="n">1</span><div><h3>Datos de INECOL</h3><p class="chico">Superficie de cada polígono, plantas que ya existen, supervivencia y costo de cada especie.</p></div><svg class="grafica" id="m-datos" width="220" height="96"></svg></li>
+        <li><span class="n">2</span><div><h3>10,000 escenarios de supervivencia</h3><p class="chico" id="t-escenarios"></p></div><svg class="grafica" id="m-escenarios" width="220" height="96"></svg></li>
+        <li><span class="n">3</span><div><h3>La compra más barata que cumple</h3><p class="chico">Una meta por especie, sin alejarse más de 10 % de la composición de referencia, al menor costo de compra más reposición esperada.</p></div><svg class="grafica" id="m-compra" width="220" height="96"></svg></li>
+        <li><span class="n">4</span><div><h3>La clave de plantación</h3><p class="chico">Un algoritmo memético con búsqueda tabú acomoda la compra en un mosaico de 52 posiciones que se repite sobre el polígono.</p></div><svg class="grafica" id="m-mosaico" width="220" height="96"></svg></li>
+      </ol>
+      <p class="fuente">Fuente: modelo <code>refor</code>, reporte E2, semilla 42.</p>
+    </div>
+  </section>
+
+  <!-- 7 · La compra -->
+  <section class="lamina" data-cam="sitio-datos" aria-label="La compra">
+    <div class="panel panel-b">
+      <h2 id="c-titulo"></h2>
+      <svg class="grafica" id="g-densidad" width="968" height="120"></svg>
+      <p class="chico" id="c-texto"></p>
+      <svg class="grafica" id="g-desvio" width="968" height="420"></svg>
+      <p class="fuente">Densidad planeada por especie frente a la de referencia de INECOL (<i>n</i>₀), en todo el sitio. Fuente: <code>refor plan</code>, α = 0.05.</p>
+    </div>
+    <div id="leyenda-compra" style="position: absolute; left: 96px; top: 950px"></div>
+  </section>
+
+  <!-- 8 · El presupuesto -->
+  <section class="lamina" data-cam="sitio-datos" aria-label="El presupuesto">
+    <div class="panel panel-b">
+      <h2>Ningún polígono cabe en $12,500 por hectárea</h2>
+      <svg class="grafica" id="g-frontera" width="968" height="430"></svg>
+      <p class="texto" id="p-texto"></p>
+      <p class="fuente">Presupuesto mínimo B*(α) del sitio, ponderado por área. Fuente: <code>refor frontera</code>.</p>
+    </div>
+    <div id="leyenda-presupuesto" style="position: absolute; left: 96px; top: 950px"></div>
+  </section>
+
+  <!-- 9 · La clave de plantación -->
+  <section class="lamina" data-cam="reticula" aria-label="La clave de plantación">
+    <div class="titular sobre-mapa" style="width: 1240px; gap: 24px">
+      <h1>Seis claves de plantación cubren los 30&nbsp;polígonos</h1>
+      <p class="texto" style="max-width: 1120px">En las seis claves ningún mezquite (<i>Prosopis laevigata</i>) queda junto a otro, porque dos mezquites vecinos son la pareja que más compite. Con las demás especies compite poco, así que la clave lo usa para separarlas.</p>
+    </div>
+    <p class="rotulo sobre-mapa" id="pie-mosaico" style="position: absolute; left: 96px; top: 392px">Clave 1 · 4 × 13 = 52 posiciones al tresbolillo, <i>d</i> ≈ 4.19 m</p>
+    <div class="comparacion" id="comparacion">
+      <h2 style="font: 400 var(--t-m)/1.35 var(--f-texto)">Competencia total entre plantas vecinas</h2>
+      <div class="serie"><span class="nombre">Al azar (valor esperado)</span><div class="fila"><div class="barra azar" id="barra-azar"></div><span class="valor" id="valor-azar"></span></div></div>
+      <div class="serie"><span class="nombre" id="nombre-actual">Esta asignación al azar</span><div class="fila"><div class="barra optima" id="barra-actual"></div><span class="valor grande" id="valor-actual"></span></div></div>
+      <div class="regla rotulo" aria-hidden="true"><span style="left:0">0</span><span style="left:50%">50</span><span style="left:100%">100</span></div>
+      <p class="chico" id="nota-comparacion"></p>
+    </div>
+    <ul class="clave-especies" id="clave-especies" aria-label="Clave de especies"></ul>
+    <ul class="clave-especies" id="clave-rampa" aria-label="Competencia local, cinco clases" hidden></ul>
+    <div class="controles" role="group" aria-label="Controles del mosaico">
+      <div class="grupo"><span id="lbl-color">Color</span>
+        <div class="segmentado" role="group" aria-labelledby="lbl-color">
+          <button id="btn-especie" aria-pressed="true">Especie</button>
+          <button id="btn-competencia" aria-pressed="false">Competencia local</button>
+        </div>
+      </div>
+      <button class="suelto" id="btn-replica" aria-pressed="false">Réplica 3 × 3</button>
+      <button class="suelto" id="btn-reordenar">Reordenar desde el azar</button>
+    </div>
+    <p class="fuente" style="position: absolute; right: 96px; top: 952px; text-align: right">Fuente: <code>refor plan</code>, α = 0.05, semilla 42. Clave 1 de 6; la usan 18 polígonos.</p>
+  </section>
+
+  <!-- 10 · Qué tan buena es -->
+  <section class="lamina" data-cam="tesela" aria-label="Qué tan buena es">
+    <div class="panel" style="left: 96px; right: 96px; top: 330px; bottom: 80px; flex-direction: row; gap: 56px">
+      <div style="display: flex; flex-direction: column; gap: 24px; width: 600px; flex: none">
+        <h2>El memético llega al mejor valor conocido en las seis claves</h2>
+        <p class="texto" id="v-texto"></p>
+        <p class="fuente" id="v-fuente"></p>
+      </div>
+      <svg class="grafica" id="g-validacion" width="960" height="570"></svg>
+    </div>
+    <p class="rotulo" style="position: absolute; left: 96px; top: 80px">Polígono 1 completo: la clave 1 repetida sobre sus 331 m de largo.</p>
+  </section>
+
+  <!-- 11 · La herramienta -->
+  <section class="lamina" data-cam="ventana" aria-label="La herramienta">
+    <div class="titular" style="width: 1300px">
+      <h2><code style="font-family: var(--f-rotulo); font-weight: 500; font-size: .86em">refor_gui</code>: configurar, ejecutar y exportar</h2>
+    </div>
+    <div class="ventana" aria-hidden="true">
+      <div class="barra-titulo">refor_gui</div>
+      <span class="pendiente">Captura pendiente</span>
+    </div>
+    <div class="panel" style="left: 1010px; right: 96px; top: 300px; gap: 20px">
+      <ul class="vistas">
+        <li><b>Configuración</b><span>Datos, polígonos, α, presupuesto y parámetros del memético. Ejecuta sin bloquear la ventana.</span></li>
+        <li><b>Mosaico</b><span>La clave en hexágonos, por género o por competencia, con su réplica periódica.</span></li>
+        <li><b>Compra</b><span>Tabla por polígono y detalle por especie.</span></li>
+        <li><b>Memético vs. exacto</b><span>Resuelve el modelo entero en segundo plano y muestra la brecha.</span></li>
+        <li><b>Frontera y barrido</b><span>B*(α) y factibilidad en la rejilla α × B.</span></li>
+      </ul>
+      <p class="chico">Guarda los resultados en txt, csv y json. Con la misma semilla da el mismo resultado en macOS, Linux y Windows.</p>
+    </div>
+  </section>
+
+  <!-- 12 · Recomendaciones -->
+  <section class="lamina" data-cam="sitio" aria-label="Recomendaciones">
+    <div class="panel panel-a">
+      <h2>Lo que recomendamos</h2>
+      <ol class="decisiones">
+        <li><span class="n">1</span><div><h3>Ajustar el presupuesto o la meta</h3><p class="chico" id="rec-presupuesto"></p></div></li>
+        <li><span class="n">2</span><div><h3>Validar la matriz de competencia</h3><p class="chico">La clave depende de <i>W</i>; medir en campo qué parejas compiten de verdad.</p></div></li>
+        <li><span class="n">3</span><div><h3>Ampliar el monitoreo</h3><p class="chico">Más mediciones de supervivencia afinan <i>q</i> y con eso la compra.</p></div></li>
+        <li><span class="n">4</span><div><h3>Sumar capas del sitio</h3><p class="chico">Agua, pendiente y suelo cambian qué especie conviene en cada lugar.</p>
+          <p class="capas-futuras rotulo" style="margin-top: 10px"><span><i></i>Agua</span><span><i></i>Pendiente</span><span><i></i>Suelo</span><span>(capas futuras; aún sin datos)</span></p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 13 · Cierre -->
+  <section class="lamina" data-cam="portada" aria-label="Cierre">
+    <div class="titular centrado sobre-mapa" style="top: 300px; width: 1400px; gap: 20px">
+      <h1 style="font-size: 120px; line-height: 1">Gracias</h1>
+      <p class="apoyo">Preguntas y comentarios</p>
+    </div>
+    <div class="titular centrado sobre-mapa" style="top: 700px; width: 1400px">
+      <div class="cierre-pie">
+        <img class="qr" src="qr-repositorio.svg" alt="Código QR al repositorio del proyecto">
+        <div style="display: grid; gap: 8px">
+          <p class="chico">Código, datos y reportes</p>
+          <p class="rotulo" style="font-size: var(--t-s)">github.com/Lunaaaalj/Stochastic_RefInit</p>
+          <p class="rotulo">Angel Eduardo-Luna · Irasema Alvarez · Carolina Sánchez Meneses · Andrea Estefanía de la Peña</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cartela" id="cartela">
+    <svg width="22" height="34" aria-hidden="true"><g id="norte"><path d="M11 30V4M6 11l5-7 5 7" fill="none" stroke="var(--tierra)" stroke-width="1.25"/></g></svg>
+    <div>
+      <svg width="170" height="12" aria-hidden="true"><path id="escala-barra" d="M0 6V12H100V6" fill="none" stroke="var(--tierra)" stroke-width="1.25"/></svg>
+      <span id="escala-texto"></span>
+    </div>
+    <span id="utm"></span>
+    <span class="nota">Curvas de nivel ilustrativas</span>
+  </div>
+  <svg id="avance" width="300" height="34" aria-label="Avance"></svg>
+  <span id="numero"></span>
+  <div class="etiqueta" id="etiqueta" hidden></div>
+
+</div>
+</div>
+</div>
+<script src="datos/datos.js"></script>
+<script src="herbario.js"></script>
+<script src="deck.js"></script>
+</body>
+</html>

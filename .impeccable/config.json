@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "docs/presentacion/index.html"
+        ],
+        "createdAt": "2026-10-20T19:41:54.978Z",
+        "reason": "Claude: fondo --papel #FCF0DA es token de marca fijado en docs/presentacion/DESIGN.md, sección 2"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "docs/presentacion/index.html"
+        ],
+        "createdAt": "2026-10-20T19:41:54.993Z",
+        "reason": "Claude: el detector mide 16px en todos los roles; la escala real (16/21/28/37/50/67 px, razón 1.333) vive en estilo.css y DESIGN.md sección 3"
+      }
+    ]
+  }
+}
