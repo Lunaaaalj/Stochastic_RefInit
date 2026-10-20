@@ -93,8 +93,20 @@ int main(int argc, char** argv) {
 
   {
     refor::gui::App app(argc > 1 ? argv[1] : "data/processed");
+    // En reposo (sin cálculo, sin animación y sin entrada reciente) el bucle
+    // duerme hasta el siguiente evento en vez de redibujar a 60 cps. Tras cada
+    // evento sigue dibujando un rato: los tooltips de ImGui aparecen con
+    // retardo y necesitan cuadros aunque el ratón ya no se mueva.
+    constexpr double kTrasEvento = 0.6, kDormir = 0.5;
+    double activo_hasta = 0;
     while (!glfwWindowShouldClose(ventana)) {
-      glfwPollEvents();
+      if (app.ocupado() || refor::gui::anim::animando() || glfwGetTime() < activo_hasta) {
+        glfwPollEvents();
+      } else {
+        const double antes = glfwGetTime();
+        glfwWaitEventsTimeout(kDormir);
+        if (glfwGetTime() - antes < kDormir * 0.9) activo_hasta = glfwGetTime() + kTrasEvento;  // despertó un evento
+      }
       if (glfwGetWindowAttrib(ventana, GLFW_ICONIFIED)) {
         ImGui_ImplGlfw_Sleep(10);
         continue;
