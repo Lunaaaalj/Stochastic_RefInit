@@ -12,18 +12,12 @@ namespace refor::gui {
 
 namespace {
 
-const Solucion* reportada(const Resultado& r) {
-  if (r.optima) return &*r.optima;
-  if (r.libre) return &*r.libre;
-  return nullptr;
-}
-
 // El estado lleva siempre su texto; el color solo lo refuerza.
 void estado(const Resultado& r) {
   if (r.optima) {
-    ImGui::TextColored(estilo::v4(estilo::bueno), "● factible");
+    estilo::chip("factible", estilo::bueno);
   } else {
-    ImGui::TextColored(estilo::v4(estilo::critico), r.libre ? "▲ infactible" : "▲ sin banda");
+    estilo::chip(r.libre ? "infactible" : "sin banda", estilo::critico);
     ImGui::SetItemTooltip(r.libre ? "El presupuesto no alcanza; se muestra el óptimo sin presupuesto."
                                   : "La banda de metas no admite la densidad total.");
   }
@@ -52,7 +46,11 @@ double clave_orden(const Resultado& r, int col, int grupo) {
 void App::vista_compra() {
   if (!ImGui::Begin(kCompra)) return ImGui::End();
   if (!plan_) {
-    ImGui::TextDisabled("Ejecuta el plan para ver la compra por polígono.");
+    ImGui::BeginDisabled(!datos_ || ocupado());
+    if (estilo::estado_vacio("Ejecuta el plan para ver cuánto comprar de cada especie en cada polígono.",
+                             "Ejecutar plan"))
+      lanzar_plan();
+    ImGui::EndDisabled();
     return ImGui::End();
   }
   const auto& r = *plan_;
@@ -67,8 +65,34 @@ void App::vista_compra() {
     area += c.poligono->area;
     if (const Solucion* s = reportada(c)) compra += s->costo_compra;
   }
-  ImGui::Text("α = %.3f   B = $%.0f/ha   %d de %zu polígonos factibles   %.2f ha   compra $%.0f ($%.0f/ha)",
-              r.alfa, r.B, factibles, compras.size(), area, compra, area > 0 ? compra / area : 0.0);
+  // Las cifras cuentan desde su valor anterior (o desde 0 con el primer plan).
+  const bool todos = factibles == static_cast<int>(compras.size());
+  // Al llegar se muestra el valor exacto, no su redondeo a float.
+  auto contar = [](const char* id, double v, float eps) {
+    const float a = anim::valor(ImGui::GetID(id), static_cast<float>(v), 9, 0, eps);
+    return a == static_cast<float>(v) ? v : static_cast<double>(a);
+  };
+  const double a_fact = contar("kpi_factibles", factibles, 0.3f);
+  const double a_area = contar("kpi_area", area, 0.004f);
+  const double a_compra = contar("kpi_compra", compra, 0.5f);
+  const double a_ha = contar("kpi_ha", area > 0 ? compra / area : 0.0, 0.5f);
+  estilo::cifra(std::format("{} / {}", std::lround(a_fact), compras.size()).c_str(), "polígonos factibles",
+                todos ? estilo::tinta : estilo::aviso);
+  ImGui::SameLine();
+  estilo::cifra(std::format("{:.2f} ha", a_area).c_str(), "área del plan");
+  ImGui::SameLine();
+  estilo::cifra(("$" + estilo::miles(a_compra)).c_str(), "compra total");
+  ImGui::SameLine();
+  estilo::cifra(("$" + estilo::miles(a_ha)).c_str(), "por hectárea");
+  ImGui::SameLine();
+  ImGui::BeginGroup();
+  ImGui::TextDisabled("α = %.3f", r.alfa);
+  ImGui::TextDisabled("B = $%.0f/ha", r.B);
+  ImGui::EndGroup();
+  if (!cambios_.empty()) {
+    ImGui::SameLine();
+    chip_desactualizado();
+  }
 
   // Tabla de polígonos, ordenable.
   if (orden_compras_.size() != compras.size()) {
@@ -77,7 +101,13 @@ void App::vista_compra() {
   }
   const ImGuiTableFlags tf = ImGuiTableFlags_Sortable | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH |
                              ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Resizable;
-  const float alto = std::max(ImGui::GetContentRegionAvail().y * 0.42f, ImGui::GetTextLineHeightWithSpacing() * 6);
+  // En un panel apaisado y con ancho de sobra para la tabla, tabla y detalle a
+  // la izquierda y la gráfica a la derecha; si no, todo en una columna.
+  const ImVec2 hay = ImGui::GetContentRegionAvail();
+  const bool lado = hay.x > hay.y * 1.8f && hay.x * 0.6f > ImGui::GetFontSize() * 50;
+  if (lado) ImGui::BeginChild("compra_izq", ImVec2((hay.x - ImGui::GetStyle().ItemSpacing.x) * 0.6f, 0));
+  const float alto = std::max(ImGui::GetContentRegionAvail().y * (lado ? 0.5f : 0.42f),
+                              ImGui::GetTextLineHeightWithSpacing() * 6);
   if (ImGui::BeginTable("compras", 8, tf, ImVec2(0, alto))) {
     ImGui::TableSetupScrollFreeze(0, 1);
     ImGui::TableSetupColumn("Polígono", ImGuiTableColumnFlags_DefaultSort);
@@ -133,7 +163,10 @@ void App::vista_compra() {
   // Detalle del polígono seleccionado.
   if (compra_sel_ >= 0 && compra_sel_ < static_cast<int>(compras.size())) {
     const auto& c = compras[compra_sel_];
-    ImGui::SeparatorText(std::format("Polígono {} ({:.2f} ha)", c.poligono->id, c.poligono->area).c_str());
+    const int e = etiqueta_mapa(c.poligono->id);
+    ImGui::SeparatorText((std::format("Polígono {} ({:.2f} ha)", c.poligono->id, c.poligono->area) +
+                          (e >= 0 ? std::format(" · número {} en el mapa", e) : ""))
+                             .c_str());
     if (const Solucion* s = reportada(c);
         s && ImGui::BeginTable("especies", 8, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH)) {
       for (const char* h : {"Especie", "Clave", "Existentes E", "Plan n0·A", "Meta n", "Compra x*", "Déficit E[D]", "Costo $"})
@@ -163,6 +196,12 @@ void App::vista_compra() {
     }
   } else {
     ImGui::TextDisabled("Selecciona un polígono para ver su compra por especie.");
+  }
+
+  if (lado) {
+    ImGui::EndChild();
+    ImGui::SameLine();
+    ImGui::BeginGroup();
   }
 
   // Plantas a comprar por género, apiladas por polígono.
@@ -208,6 +247,7 @@ void App::vista_compra() {
     ImPlot::EndPlot();
   }
   ImPlot::PopColormap();
+  if (lado) ImGui::EndGroup();
   ImGui::End();
 }
 

@@ -21,13 +21,7 @@ using asignacion_exacta::ResultadoPLE;
 
 constexpr double kEps = 1e-6;
 
-ImPlotSpec linea(ImU32 color, float grosor, ImPlotItemFlags flags = 0) {
-  ImPlotSpec s;
-  s.LineColor = estilo::v4(color);
-  s.LineWeight = grosor;
-  s.Flags = flags;
-  return s;
-}
+using estilo::linea;
 
 std::string estado_corto(const ResultadoPLE& r) {
   if (r.optimo) return "óptimo probado";
@@ -120,8 +114,16 @@ void grafica_corridas(const Espacial& g, const ResultadoPLE& r, ImVec2 tam) {
 void App::vista_comparacion() {
   if (!ImGui::Begin(kComparacion)) return ImGui::End();
   if (!plan_ || plan_->plan.espacial.empty()) {
-    ImGui::TextDisabled(plan_ ? "Ningún polígono necesita plantación con esta compra."
-                              : "Ejecuta el plan; después cada mosaico puede resolverse con el modelo entero.");
+    if (plan_) {
+      estilo::estado_vacio("Ningún polígono necesita plantación con esta compra.");
+    } else {
+      ImGui::BeginDisabled(!datos_ || ocupado());
+      if (estilo::estado_vacio("Ejecuta el plan; después cada mosaico puede resolverse con el modelo entero para "
+                               "medir qué tan lejos queda el memético del óptimo.",
+                               "Ejecutar plan"))
+        lanzar_plan();
+      ImGui::EndDisabled();
+    }
     return ImGui::End();
   }
   const auto& r = *plan_;
@@ -142,10 +144,10 @@ void App::vista_comparacion() {
   // Acciones.
   const int pendientes = static_cast<int>(std::count(exacto_.begin(), exacto_.end(), std::nullopt));
   ImGui::BeginDisabled(ocupado());
-  if (ImGui::Button(std::format("Resolver mosaico {}", mosaico_sel_ + 1).c_str())) lanzar_exacto(mosaico_sel_);
+  if (estilo::boton_primario(std::format("Resolver mosaico {}", mosaico_sel_ + 1).c_str())) lanzar_exacto(mosaico_sel_);
   ImGui::SameLine();
   ImGui::BeginDisabled(pendientes == 0);
-  if (ImGui::Button(std::format("Resolver pendientes ({})", pendientes).c_str())) lanzar_exacto(-1);
+  if (anim::boton(std::format("Resolver pendientes ({})", pendientes).c_str())) lanzar_exacto(-1);
   ImGui::EndDisabled();
   ImGui::EndDisabled();
   ImGui::SameLine();
@@ -227,21 +229,24 @@ void App::vista_comparacion() {
   if (!e) {
     ImGui::TextDisabled("Memético: %.2f (mejor de %zu corridas), media %.2f ± %.2f.", g.mejor_competencia,
                         g.competencias.size(), g.media, g.desviacion);
-    ImGui::TextDisabled("Resuelve este mosaico con el modelo entero para saber qué tan lejos está del óptimo.");
+    ImGui::BeginDisabled(ocupado());
+    if (estilo::estado_vacio("Resuelve este mosaico con el modelo entero para saber qué tan lejos está del óptimo.",
+                             std::format("Resolver mosaico {}", mosaico_sel_ + 1).c_str()))
+      lanzar_exacto(mosaico_sel_);
+    ImGui::EndDisabled();
     return ImGui::End();
   }
 
   // Cifra principal: la distancia del memético al óptimo (o su cota).
   const double brecha = asignacion_exacta::brecha_memetico(g, *e);
   const bool exacta = e->optimo;
-  ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 1.7f);
-  if (exacta && brecha < kEps) ImGui::TextColored(estilo::v4(estilo::bueno), "0 %%");
-  else ImGui::Text("%s%.2f %%", exacta ? "" : "≤ ", brecha);
-  ImGui::PopFont();
+  const float b = anim::valor(ImGui::GetID("kpi_brecha"), static_cast<float>(brecha), 12, -1, 2e-3f);
+  if (exacta && brecha < kEps) estilo::cifra("0 %", "distancia al óptimo", estilo::bueno);
+  else estilo::cifra(std::format("{}{:.2f} %", exacta ? "" : "≤ ", b).c_str(), "distancia al óptimo");
   ImGui::SameLine();
   ImGui::BeginGroup();
-  ImGui::TextDisabled(exacta ? "distancia del memético al óptimo"
-                             : "distancia del memético al óptimo, a lo más (según la cota inferior probada)");
+  ImGui::TextDisabled(exacta ? "distancia del memético al óptimo probado"
+                             : "a lo más; según la cota inferior que el solver alcanzó a probar");
   ImGui::TextUnformatted(veredicto(g, *e, vivo).c_str());
   ImGui::EndGroup();
   ImGui::TextDisabled("Memético %.2f (mejor de %zu corridas; media %.2f ± %.2f)   Exacto %s   Cota inferior %s   %s",
@@ -281,13 +286,13 @@ void App::vista_comparacion() {
       res.local_max = std::max(res.local_max, l);
     }
 
-  ImGui::RadioButton("Género", &color_modo_, 0);
+  anim::radio("Género", &color_modo_, 0);
   ImGui::SameLine();
-  ImGui::RadioButton("Competencia local", &color_modo_, 1);
+  anim::radio("Competencia local", &color_modo_, 1);
   ImGui::SameLine();
-  ImGui::Checkbox("Grafo W", &aristas_);
+  anim::casilla("Grafo W", &aristas_);
   ImGui::SameLine();
-  ImGui::Checkbox("Replicar 3 × 3", &replicar_);
+  anim::casilla("Replicar 3 × 3", &replicar_);
   ImGui::SameLine(0, ImGui::GetFontSize() * 1.5f);
   if (distintas == 0)
     ImGui::TextColored(estilo::v4(estilo::bueno), "Mismo esquema: solo difieren por una traslación.");

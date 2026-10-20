@@ -14,20 +14,17 @@ namespace refor::gui {
 
 namespace {
 
-ImPlotSpec linea(ImU32 color, float grosor, ImPlotItemFlags flags = 0) {
-  ImPlotSpec s;
-  s.LineColor = estilo::v4(color);
-  s.LineWeight = grosor;
-  s.Flags = flags;
-  return s;
-}
+using estilo::linea;
 
 }  // namespace
 
 void App::vista_convergencia() {
   if (!ImGui::Begin(kConvergencia)) return ImGui::End();
   if (!plan_ || plan_->plan.espacial.empty()) {
-    ImGui::TextDisabled("Ejecuta el plan para ver la convergencia del memético.");
+    ImGui::BeginDisabled(!datos_ || ocupado());
+    if (estilo::estado_vacio("Ejecuta el plan para ver cómo converge cada corrida del memético.", "Ejecutar plan"))
+      lanzar_plan();
+    ImGui::EndDisabled();
     return ImGui::End();
   }
   const auto& grupos = plan_->plan.espacial;
@@ -38,7 +35,10 @@ void App::vista_convergencia() {
   ImGui::TextDisabled("(se elige en la pestaña Mosaico o en la tabla de Compra)");
 
   const auto mejor = std::min_element(g.competencias.begin(), g.competencias.end()) - g.competencias.begin();
-  const float alto = ImGui::GetContentRegionAvail().y;
+  // En un panel apaisado las dos gráficas van lado a lado; si no, una arriba de otra.
+  const ImVec2 hay = ImGui::GetContentRegionAvail();
+  const bool lado = hay.x > hay.y * 2.0f;
+  const ImVec2 tam_conv = lado ? ImVec2((hay.x - ImGui::GetStyle().ItemSpacing.x) * 0.58f, hay.y) : ImVec2(-1, hay.y * 0.58f);
 
   // Mejor competencia por generación de cada corrida; la mejor resaltada.
   // Límites explícitos: todas las corridas comparten etiqueta y el
@@ -52,8 +52,8 @@ void App::vista_convergencia() {
     gens = std::max(gens, h.size());
   }
   const double pad = std::max(1e-3, (ymax - ymin) * 0.06);
-  if (ImPlot::BeginPlot("Convergencia", ImVec2(-1, alto * 0.58f))) {
-    ImPlot::SetupAxes("Generación", "Mejor competencia total");
+  if (ImPlot::BeginPlot("Convergencia", tam_conv)) {
+    ImPlot::SetupAxes("Generación", "Mejor competencia");
     ImPlot::SetupAxesLimits(0, static_cast<double>(gens - 1), ymin - pad, ymax + pad, ImPlotCond_Always);
     ImPlot::SetupLegend(ImPlotLocation_NorthEast);
     for (std::size_t i = 0; i < g.historias.size(); ++i) {
@@ -69,6 +69,7 @@ void App::vista_convergencia() {
   }
 
   // Distribución de la competencia final entre corridas.
+  if (lado) ImGui::SameLine();
   if (ImPlot::BeginPlot("Competencia final de las corridas", ImVec2(-1, -1))) {
     ImPlot::SetupAxes("Competencia total", "Corridas", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
     ImPlotSpec barras;
@@ -89,7 +90,7 @@ void App::vista_convergencia() {
 void App::vista_competencia() {
   if (!ImGui::Begin(kCompetencia)) return ImGui::End();
   if (!datos_ || !w_) {
-    ImGui::TextDisabled("Carga los datos para ver la matriz W.");
+    estilo::estado_vacio("Carga los datos para ver la matriz de competencia W.");
     return ImGui::End();
   }
   const auto& d = *datos_;
@@ -146,7 +147,11 @@ void App::vista_competencia() {
 void App::vista_frontera() {
   if (!ImGui::Begin(kFrontera)) return ImGui::End();
   if (!frontera_) {
-    ImGui::TextDisabled("Pulsa «Calcular frontera» para obtener el presupuesto mínimo factible por α.");
+    ImGui::BeginDisabled(!datos_ || ocupado());
+    if (estilo::estado_vacio("Calcula el presupuesto mínimo factible para cada α de la lista en Configuración.",
+                             "Calcular frontera"))
+      lanzar_frontera();
+    ImGui::EndDisabled();
     return ImGui::End();
   }
   const auto& fr = *frontera_;
@@ -161,7 +166,7 @@ void App::vista_frontera() {
     costo.push_back(*g.costo_libre);
   }
   if (xs.empty()) {
-    ImGui::TextDisabled("Ningún α tiene presupuesto mínimo para todos los polígonos seleccionados.");
+    estilo::estado_vacio("Ningún α tiene presupuesto mínimo para todos los polígonos seleccionados.");
     return ImGui::End();
   }
 
@@ -208,7 +213,11 @@ void App::vista_frontera() {
 void App::vista_barrido() {
   if (!ImGui::Begin(kBarrido)) return ImGui::End();
   if (!barrido_) {
-    ImGui::TextDisabled("Pulsa «Calcular barrido» para ver cuántos polígonos son factibles en la rejilla α × B.");
+    ImGui::BeginDisabled(!datos_ || ocupado());
+    if (estilo::estado_vacio("Calcula cuántos polígonos son factibles en cada celda de la rejilla α × B.",
+                             "Calcular barrido"))
+      lanzar_barrido();
+    ImGui::EndDisabled();
     return ImGui::End();
   }
   const auto& br = *barrido_;

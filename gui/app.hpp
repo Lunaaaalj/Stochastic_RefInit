@@ -6,9 +6,11 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
+#include "animacion.hpp"
 #include "asignacion_exacta/ple.hpp"
 #include "datos.hpp"
 #include "estilo.hpp"
@@ -19,6 +21,14 @@
 #include "trabajo.hpp"
 
 namespace refor::gui {
+
+// La solución que se reporta de un polígono: la óptima o, si el presupuesto
+// no alcanza, la óptima sin presupuesto. Nulo si ni la banda es factible.
+inline const Solucion* reportada(const Resultado& r) {
+  if (r.optima) return &*r.optima;
+  if (r.libre) return &*r.libre;
+  return nullptr;
+}
 
 // Lo que se configura en el panel izquierdo; cada cálculo se lanza con una
 // copia, así que editarlo mientras corre no afecta al cálculo en curso.
@@ -45,6 +55,7 @@ struct ResultadoPlan {
   int corridas = 0;
   double segundos = 0;
   std::vector<int> grupo_de;  // mosaico de cada compra (-1 si no planta)
+  Config cfg;                 // con la que se calculó, para avisar si cambió
 };
 
 struct ResultadoFrontera {
@@ -74,6 +85,32 @@ struct Resaltado {
   double local_min = 0, local_max = 0;
 };
 
+// Contorno de un polígono del cerco, trazado sobre la lámina del proyecto
+// (scripts/digitalizar_mapa.py). El mapa numera distinto que el modelo.
+struct PoligonoMapa {
+  int etiqueta;           // número en la lámina
+  int id;                 // id del modelo; -1 si quedó fuera del programa
+  std::vector<ImVec2> v;  // vértices en metros, relativos a la esquina suroeste del cerco
+  ImVec2 rotulo;          // punto interior donde va el número
+  float holgura = 0;      // distancia del rótulo al borde (m)
+  double area = 0;        // área trazada (ha), para contrastar con la tabla
+};
+
+// Un polígono del mapa sembrado con el mosaico de su plan: el mosaico se repite
+// al tresbolillo desde la esquina noroeste, con la distancia entre plantas que
+// hace caber justo las plantas compradas.
+struct PlantacionMapa {
+  float a = 0;                          // distancia entre plantas (m)
+  int grupo = -1;                       // índice en plan.espacial
+  ImVec2 lo, hi;                        // caja del polígono (m)
+  std::vector<ImVec2> pos;              // plantas dentro del polígono (m)
+  std::vector<unsigned char> especie;   // de cada planta, indexada como Datos::especies
+};
+
+// Lee mapa.csv del directorio de datos; vacío si no existe (el mapa es
+// opcional). Lanza std::runtime_error si el archivo está mal formado.
+std::vector<PoligonoMapa> cargar_mapa(const std::string& dir);
+
 struct ResultadoBarrido {
   std::shared_ptr<const Datos> datos;
   std::vector<double> alfas, Bs;
@@ -84,13 +121,15 @@ class App {
  public:
   explicit App(std::string datos_dir);
   void cuadro();  // dibuja un cuadro completo de la interfaz
+  bool ocupado() const {
+    return t_plan_.ocupado() || t_frontera_.ocupado() || t_barrido_.ocupado() || t_exacto_.ocupado();
+  }
+  bool quiere_salir() const { return salir_; }
 
  private:
   void cargar();
   std::vector<int> ids_seleccionados() const;
-  bool ocupado() const {
-    return t_plan_.ocupado() || t_frontera_.ocupado() || t_barrido_.ocupado() || t_exacto_.ocupado();
-  }
+  void cancelar_todo();
   void lanzar_plan();
   void lanzar_exacto(int mosaico);  // -1: todos los que aún no se resuelven
   void lanzar_frontera();
@@ -100,8 +139,14 @@ class App {
   void layout_inicial(ImGuiID dock);
 
   // Una ventana por vista; cada grupo vive en su propio archivo vista_*.cpp.
+  void menu_principal();
+  void barra_estado();
+  void atajos();
+  // Qué cambió en la configuración desde el último plan, en una frase; vacío
+  // si nada o si no hay plan. Se calcula una vez por cuadro en cambios_.
+  std::string cambios_plan() const;
+  void chip_desactualizado();  // etiqueta «desactualizado» con los cambios en su tooltip
   void vista_config();
-  void barra_progreso();
   void vista_compra();
   void vista_mosaico();
   void lienzo_mosaico(const ResultadoPlan& r, const memetico::Individuo& asig, const Resaltado* res = nullptr);
@@ -111,12 +156,24 @@ class App {
   void vista_competencia();
   void vista_frontera();
   void vista_barrido();
+  void vista_mapa();
+  void detalle_mapa(int k);         // configuración del polígono mapa_[k]
+  void sembrar_mapa();              // recalcula plantacion_ con el plan actual
+  int etiqueta_mapa(int id) const;  // número del polígono en la lámina, -1 si no está
 
   Config cfg_;
   std::shared_ptr<const Datos> datos_;
   std::shared_ptr<const memetico::Competencia> w_;
   estilo::Generos generos_;
+  std::vector<PoligonoMapa> mapa_;
+  std::unordered_map<int, int> mapa_de_id_;  // id del modelo → índice en mapa_
+  std::vector<PlantacionMapa> plantacion_;  // paralelo a mapa_; vacío sin plan
   std::string mensaje_;  // último error o aviso, en la barra de configuración
+  double t_resultado_ = -1;  // ImGui::GetTime() al llegar el último resultado
+  std::string cambios_;      // cambios_plan() de este cuadro
+  double t_cambios_ = -1;    // cuando el plan quedó desactualizado, para el pulso del botón
+  bool salir_ = false, mostrar_fps_ = false;
+  void velo_resultados();    // fundido de entrada de las vistas tras un resultado
   bool mensaje_es_error_ = false;
 
   std::optional<ResultadoPlan> plan_;
@@ -131,8 +188,22 @@ class App {
   int color_modo_ = 0;    // 0: género, 1: competencia local
   bool replicar_ = false; // mosaico 3 × 3 para ver el borde periódico
   bool aristas_ = false;  // grafo de vecindad pesado por W
+  int mapa_modo_ = 0;     // 0: selección, 1: existentes/ha, 2: estado, 3: compra $/ha
+  int mapa_sel_ = -1;     // índice en mapa_ del polígono en detalle (si no está en el plan)
+  // La vista se mueve hacia su objetivo (rueda, «Ver todo», encuadre) en
+  // vez de saltar; el arrastre escribe ambos para seguir la mano sin retardo.
+  float mapa_zoom_ = 1, mapa_zoom_obj_ = 1;  // 1: todo el cerco a la vista
+  ImVec2 mapa_centro_{-1, -1}, mapa_centro_obj_{-1, -1};  // centro (m); negativo: sin fijar
+  struct AnimPoligono {
+    ImVec4 color{0, 0, 0, 0};  // relleno mostrado; se funde al cambiar de modo
+    float sobre = 0, marca = 0;  // contorno bajo el ratón y de la selección
+  };
+  std::vector<AnimPoligono> mapa_anim_;  // paralelo a mapa_
+  int mapa_encuadrar_ = -1;     // polígono a encuadrar en el próximo cuadro
+  bool mapa_plantas_ = true;
   std::vector<int> orden_compras_;
   bool layout_hecho_ = false;
+  int enfocar_ = 0;  // cuadros que faltan para elegir las pestañas activas
 
   // Al final: se destruyen primero y esperan a sus hilos.
   Trabajo<ResultadoPlan> t_plan_;
@@ -150,5 +221,17 @@ inline constexpr const char* kCompetencia = "Matriz de competencia";
 inline constexpr const char* kFrontera = "Frontera B*(α)";
 inline constexpr const char* kBarrido = "Barrido α × B";
 inline constexpr const char* kComparacion = "Memético vs. exacto";
+inline constexpr const char* kMapa = "Mapa del cerco";
+
+// Atajos, como se muestran en menús y tooltips.
+#ifdef __APPLE__
+inline constexpr const char* kTeclaPlan = "⌘↵";
+inline constexpr const char* kTeclaGuardar = "⌘S";
+inline constexpr const char* kTeclaSalir = "⌘Q";
+#else
+inline constexpr const char* kTeclaPlan = "Ctrl+Enter";
+inline constexpr const char* kTeclaGuardar = "Ctrl+S";
+inline constexpr const char* kTeclaSalir = nullptr;
+#endif
 
 }  // namespace refor::gui

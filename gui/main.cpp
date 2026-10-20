@@ -20,6 +20,7 @@
 
 #include "app.hpp"
 #include "estilo.hpp"
+#include "fuentes.hpp"
 
 namespace {
 
@@ -27,16 +28,28 @@ namespace estilo = refor::gui::estilo;
 
 void error_glfw(int codigo, const char* descripcion) { std::fprintf(stderr, "GLFW %d: %s\n", codigo, descripcion); }
 
-// Una fuente del sistema con acentos, ñ y letras griegas (α, θ, δ); ImGui
-// carga los glifos al vuelo. Si no hay ninguna, queda la fuente por defecto.
+// Inter embebida: Regular por defecto y SemiBold para títulos. ImGui carga
+// los glifos al vuelo; los que Inter no tenga se buscan en una fuente del
+// sistema fusionada como respaldo, si hay alguna.
 void cargar_fuente(ImGuiIO& io) {
-  for (const char* ruta : {"/System/Library/Fonts/Supplemental/Arial Unicode.ttf", "/Library/Fonts/Arial Unicode.ttf",
-                           "/System/Library/Fonts/Supplemental/Arial.ttf",
-                           "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/TTF/DejaVuSans.ttf",
-                           "C:\\Windows\\Fonts\\segoeui.ttf"}) {
-    if (std::filesystem::exists(ruta) && io.Fonts->AddFontFromFileTTF(ruta, 15.0f)) return;
-  }
-  io.Fonts->AddFontDefault();
+  constexpr float kTam = 15.5f;
+  auto inter = [&](const unsigned char* datos, int tam) {
+    ImFontConfig cfg;
+    cfg.FontDataOwnedByAtlas = false;  // los bytes son estáticos
+    ImFont* f = io.Fonts->AddFontFromMemoryTTF(const_cast<unsigned char*>(datos), tam, kTam, &cfg);
+    for (const char* ruta : {"/System/Library/Fonts/Supplemental/Arial Unicode.ttf", "/Library/Fonts/Arial Unicode.ttf",
+                             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/TTF/DejaVuSans.ttf",
+                             "C:\\Windows\\Fonts\\segoeui.ttf"}) {
+      if (!std::filesystem::exists(ruta)) continue;
+      ImFontConfig respaldo;
+      respaldo.MergeMode = true;
+      io.Fonts->AddFontFromFileTTF(ruta, kTam, &respaldo);
+      break;
+    }
+    return f;
+  };
+  inter(refor::gui::fuentes::inter_regular, refor::gui::fuentes::inter_regular_tam);
+  estilo::fuente_titulo = inter(refor::gui::fuentes::inter_semibold, refor::gui::fuentes::inter_semibold_tam);
 }
 
 }  // namespace
@@ -80,8 +93,20 @@ int main(int argc, char** argv) {
 
   {
     refor::gui::App app(argc > 1 ? argv[1] : "data/processed");
+    // En reposo (sin cálculo, sin animación y sin entrada reciente) el bucle
+    // duerme hasta el siguiente evento en vez de redibujar a 60 cps. Tras cada
+    // evento sigue dibujando un rato: los tooltips de ImGui aparecen con
+    // retardo y necesitan cuadros aunque el ratón ya no se mueva.
+    constexpr double kTrasEvento = 0.6, kDormir = 0.5;
+    double activo_hasta = 0;
     while (!glfwWindowShouldClose(ventana)) {
-      glfwPollEvents();
+      if (app.ocupado() || refor::gui::anim::animando() || glfwGetTime() < activo_hasta) {
+        glfwPollEvents();
+      } else {
+        const double antes = glfwGetTime();
+        glfwWaitEventsTimeout(kDormir);
+        if (glfwGetTime() - antes < kDormir * 0.9) activo_hasta = glfwGetTime() + kTrasEvento;  // despertó un evento
+      }
       if (glfwGetWindowAttrib(ventana, GLFW_ICONIFIED)) {
         ImGui_ImplGlfw_Sleep(10);
         continue;
@@ -90,6 +115,7 @@ int main(int argc, char** argv) {
       ImGui_ImplGlfw_NewFrame();
       ImGui::NewFrame();
       app.cuadro();
+      if (app.quiere_salir()) glfwSetWindowShouldClose(ventana, GLFW_TRUE);
       ImGui::Render();
 
       int w = 0, h = 0;

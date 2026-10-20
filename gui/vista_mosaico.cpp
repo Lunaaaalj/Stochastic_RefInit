@@ -21,11 +21,7 @@ constexpr float kRaiz3 = 1.7320508f;
 constexpr int kAdelante[3][2] = {{0, 1}, {1, -1}, {1, 0}};
 constexpr int kVecinas[6][2] = {{-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}};
 
-ImU32 con_alfa(ImU32 c, float a) {
-  ImVec4 v = estilo::v4(c);
-  v.w *= a;
-  return ImGui::ColorConvertFloat4ToU32(v);
-}
+using estilo::con_alfa;
 
 // Coordenadas de pantalla de la posición (fila, columna) sin envolver: cada
 // fila se recorre media posición, así se ve el tresbolillo.
@@ -95,12 +91,15 @@ void App::lienzo_mosaico(const ResultadoPlan& r, const memetico::Individuo& asig
   ImDrawList* dl = ImGui::GetWindowDrawList();
   dl->PushClipRect(p0, ImVec2(p0.x + tam.x, p0.y + tam.y), true);
 
+  // Al cambiar entre género y competencia local, los colores se funden.
+  const float t_modo = anim::valor(ImGui::GetID("modo_color"), color_modo_ == 1 ? 1.0f : 0.0f, 10);
   auto relleno = [&](int v) {
-    return color_modo_ == 0 ? estilo::categorico[generos_.de_especie[asig[v]]]
-                            : estilo::secuencial(norm(local[v], *lmin, *lmax));
+    return anim::mezcla(estilo::categorico[generos_.de_especie[asig[v]]],
+                        estilo::secuencial(norm(local[v], *lmin, *lmax)), t_modo);
   };
   auto tinta_sobre = [&](int v) {
-    return color_modo_ == 0 || norm(local[v], *lmin, *lmax) > 0.45f ? estilo::tinta_oscura : estilo::tinta;
+    const ImU32 local_t = norm(local[v], *lmin, *lmax) > 0.45f ? estilo::tinta_oscura : estilo::tinta;
+    return anim::mezcla(estilo::tinta_oscura, local_t, t_modo);
   };
 
   // Celdas; la de abajo del ratón se recuerda para el resaltado.
@@ -172,15 +171,24 @@ void App::lienzo_mosaico(const ResultadoPlan& r, const memetico::Individuo& asig
         }
   }
 
-  // Resaltado y detalle de la posición bajo el ratón.
-  if (hv >= 0) {
-    for (const auto& [df, dc] : kVecinas) {
-      hexagono(pts, geo.centro(hf + df, hc + dc), s * 0.94f);
-      dl->AddPolyline(pts, 6, estilo::tinta_2, ImDrawFlags_Closed, 1.5f);
+  // Resaltado de la posición bajo el ratón y sus vecinas: entra y sale con
+  // un fundido, así que al recorrer el mosaico queda una estela breve.
+  const ImGuiID base_hex = ImGui::GetID("hex");
+  for (int f = f0; f < f1; ++f)
+    for (int c = c0; c < c1; ++c) {
+      const auto idx = static_cast<ImGuiID>((f - f0) * (c1 - c0) + (c - c0));
+      const float t = anim::valor(base_hex + idx, hv >= 0 && f == hf && c == hc ? 1.0f : 0.0f, 20);
+      if (t < 0.01f) continue;
+      for (const auto& [df, dc] : kVecinas) {
+        hexagono(pts, geo.centro(f + df, c + dc), s * 0.94f);
+        dl->AddPolyline(pts, 6, con_alfa(estilo::tinta_2, t), ImDrawFlags_Closed, 1.5f);
+      }
+      hexagono(pts, geo.centro(f, c), s * (0.94f + 0.04f * t));
+      dl->AddPolyline(pts, 6, con_alfa(estilo::tinta, t), ImDrawFlags_Closed, 1.0f + 1.5f * t);
     }
-    hexagono(pts, geo.centro(hf, hc), s * 0.98f);
-    dl->AddPolyline(pts, 6, estilo::tinta, ImDrawFlags_Closed, 2.5f);
 
+  // Detalle de la posición bajo el ratón.
+  if (hv >= 0) {
     const int fr = ((hf % F) + F) % F, cr = ((hc % C) + C) % C;
     const auto& e = d.especies[asig[hv]];
     ImGui::BeginTooltip();
@@ -216,8 +224,15 @@ void App::leyenda_generos(const Datos& d) {
 void App::vista_mosaico() {
   if (!ImGui::Begin(kMosaico)) return ImGui::End();
   if (!plan_ || plan_->plan.espacial.empty()) {
-    ImGui::TextDisabled(plan_ ? "Ningún polígono necesita plantación con esta compra."
-                              : "Configura el modelo y pulsa «Ejecutar plan» para generar los mosaicos.");
+    if (plan_) {
+      estilo::estado_vacio("Ningún polígono necesita plantación con esta compra.");
+    } else {
+      ImGui::BeginDisabled(!datos_ || ocupado());
+      if (estilo::estado_vacio("Configura el modelo y ejecuta el plan para generar los mosaicos de plantación.",
+                               "Ejecutar plan"))
+        lanzar_plan();
+      ImGui::EndDisabled();
+    }
     return ImGui::End();
   }
   const auto& r = *plan_;
@@ -238,24 +253,28 @@ void App::vista_mosaico() {
     ImGui::EndCombo();
   }
   ImGui::SameLine();
-  ImGui::RadioButton("Género", &color_modo_, 0);
+  anim::radio("Género", &color_modo_, 0);
   ImGui::SameLine();
-  ImGui::RadioButton("Competencia local", &color_modo_, 1);
+  anim::radio("Competencia local", &color_modo_, 1);
   ImGui::SameLine();
-  ImGui::Checkbox("Grafo W", &aristas_);
+  anim::casilla("Grafo W", &aristas_);
   ImGui::SetItemTooltip("Dibuja cada par de vecinas; más grueso y opaco cuanto mayor es su penalización W.");
   ImGui::SameLine();
-  ImGui::Checkbox("Replicar 3 × 3", &replicar_);
+  anim::casilla("Replicar 3 × 3", &replicar_);
   ImGui::SetItemTooltip("Repite el mosaico como lo hace la cuadrilla: el borde periódico se vuelve visible.");
+  if (!cambios_.empty()) {
+    ImGui::SameLine();
+    chip_desactualizado();
+  }
 
   const Espacial& g = grupos[mosaico_sel_];
   // Cifra principal: el coeficiente frente al azar.
-  ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 1.7f);
-  ImGui::Text("%.3f", g.coeficiente());
-  ImGui::PopFont();
+  const float coef = anim::valor(ImGui::GetID("kpi_coef"), static_cast<float>(g.coeficiente()), 12, -1, 2e-4f);
+  estilo::cifra(std::format("{:.3f}", coef).c_str(), "coeficiente de competencia",
+                g.coeficiente() < 1 ? estilo::tinta : estilo::aviso);
   ImGui::SameLine();
   ImGui::BeginGroup();
-  ImGui::TextDisabled("coeficiente de competencia (menor que 1: mejor que plantar al azar)");
+  ImGui::TextDisabled("menor que 1: mejor que plantar al azar");
   ImGui::Text("competencia %.2f (mejor de %zu corridas)   media %.2f ± %.2f   azar %.2f%s", g.mejor_competencia,
               g.competencias.size(), g.media, g.desviacion, g.esperada, g.cancelado ? "   [cancelado]" : "");
   ImGui::EndGroup();
@@ -286,22 +305,14 @@ void App::vista_mosaico() {
       lmin = std::min(lmin, l);
       lmax = std::max(lmax, l);
     }
-    ImGui::Text("Competencia local  %.2f", lmin);
+    ImGui::TextUnformatted("Competencia local");
     ImGui::SameLine();
-    const ImVec2 p = ImGui::GetCursorScreenPos();
-    const float ancho = ImGui::GetFontSize() * 14, h = ImGui::GetTextLineHeight();
-    for (int i = 0; i < 28; ++i) {
-      const float x0 = p.x + ancho * static_cast<float>(i) / 28, x1 = p.x + ancho * static_cast<float>(i + 1) / 28;
-      ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(x0, p.y + 2), ImVec2(x1, p.y + h - 2),
-                                                estilo::secuencial(static_cast<float>(i) / 27));
-    }
-    ImGui::Dummy(ImVec2(ancho, h));
-    ImGui::SameLine();
-    ImGui::Text("%.2f   (suma de W con las 6 vecinas)", lmax);
+    estilo::rampa(lmin, lmax, "(suma de W con las 6 vecinas)", "%.2f");
+    ImGui::NewLine();
   }
 
   // La clave como tabla: accesible sin color y lista para copiar.
-  const bool abierta = ImGui::CollapsingHeader("Clave de plantación como tabla");
+  const bool abierta = estilo::seccion("Clave de plantación como tabla");
   ImGui::GetStateStorage()->SetBool(ImGui::GetID("tabla_abierta"), abierta);
   if (abierta) {
     std::string tsv;
@@ -309,7 +320,7 @@ void App::vista_mosaico() {
       for (int c = 0; c < r.mosaico.columnas(); ++c)
         tsv += clave_especie(d.especies[g.mejor[r.mosaico.indice(f, c)]].nombre) +
                (c + 1 < r.mosaico.columnas() ? "\t" : "\n");
-    if (ImGui::SmallButton("Copiar al portapapeles")) ImGui::SetClipboardText(tsv.c_str());
+    if (anim::boton_chico("Copiar al portapapeles")) ImGui::SetClipboardText(tsv.c_str());
     ImGui::SameLine();
     ImGui::TextDisabled("cada fila se recorre media posición respecto a la anterior");
     if (ImGui::BeginTable("clave", r.mosaico.columnas() + 1,
