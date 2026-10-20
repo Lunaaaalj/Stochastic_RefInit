@@ -229,7 +229,11 @@ bool estado_vacio(const char* texto, const char* accion) {
   if (accion) {
     const float bw = ImGui::CalcTextSize(accion).x + f * 2.5f;
     ImGui::SetCursorScreenPos(ImVec2(o.x + (caja.x - bw) / 2, ImGui::GetCursorScreenPos().y));
+    // ID propio: la misma acción suele estar también en la barra de la vista
+    // (p. ej. «Resolver mosaico N») y dos botones con igual etiqueta chocan.
+    ImGui::PushID("estado_vacio");
     pulsado = boton_primario(accion, ImVec2(bw, ImGui::GetFrameHeight() * 1.3f));
+    ImGui::PopID();
   }
   ImGui::SetCursorScreenPos(ImVec2(p.x, o.y + caja.y));
   ImGui::Dummy(ImVec2(0, 0));
