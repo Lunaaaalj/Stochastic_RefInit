@@ -212,8 +212,15 @@ void App::leyenda_generos(const Datos& d) {
 void App::vista_mosaico() {
   if (!ImGui::Begin(kMosaico)) return ImGui::End();
   if (!plan_ || plan_->plan.espacial.empty()) {
-    ImGui::TextDisabled(plan_ ? "Ningún polígono necesita plantación con esta compra."
-                              : "Configura el modelo y pulsa «Ejecutar plan» para generar los mosaicos.");
+    if (plan_) {
+      estilo::estado_vacio("Ningún polígono necesita plantación con esta compra.");
+    } else {
+      ImGui::BeginDisabled(!datos_ || ocupado());
+      if (estilo::estado_vacio("Configura el modelo y ejecuta el plan para generar los mosaicos de plantación.",
+                               "Ejecutar plan"))
+        lanzar_plan();
+      ImGui::EndDisabled();
+    }
     return ImGui::End();
   }
   const auto& r = *plan_;
@@ -246,12 +253,11 @@ void App::vista_mosaico() {
 
   const Espacial& g = grupos[mosaico_sel_];
   // Cifra principal: el coeficiente frente al azar.
-  ImGui::PushFont(estilo::fuente_titulo, ImGui::GetStyle().FontSizeBase * 1.7f);
-  ImGui::Text("%.3f", g.coeficiente());
-  ImGui::PopFont();
+  estilo::cifra(std::format("{:.3f}", g.coeficiente()).c_str(), "coeficiente de competencia",
+                g.coeficiente() < 1 ? estilo::tinta : estilo::aviso);
   ImGui::SameLine();
   ImGui::BeginGroup();
-  ImGui::TextDisabled("coeficiente de competencia (menor que 1: mejor que plantar al azar)");
+  ImGui::TextDisabled("menor que 1: mejor que plantar al azar");
   ImGui::Text("competencia %.2f (mejor de %zu corridas)   media %.2f ± %.2f   azar %.2f%s", g.mejor_competencia,
               g.competencias.size(), g.media, g.desviacion, g.esperada, g.cancelado ? "   [cancelado]" : "");
   ImGui::EndGroup();
@@ -289,7 +295,7 @@ void App::vista_mosaico() {
   }
 
   // La clave como tabla: accesible sin color y lista para copiar.
-  const bool abierta = ImGui::CollapsingHeader("Clave de plantación como tabla");
+  const bool abierta = estilo::seccion("Clave de plantación como tabla");
   ImGui::GetStateStorage()->SetBool(ImGui::GetID("tabla_abierta"), abierta);
   if (abierta) {
     std::string tsv;

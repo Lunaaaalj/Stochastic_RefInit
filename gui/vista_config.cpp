@@ -73,12 +73,13 @@ void App::vista_config() {
   // Acciones, avance y mensajes arriba: siempre a la vista, sin desplazar.
   ImGui::BeginDisabled(!datos_ || ocupado());
   const float medio_b = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) / 2;
-  if (ImGui::Button("Ejecutar plan", ImVec2(medio_b, ImGui::GetFrameHeight() * 1.4f))) lanzar_plan();
+  if (estilo::boton_primario("Ejecutar plan", ImVec2(medio_b, ImGui::GetFrameHeight() * 1.4f))) lanzar_plan();
   ImGui::EndDisabled();
   ImGui::SameLine();
   ImGui::BeginDisabled(!plan_ || ocupado());
-  if (ImGui::Button("Guardar en docs/res/plan", ImVec2(medio_b, ImGui::GetFrameHeight() * 1.4f))) guardar_plan();
+  if (ImGui::Button("Guardar resultados", ImVec2(medio_b, ImGui::GetFrameHeight() * 1.4f))) guardar_plan();
   ImGui::EndDisabled();
+  ImGui::SetItemTooltip("En %s/plan/ (txt, csv y json).", cfg_.dir_res.c_str());
   barra_progreso();
   if (!mensaje_.empty()) {
     ImGui::PushStyleColor(ImGuiCol_Text, estilo::v4(mensaje_es_error_ ? estilo::aviso : estilo::tinta_2));
@@ -103,7 +104,10 @@ void App::vista_config() {
     ImGui::SameLine();
     if (ImGui::SmallButton("Ninguno")) std::fill(cfg_.poligonos.begin(), cfg_.poligonos.end(), 0);
     const float alto = ImGui::GetTextLineHeightWithSpacing() * 5.5f;
-    if (ImGui::BeginTable("poligonos", 5, ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersOuter, ImVec2(0, alto))) {
+    // Tantas columnas como quepan, para que ningún número se corte.
+    const int columnas = std::clamp(static_cast<int>(ImGui::GetContentRegionAvail().x / (ImGui::GetFontSize() * 4.2f)), 2, 10);
+    if (ImGui::BeginTable("poligonos", columnas, ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingStretchSame,
+                          ImVec2(0, alto))) {
       for (std::size_t i = 0; i < datos_->poligonos.size(); ++i) {
         ImGui::TableNextColumn();
         const auto& p = datos_->poligonos[i];

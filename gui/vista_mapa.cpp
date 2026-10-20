@@ -105,11 +105,12 @@ std::vector<PoligonoMapa> cargar_mapa(const std::string& dir) {
 void App::vista_mapa() {
   if (!ImGui::Begin(kMapa)) return ImGui::End();
   if (!datos_) {
-    ImGui::TextDisabled("Carga los datos para ver el mapa.");
+    estilo::estado_vacio("Carga los datos para ver el mapa del cerco.");
     return ImGui::End();
   }
   if (mapa_.empty()) {
-    ImGui::TextDisabled("No hay %s/mapa.csv; se genera con  python3 scripts/digitalizar_mapa.py", cfg_.datos_dir.c_str());
+    estilo::estado_vacio(std::format("No hay {}/mapa.csv; se genera con  python3 scripts/digitalizar_mapa.py",
+                                     cfg_.datos_dir).c_str());
     return ImGui::End();
   }
   const auto& d = *datos_;
@@ -135,7 +136,8 @@ void App::vista_mapa() {
   ImGui::SameLine();
   if (ImGui::SmallButton("Ver todo")) mapa_zoom_ = 1, mapa_centro_ = ImVec2(-1, -1);
   ImGui::SameLine();
-  ImGui::TextDisabled("rueda: zoom · arrastrar: mover · doble clic: encuadrar polígono");
+  ImGui::TextDisabled("(?)");
+  ImGui::SetItemTooltip("Rueda: zoom · arrastrar: mover · clic: detalle · doble clic: encuadrar el polígono");
 
   // Lo que cada polígono del mapa tiene en los datos y en el plan.
   struct Info {
@@ -310,7 +312,16 @@ void App::vista_mapa() {
     const std::string num = std::to_string(pm.etiqueta);
     const bool cabe = pm.holgura * s > letra * 1.1f;
     const ImVec2 tn = fuente->CalcTextSizeA(letra, FLT_MAX, 0, num.c_str());
-    dl->AddText(fuente, letra, ImVec2(c.x - tn.x / 2, c.y - tn.y / (cabe ? 1.0f : 2.0f)), t, num.c_str());
+    const ImVec2 pn(c.x - tn.x / 2, c.y - tn.y / (cabe ? 1.0f : 2.0f));
+    if (con_plantas(k)) {
+      // Sobre las plantas el número necesita un fondo propio para leerse.
+      const float m = letra * 0.3f;
+      dl->AddRectFilled(ImVec2(pn.x - m, pn.y - m * 0.3f), ImVec2(pn.x + tn.x + m, pn.y + tn.y + m * 0.3f),
+                        con_alfa(estilo::elevada, 0.85f), letra * 0.4f);
+      dl->AddText(fuente, letra, pn, estilo::tinta, num.c_str());
+      continue;
+    }
+    dl->AddText(fuente, letra, pn, t, num.c_str());
     if (cabe) {
       const std::string sub = info[k].dato < 0 ? "fuera" : std::format("{:.2f} ha", d.poligonos[info[k].dato].area);
       const ImVec2 ts = fuente->CalcTextSizeA(letra_2, FLT_MAX, 0, sub.c_str());
@@ -394,7 +405,7 @@ void App::vista_mapa() {
   ImGui::SameLine();
   ImGui::BeginChild("detalle_mapa", ImVec2(0, alto), ImGuiChildFlags_Borders);
   if (sel >= 0) detalle_mapa(sel);
-  else ImGui::TextDisabled("Haz clic en un polígono para ver la configuración que encontró el modelo.");
+  else estilo::estado_vacio("Haz clic en un polígono para ver la configuración que encontró el modelo.");
   ImGui::EndChild();
 
   // Leyenda.
@@ -475,11 +486,15 @@ void App::detalle_mapa(int k) {
   const auto& d = *r.datos;
   const auto& c = r.plan.compras[ic];
   const Solucion* s = reportada(c);
-  if (c.optima)
-    ImGui::TextColored(estilo::v4(estilo::bueno), "● factible");
-  else
-    ImGui::TextColored(estilo::v4(estilo::critico), c.libre ? "▲ infactible: se muestra el óptimo sin presupuesto"
-                                                            : "▲ sin banda");
+  if (c.optima) {
+    estilo::chip("factible", estilo::bueno);
+  } else {
+    estilo::chip(c.libre ? "infactible" : "sin banda", estilo::critico);
+    if (c.libre) {
+      ImGui::SameLine();
+      ImGui::TextDisabled("se muestra el óptimo sin presupuesto");
+    }
+  }
   if (s) {
     ImGui::Text("Compra $%.0f/ha · con reposición $%.0f/ha · %d plantas", s->costo_compra / p.area,
                 s->costo_total() / p.area, std::accumulate(s->x.begin(), s->x.end(), 0));

@@ -21,7 +21,10 @@ using estilo::linea;
 void App::vista_convergencia() {
   if (!ImGui::Begin(kConvergencia)) return ImGui::End();
   if (!plan_ || plan_->plan.espacial.empty()) {
-    ImGui::TextDisabled("Ejecuta el plan para ver la convergencia del memético.");
+    ImGui::BeginDisabled(!datos_ || ocupado());
+    if (estilo::estado_vacio("Ejecuta el plan para ver cómo converge cada corrida del memético.", "Ejecutar plan"))
+      lanzar_plan();
+    ImGui::EndDisabled();
     return ImGui::End();
   }
   const auto& grupos = plan_->plan.espacial;
@@ -83,7 +86,7 @@ void App::vista_convergencia() {
 void App::vista_competencia() {
   if (!ImGui::Begin(kCompetencia)) return ImGui::End();
   if (!datos_ || !w_) {
-    ImGui::TextDisabled("Carga los datos para ver la matriz W.");
+    estilo::estado_vacio("Carga los datos para ver la matriz de competencia W.");
     return ImGui::End();
   }
   const auto& d = *datos_;
@@ -140,7 +143,11 @@ void App::vista_competencia() {
 void App::vista_frontera() {
   if (!ImGui::Begin(kFrontera)) return ImGui::End();
   if (!frontera_) {
-    ImGui::TextDisabled("Pulsa «Calcular frontera» para obtener el presupuesto mínimo factible por α.");
+    ImGui::BeginDisabled(!datos_ || ocupado());
+    if (estilo::estado_vacio("Calcula el presupuesto mínimo factible para cada α de la lista en Configuración.",
+                             "Calcular frontera"))
+      lanzar_frontera();
+    ImGui::EndDisabled();
     return ImGui::End();
   }
   const auto& fr = *frontera_;
@@ -155,7 +162,7 @@ void App::vista_frontera() {
     costo.push_back(*g.costo_libre);
   }
   if (xs.empty()) {
-    ImGui::TextDisabled("Ningún α tiene presupuesto mínimo para todos los polígonos seleccionados.");
+    estilo::estado_vacio("Ningún α tiene presupuesto mínimo para todos los polígonos seleccionados.");
     return ImGui::End();
   }
 
@@ -202,7 +209,11 @@ void App::vista_frontera() {
 void App::vista_barrido() {
   if (!ImGui::Begin(kBarrido)) return ImGui::End();
   if (!barrido_) {
-    ImGui::TextDisabled("Pulsa «Calcular barrido» para ver cuántos polígonos son factibles en la rejilla α × B.");
+    ImGui::BeginDisabled(!datos_ || ocupado());
+    if (estilo::estado_vacio("Calcula cuántos polígonos son factibles en cada celda de la rejilla α × B.",
+                             "Calcular barrido"))
+      lanzar_barrido();
+    ImGui::EndDisabled();
     return ImGui::End();
   }
   const auto& br = *barrido_;

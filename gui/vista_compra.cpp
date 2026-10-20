@@ -15,9 +15,9 @@ namespace {
 // El estado lleva siempre su texto; el color solo lo refuerza.
 void estado(const Resultado& r) {
   if (r.optima) {
-    ImGui::TextColored(estilo::v4(estilo::bueno), "● factible");
+    estilo::chip("factible", estilo::bueno);
   } else {
-    ImGui::TextColored(estilo::v4(estilo::critico), r.libre ? "▲ infactible" : "▲ sin banda");
+    estilo::chip(r.libre ? "infactible" : "sin banda", estilo::critico);
     ImGui::SetItemTooltip(r.libre ? "El presupuesto no alcanza; se muestra el óptimo sin presupuesto."
                                   : "La banda de metas no admite la densidad total.");
   }
@@ -46,7 +46,11 @@ double clave_orden(const Resultado& r, int col, int grupo) {
 void App::vista_compra() {
   if (!ImGui::Begin(kCompra)) return ImGui::End();
   if (!plan_) {
-    ImGui::TextDisabled("Ejecuta el plan para ver la compra por polígono.");
+    ImGui::BeginDisabled(!datos_ || ocupado());
+    if (estilo::estado_vacio("Ejecuta el plan para ver cuánto comprar de cada especie en cada polígono.",
+                             "Ejecutar plan"))
+      lanzar_plan();
+    ImGui::EndDisabled();
     return ImGui::End();
   }
   const auto& r = *plan_;
@@ -61,8 +65,20 @@ void App::vista_compra() {
     area += c.poligono->area;
     if (const Solucion* s = reportada(c)) compra += s->costo_compra;
   }
-  ImGui::Text("α = %.3f   B = $%.0f/ha   %d de %zu polígonos factibles   %.2f ha   compra $%.0f ($%.0f/ha)",
-              r.alfa, r.B, factibles, compras.size(), area, compra, area > 0 ? compra / area : 0.0);
+  const bool todos = factibles == static_cast<int>(compras.size());
+  estilo::cifra(std::format("{} / {}", factibles, compras.size()).c_str(), "polígonos factibles",
+                todos ? estilo::tinta : estilo::aviso);
+  ImGui::SameLine();
+  estilo::cifra(std::format("{:.2f} ha", area).c_str(), "área del plan");
+  ImGui::SameLine();
+  estilo::cifra(("$" + estilo::miles(compra)).c_str(), "compra total");
+  ImGui::SameLine();
+  estilo::cifra(("$" + estilo::miles(area > 0 ? compra / area : 0.0)).c_str(), "por hectárea");
+  ImGui::SameLine();
+  ImGui::BeginGroup();
+  ImGui::TextDisabled("α = %.3f", r.alfa);
+  ImGui::TextDisabled("B = $%.0f/ha", r.B);
+  ImGui::EndGroup();
 
   // Tabla de polígonos, ordenable.
   if (orden_compras_.size() != compras.size()) {

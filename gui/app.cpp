@@ -308,7 +308,7 @@ void App::layout_inicial(ImGuiID dock) {
   ImGui::DockBuilderAddNode(dock, ImGuiDockNodeFlags_DockSpace);
   ImGui::DockBuilderSetNodeSize(dock, ImGui::GetMainViewport()->WorkSize);
   ImGuiID izq = 0, der = 0;
-  ImGui::DockBuilderSplitNode(dock, ImGuiDir_Left, 0.26f, &izq, &der);
+  ImGui::DockBuilderSplitNode(dock, ImGuiDir_Left, 0.28f, &izq, &der);
   ImGui::DockBuilderDockWindow(kConfig, izq);
   for (const char* v : {kMosaico, kMapa, kComparacion, kCompra, kConvergencia, kCompetencia, kFrontera, kBarrido})
     ImGui::DockBuilderDockWindow(v, der);
