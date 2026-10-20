@@ -18,17 +18,10 @@ namespace refor::gui {
 
 namespace {
 
-ImU32 con_alfa(ImU32 c, float a) {
-  ImVec4 v = estilo::v4(c);
-  v.w *= a;
-  return ImGui::ColorConvertFloat4ToU32(v);
-}
-
-// Tinta legible sobre un relleno: oscura sobre colores claros.
-ImU32 tinta_sobre(ImU32 relleno) {
-  const ImVec4 c = estilo::v4(relleno);
-  return 0.2126f * c.x + 0.7152f * c.y + 0.0722f * c.z > 0.45f ? estilo::tinta_oscura : estilo::tinta;
-}
+using estilo::con_alfa;
+using estilo::muestra;
+using estilo::rampa;
+using estilo::tinta_sobre;
 
 bool dentro(const std::vector<ImVec2>& v, ImVec2 p) {
   bool in = false;
@@ -66,38 +59,6 @@ std::pair<ImVec2, float> rotulo(const std::vector<ImVec2>& v) {
       if (const float d = distancia_borde(v, p); d > mejor.second) mejor = {p, d};
     }
   return mejor;
-}
-
-const Solucion* reportada(const Resultado& r) {
-  if (r.optima) return &*r.optima;
-  if (r.libre) return &*r.libre;
-  return nullptr;
-}
-
-void muestra(ImU32 c, const char* texto) {
-  const ImVec2 p = ImGui::GetCursorScreenPos();
-  const float h = ImGui::GetTextLineHeight();
-  ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x, p.y + 2), ImVec2(p.x + h - 4, p.y + h - 2), c, 3);
-  ImGui::Dummy(ImVec2(h, h));
-  ImGui::SameLine();
-  ImGui::TextUnformatted(texto);
-  ImGui::SameLine(0, ImGui::GetFontSize() * 1.5f);
-}
-
-void rampa(double lo, double hi, const char* unidad) {
-  ImGui::Text("%.0f", lo);
-  ImGui::SameLine();
-  const ImVec2 p = ImGui::GetCursorScreenPos();
-  const float ancho = ImGui::GetFontSize() * 14, h = ImGui::GetTextLineHeight();
-  for (int i = 0; i < 28; ++i) {
-    const float x0 = p.x + ancho * static_cast<float>(i) / 28, x1 = p.x + ancho * static_cast<float>(i + 1) / 28;
-    ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(x0, p.y + 2), ImVec2(x1, p.y + h - 2),
-                                              estilo::secuencial(static_cast<float>(i) / 27));
-  }
-  ImGui::Dummy(ImVec2(ancho, h));
-  ImGui::SameLine();
-  ImGui::Text("%.0f %s", hi, unidad);
-  ImGui::SameLine(0, ImGui::GetFontSize() * 1.5f);
 }
 
 }  // namespace
@@ -223,8 +184,8 @@ void App::vista_mapa() {
   // o el último clic.
   int sel = mapa_sel_;
   if (plan && compra_sel_ >= 0)
-    for (std::size_t k = 0; k < mapa_.size(); ++k)
-      if (mapa_[k].id == plan->plan.compras[compra_sel_].poligono->id) sel = static_cast<int>(k);
+    if (const auto it = mapa_de_id_.find(plan->plan.compras[compra_sel_].poligono->id); it != mapa_de_id_.end())
+      sel = it->second;
   const float alto_leyenda = ImGui::GetFrameHeightWithSpacing() * 1.6f;
   const float alto = std::max(200.0f, ImGui::GetContentRegionAvail().y - alto_leyenda);
   const float ancho_detalle = std::max(ImGui::GetFontSize() * 24, ImGui::GetContentRegionAvail().x * 0.42f);

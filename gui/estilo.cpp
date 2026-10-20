@@ -12,20 +12,67 @@ ImPlotColormap cmap_generos = -1;
 namespace {
 
 // Pasos 700 → 100 de la rampa azul.
-constexpr ImU32 rampa[] = {rgb(0x0d366b), rgb(0x104281), rgb(0x184f95), rgb(0x1c5cab), rgb(0x256abf),
+constexpr ImU32 azules[] = {rgb(0x0d366b), rgb(0x104281), rgb(0x184f95), rgb(0x1c5cab), rgb(0x256abf),
                            rgb(0x2a78d6), rgb(0x3987e5), rgb(0x5598e7), rgb(0x6da7ec), rgb(0x86b6ef),
                            rgb(0x9ec5f4), rgb(0xb7d3f6), rgb(0xcde2fb)};
-constexpr int pasos = sizeof(rampa) / sizeof(rampa[0]);
+constexpr int pasos = sizeof(azules) / sizeof(azules[0]);
 
 }  // namespace
 
 ImU32 secuencial(float t) {
   t = std::clamp(t, 0.0f, 1.0f) * (pasos - 1);
   const int i = std::min(static_cast<int>(t), pasos - 2);
-  const ImVec4 a = v4(rampa[i]), b = v4(rampa[i + 1]);
+  const ImVec4 a = v4(azules[i]), b = v4(azules[i + 1]);
   const float f = t - static_cast<float>(i);
   return ImGui::ColorConvertFloat4ToU32(
       ImVec4(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f, a.z + (b.z - a.z) * f, 1.0f));
+}
+
+ImU32 con_alfa(ImU32 c, float a) {
+  ImVec4 v = v4(c);
+  v.w *= a;
+  return ImGui::ColorConvertFloat4ToU32(v);
+}
+
+ImU32 tinta_sobre(ImU32 relleno) {
+  const ImVec4 c = v4(relleno);
+  return 0.2126f * c.x + 0.7152f * c.y + 0.0722f * c.z > 0.45f ? tinta_oscura : tinta;
+}
+
+ImPlotSpec linea(ImU32 color, float grosor, ImPlotItemFlags flags) {
+  ImPlotSpec s;
+  s.LineColor = v4(color);
+  s.LineWeight = grosor;
+  s.Flags = flags;
+  return s;
+}
+
+void muestra(ImU32 c, const char* texto) {
+  const ImVec2 p = ImGui::GetCursorScreenPos();
+  const float h = ImGui::GetTextLineHeight();
+  ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x, p.y + 2), ImVec2(p.x + h - 4, p.y + h - 2), c, 3);
+  ImGui::Dummy(ImVec2(h, h));
+  ImGui::SameLine();
+  ImGui::TextUnformatted(texto);
+  ImGui::SameLine(0, ImGui::GetFontSize() * 1.5f);
+}
+
+void rampa(double lo, double hi, const char* unidad, const char* formato) {
+  ImGui::Text(formato, lo);
+  ImGui::SameLine();
+  const ImVec2 p = ImGui::GetCursorScreenPos();
+  const float ancho = ImGui::GetFontSize() * 14, h = ImGui::GetTextLineHeight();
+  for (int i = 0; i < 28; ++i) {
+    const float x0 = p.x + ancho * static_cast<float>(i) / 28, x1 = p.x + ancho * static_cast<float>(i + 1) / 28;
+    ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(x0, p.y + 2), ImVec2(x1, p.y + h - 2),
+                                              secuencial(static_cast<float>(i) / 27));
+  }
+  ImGui::Dummy(ImVec2(ancho, h));
+  ImGui::SameLine();
+  ImGui::Text(formato, hi);
+  ImGui::SameLine();
+  ImGui::TextUnformatted(unidad);
+  ImGui::SameLine(0, ImGui::GetFontSize() * 1.5f);
 }
 
 void aplicar() {
@@ -85,7 +132,7 @@ void aplicar() {
   pc[ImPlotCol_AxisGrid] = v4(reticula);
   pc[ImPlotCol_AxisTick] = v4(eje);
 
-  cmap_secuencial = ImPlot::AddColormap("Secuencial", rampa, pasos, false);
+  cmap_secuencial = ImPlot::AddColormap("Secuencial", azules, pasos, false);
   cmap_generos = ImPlot::AddColormap("Generos", categorico, 3, true);
 }
 

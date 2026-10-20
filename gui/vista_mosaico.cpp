@@ -21,11 +21,7 @@ constexpr float kRaiz3 = 1.7320508f;
 constexpr int kAdelante[3][2] = {{0, 1}, {1, -1}, {1, 0}};
 constexpr int kVecinas[6][2] = {{-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}};
 
-ImU32 con_alfa(ImU32 c, float a) {
-  ImVec4 v = estilo::v4(c);
-  v.w *= a;
-  return ImGui::ColorConvertFloat4ToU32(v);
-}
+using estilo::con_alfa;
 
 // Coordenadas de pantalla de la posición (fila, columna) sin envolver: cada
 // fila se recorre media posición, así se ve el tresbolillo.
@@ -286,18 +282,10 @@ void App::vista_mosaico() {
       lmin = std::min(lmin, l);
       lmax = std::max(lmax, l);
     }
-    ImGui::Text("Competencia local  %.2f", lmin);
+    ImGui::TextUnformatted("Competencia local");
     ImGui::SameLine();
-    const ImVec2 p = ImGui::GetCursorScreenPos();
-    const float ancho = ImGui::GetFontSize() * 14, h = ImGui::GetTextLineHeight();
-    for (int i = 0; i < 28; ++i) {
-      const float x0 = p.x + ancho * static_cast<float>(i) / 28, x1 = p.x + ancho * static_cast<float>(i + 1) / 28;
-      ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(x0, p.y + 2), ImVec2(x1, p.y + h - 2),
-                                                estilo::secuencial(static_cast<float>(i) / 27));
-    }
-    ImGui::Dummy(ImVec2(ancho, h));
-    ImGui::SameLine();
-    ImGui::Text("%.2f   (suma de W con las 6 vecinas)", lmax);
+    estilo::rampa(lmin, lmax, "(suma de W con las 6 vecinas)", "%.2f");
+    ImGui::NewLine();
   }
 
   // La clave como tabla: accesible sin color y lista para copiar.

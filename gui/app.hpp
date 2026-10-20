@@ -6,6 +6,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -19,6 +20,14 @@
 #include "trabajo.hpp"
 
 namespace refor::gui {
+
+// La solución que se reporta de un polígono: la óptima o, si el presupuesto
+// no alcanza, la óptima sin presupuesto. Nulo si ni la banda es factible.
+inline const Solucion* reportada(const Resultado& r) {
+  if (r.optima) return &*r.optima;
+  if (r.libre) return &*r.libre;
+  return nullptr;
+}
 
 // Lo que se configura en el panel izquierdo; cada cálculo se lanza con una
 // copia, así que editarlo mientras corre no afecta al cálculo en curso.
@@ -147,6 +156,7 @@ class App {
   std::shared_ptr<const memetico::Competencia> w_;
   estilo::Generos generos_;
   std::vector<PoligonoMapa> mapa_;
+  std::unordered_map<int, int> mapa_de_id_;  // id del modelo → índice en mapa_
   std::vector<PlantacionMapa> plantacion_;  // paralelo a mapa_; vacío sin plan
   std::string mensaje_;  // último error o aviso, en la barra de configuración
   bool mensaje_es_error_ = false;

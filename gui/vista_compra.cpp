@@ -12,12 +12,6 @@ namespace refor::gui {
 
 namespace {
 
-const Solucion* reportada(const Resultado& r) {
-  if (r.optima) return &*r.optima;
-  if (r.libre) return &*r.libre;
-  return nullptr;
-}
-
 // El estado lleva siempre su texto; el color solo lo refuerza.
 void estado(const Resultado& r) {
   if (r.optima) {

@@ -14,13 +14,7 @@ namespace refor::gui {
 
 namespace {
 
-ImPlotSpec linea(ImU32 color, float grosor, ImPlotItemFlags flags = 0) {
-  ImPlotSpec s;
-  s.LineColor = estilo::v4(color);
-  s.LineWeight = grosor;
-  s.Flags = flags;
-  return s;
-}
+using estilo::linea;
 
 }  // namespace
 

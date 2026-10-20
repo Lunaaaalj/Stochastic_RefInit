@@ -46,6 +46,21 @@ void aplicar();
 
 inline ImVec4 v4(ImU32 c) { return ImGui::ColorConvertU32ToFloat4(c); }
 
+// El color con su opacidad multiplicada por a.
+ImU32 con_alfa(ImU32 c, float a);
+
+// Tinta legible sobre un relleno: oscura sobre colores claros.
+ImU32 tinta_sobre(ImU32 relleno);
+
+// Línea de ImPlot con color y grosor.
+ImPlotSpec linea(ImU32 color, float grosor, ImPlotItemFlags flags = 0);
+
+// Leyendas en una sola línea: una muestra de color con su texto, o la rampa
+// secuencial entre dos valores. Dejan la línea abierta para seguir con
+// SameLine; quien la termina llama a ImGui::NewLine().
+void muestra(ImU32 c, const char* texto);
+void rampa(double lo, double hi, const char* unidad, const char* formato = "%.0f");
+
 // Grupo de color de cada especie: los dos géneros con más especies tienen su
 // propio color y el resto comparte "Otras".
 struct Generos {

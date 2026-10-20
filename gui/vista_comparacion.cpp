@@ -21,13 +21,7 @@ using asignacion_exacta::ResultadoPLE;
 
 constexpr double kEps = 1e-6;
 
-ImPlotSpec linea(ImU32 color, float grosor, ImPlotItemFlags flags = 0) {
-  ImPlotSpec s;
-  s.LineColor = estilo::v4(color);
-  s.LineWeight = grosor;
-  s.Flags = flags;
-  return s;
-}
+using estilo::linea;
 
 std::string estado_corto(const ResultadoPLE& r) {
   if (r.optimo) return "óptimo probado";

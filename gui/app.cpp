@@ -66,19 +66,22 @@ void App::cargar() {
   // El mapa es opcional: si falla, el modelo sigue funcionando sin él.
   try {
     mapa_ = cargar_mapa(cfg_.datos_dir);
+    mapa_de_id_.clear();
+    for (std::size_t k = 0; k < mapa_.size(); ++k)
+      if (mapa_[k].id >= 0) mapa_de_id_[mapa_[k].id] = static_cast<int>(k);
     mapa_sel_ = -1;
     mapa_centro_ = ImVec2(-1, -1);
     sembrar_mapa();
   } catch (const std::exception& e) {
     mapa_.clear();
+    mapa_de_id_.clear();
     mensaje_ += std::string(" Mapa no disponible: ") + e.what();
   }
 }
 
 int App::etiqueta_mapa(int id) const {
-  for (const auto& p : mapa_)
-    if (p.id == id) return p.etiqueta;
-  return -1;
+  const auto it = mapa_de_id_.find(id);
+  return it == mapa_de_id_.end() ? -1 : mapa_[it->second].etiqueta;
 }
 
 std::vector<int> App::ids_seleccionados() const {
