@@ -316,6 +316,7 @@ void App::layout_inicial(ImGuiID dock) {
 }
 
 void App::cuadro() {
+  anim::nuevo_cuadro();
   recoger();
   const ImGuiID dock = ImGui::DockSpaceOverViewport();
   if (!layout_hecho_) {

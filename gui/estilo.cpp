@@ -4,6 +4,8 @@
 #include <cmath>
 #include <map>
 
+#include "animacion.hpp"
+
 namespace refor::gui::estilo {
 
 ImFont* fuente_titulo = nullptr;
@@ -190,12 +192,7 @@ void aplicar() {
 }
 
 bool boton_primario(const char* etiqueta, ImVec2 tam) {
-  ImGui::PushStyleColor(ImGuiCol_Button, v4(primario));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, v4(primario_sobre));
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, v4(primario_activo));
-  const bool r = ImGui::Button(etiqueta, tam);
-  ImGui::PopStyleColor(3);
-  return r;
+  return anim::boton_colores(etiqueta, tam, primario, primario_sobre, primario_activo);
 }
 
 bool seccion(const char* etiqueta, ImGuiTreeNodeFlags flags) {

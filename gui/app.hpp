@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 
+#include "animacion.hpp"
 #include "asignacion_exacta/ple.hpp"
 #include "datos.hpp"
 #include "estilo.hpp"

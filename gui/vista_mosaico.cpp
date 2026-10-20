@@ -241,14 +241,14 @@ void App::vista_mosaico() {
     ImGui::EndCombo();
   }
   ImGui::SameLine();
-  ImGui::RadioButton("Género", &color_modo_, 0);
+  anim::radio("Género", &color_modo_, 0);
   ImGui::SameLine();
-  ImGui::RadioButton("Competencia local", &color_modo_, 1);
+  anim::radio("Competencia local", &color_modo_, 1);
   ImGui::SameLine();
-  ImGui::Checkbox("Grafo W", &aristas_);
+  anim::casilla("Grafo W", &aristas_);
   ImGui::SetItemTooltip("Dibuja cada par de vecinas; más grueso y opaco cuanto mayor es su penalización W.");
   ImGui::SameLine();
-  ImGui::Checkbox("Replicar 3 × 3", &replicar_);
+  anim::casilla("Replicar 3 × 3", &replicar_);
   ImGui::SetItemTooltip("Repite el mosaico como lo hace la cuadrilla: el borde periódico se vuelve visible.");
 
   const Espacial& g = grupos[mosaico_sel_];
@@ -303,7 +303,7 @@ void App::vista_mosaico() {
       for (int c = 0; c < r.mosaico.columnas(); ++c)
         tsv += clave_especie(d.especies[g.mejor[r.mosaico.indice(f, c)]].nombre) +
                (c + 1 < r.mosaico.columnas() ? "\t" : "\n");
-    if (ImGui::SmallButton("Copiar al portapapeles")) ImGui::SetClipboardText(tsv.c_str());
+    if (anim::boton_chico("Copiar al portapapeles")) ImGui::SetClipboardText(tsv.c_str());
     ImGui::SameLine();
     ImGui::TextDisabled("cada fila se recorre media posición respecto a la anterior");
     if (ImGui::BeginTable("clave", r.mosaico.columnas() + 1,

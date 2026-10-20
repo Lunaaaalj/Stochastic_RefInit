@@ -117,24 +117,24 @@ void App::vista_mapa() {
   const ResultadoPlan* plan = plan_ ? &*plan_ : nullptr;
   if (!plan && mapa_modo_ >= 2) mapa_modo_ = 0;
 
-  ImGui::RadioButton("Selección", &mapa_modo_, 0);
+  anim::radio("Selección", &mapa_modo_, 0);
   ImGui::SetItemTooltip("Polígonos incluidos en el próximo plan; se cambia desde el detalle de cada uno.");
   ImGui::SameLine();
-  ImGui::RadioButton("Existentes / ha", &mapa_modo_, 1);
+  anim::radio("Existentes / ha", &mapa_modo_, 1);
   ImGui::BeginDisabled(!plan);
   ImGui::SameLine();
-  ImGui::RadioButton("Estado del plan", &mapa_modo_, 2);
+  anim::radio("Estado del plan", &mapa_modo_, 2);
   ImGui::SameLine();
-  ImGui::RadioButton("Compra $/ha", &mapa_modo_, 3);
+  anim::radio("Compra $/ha", &mapa_modo_, 3);
   ImGui::EndDisabled();
   if (!plan) ImGui::SetItemTooltip("Ejecuta el plan para colorear por su resultado.");
   ImGui::SameLine(0, ImGui::GetFontSize() * 1.5f);
   ImGui::BeginDisabled(!plan);
-  ImGui::Checkbox("Plantas", &mapa_plantas_);
+  anim::casilla("Plantas", &mapa_plantas_);
   ImGui::EndDisabled();
   ImGui::SetItemTooltip("Siembra cada polígono con el mosaico de su plan; se ven al acercarse.");
   ImGui::SameLine();
-  if (ImGui::SmallButton("Ver todo")) mapa_zoom_ = 1, mapa_centro_ = ImVec2(-1, -1);
+  if (anim::boton_chico("Ver todo")) mapa_zoom_ = 1, mapa_centro_ = ImVec2(-1, -1);
   ImGui::SameLine();
   ImGui::TextDisabled("(?)");
   ImGui::SetItemTooltip("Rueda: zoom · arrastrar: mover · clic: detalle · doble clic: encuadrar el polígono");
@@ -453,7 +453,7 @@ void App::detalle_mapa(int k) {
   const auto& p = datos_->poligonos[dato];
   ImGui::TextDisabled("P%d en el modelo · %.2f ha", p.id, p.area);
   bool incluido = cfg_.poligonos[dato];
-  if (ImGui::Checkbox("Incluir en el próximo plan", &incluido)) cfg_.poligonos[dato] = incluido;
+  if (anim::casilla("Incluir en el próximo plan", &incluido)) cfg_.poligonos[dato] = incluido;
 
   int ic = -1;
   if (plan_)
@@ -529,12 +529,12 @@ void App::detalle_mapa(int k) {
   const Espacial& e = r.plan.espacial[g];
   ImGui::SeparatorText(std::format("Mosaico {} · coeficiente {:.3f}", g + 1, e.coeficiente()).c_str());
   ImGui::SameLine();
-  if (ImGui::SmallButton("Abrir en Mosaico")) {
+  if (anim::boton_chico("Abrir en Mosaico")) {
     mosaico_sel_ = g;
     ImGui::SetWindowFocus(kMosaico);
   }
   ImGui::SameLine();
-  if (ImGui::SmallButton("Encuadrar en el mapa")) mapa_encuadrar_ = k;
+  if (anim::boton_chico("Encuadrar en el mapa")) mapa_encuadrar_ = k;
   if (k < static_cast<int>(plantacion_.size()) && plantacion_[k].grupo >= 0) {
     const auto& pl = plantacion_[k];
     ImGui::TextDisabled("En el mapa: %zu posiciones al tresbolillo cada %.1f m (%d plantas compradas).", pl.pos.size(),

@@ -59,7 +59,7 @@ void App::barra_progreso() {
   ImGui::TextDisabled("%.1f s", seg);
   ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Cancelar").x -
                   ImGui::GetStyle().FramePadding.x * 2);
-  if (ImGui::SmallButton("Cancelar")) {
+  if (anim::boton_chico("Cancelar")) {
     t_plan_.cancelar();
     t_frontera_.cancelar();
     t_barrido_.cancelar();
@@ -77,7 +77,7 @@ void App::vista_config() {
   ImGui::EndDisabled();
   ImGui::SameLine();
   ImGui::BeginDisabled(!plan_ || ocupado());
-  if (ImGui::Button("Guardar resultados", ImVec2(medio_b, ImGui::GetFrameHeight() * 1.4f))) guardar_plan();
+  if (anim::boton("Guardar resultados", ImVec2(medio_b, ImGui::GetFrameHeight() * 1.4f))) guardar_plan();
   ImGui::EndDisabled();
   ImGui::SetItemTooltip("En %s/plan/ (txt, csv y json).", cfg_.dir_res.c_str());
   barra_progreso();
@@ -92,7 +92,7 @@ void App::vista_config() {
   titulo("Datos");
   ImGui::InputText("Directorio", &cfg_.datos_dir);
   ImGui::BeginDisabled(ocupado());
-  if (ImGui::Button("Recargar datos")) cargar();
+  if (anim::boton("Recargar datos")) cargar();
   ImGui::EndDisabled();
 
   if (datos_) {
@@ -100,9 +100,9 @@ void App::vista_config() {
     int sel = static_cast<int>(std::count(cfg_.poligonos.begin(), cfg_.poligonos.end(), 1));
     ImGui::Text("%d de %zu seleccionados", sel, cfg_.poligonos.size());
     ImGui::SameLine();
-    if (ImGui::SmallButton("Todos")) std::fill(cfg_.poligonos.begin(), cfg_.poligonos.end(), 1);
+    if (anim::boton_chico("Todos")) std::fill(cfg_.poligonos.begin(), cfg_.poligonos.end(), 1);
     ImGui::SameLine();
-    if (ImGui::SmallButton("Ninguno")) std::fill(cfg_.poligonos.begin(), cfg_.poligonos.end(), 0);
+    if (anim::boton_chico("Ninguno")) std::fill(cfg_.poligonos.begin(), cfg_.poligonos.end(), 0);
     const float alto = ImGui::GetTextLineHeightWithSpacing() * 5.5f;
     // Tantas columnas como quepan, para que ningún número se corte.
     const int columnas = std::clamp(static_cast<int>(ImGui::GetContentRegionAvail().x / (ImGui::GetFontSize() * 4.2f)), 2, 10);
@@ -112,7 +112,7 @@ void App::vista_config() {
         ImGui::TableNextColumn();
         const auto& p = datos_->poligonos[i];
         bool b = cfg_.poligonos[i];
-        if (ImGui::Checkbox(std::to_string(p.id).c_str(), &b)) cfg_.poligonos[i] = b;
+        if (anim::casilla(std::to_string(p.id).c_str(), &b)) cfg_.poligonos[i] = b;
         if (const int e = etiqueta_mapa(p.id); e >= 0)
           ImGui::SetItemTooltip("Polígono %d: %.2f ha (número %d en el mapa)", p.id, p.area, e);
         else
@@ -178,9 +178,9 @@ void App::vista_config() {
   cfg_.B_paso = std::max(cfg_.B_paso, 1.0);
   ImGui::BeginDisabled(!datos_ || ocupado());
   const float medio = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) / 2;
-  if (ImGui::Button("Calcular frontera", ImVec2(medio, 0))) lanzar_frontera();
+  if (anim::boton("Calcular frontera", ImVec2(medio, 0))) lanzar_frontera();
   ImGui::SameLine();
-  if (ImGui::Button("Calcular barrido", ImVec2(medio, 0))) lanzar_barrido();
+  if (anim::boton("Calcular barrido", ImVec2(medio, 0))) lanzar_barrido();
   ImGui::EndDisabled();
 
   ImGui::PopItemWidth();

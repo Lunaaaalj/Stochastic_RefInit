@@ -147,7 +147,7 @@ void App::vista_comparacion() {
   if (estilo::boton_primario(std::format("Resolver mosaico {}", mosaico_sel_ + 1).c_str())) lanzar_exacto(mosaico_sel_);
   ImGui::SameLine();
   ImGui::BeginDisabled(pendientes == 0);
-  if (ImGui::Button(std::format("Resolver pendientes ({})", pendientes).c_str())) lanzar_exacto(-1);
+  if (anim::boton(std::format("Resolver pendientes ({})", pendientes).c_str())) lanzar_exacto(-1);
   ImGui::EndDisabled();
   ImGui::EndDisabled();
   ImGui::SameLine();
@@ -285,13 +285,13 @@ void App::vista_comparacion() {
       res.local_max = std::max(res.local_max, l);
     }
 
-  ImGui::RadioButton("Género", &color_modo_, 0);
+  anim::radio("Género", &color_modo_, 0);
   ImGui::SameLine();
-  ImGui::RadioButton("Competencia local", &color_modo_, 1);
+  anim::radio("Competencia local", &color_modo_, 1);
   ImGui::SameLine();
-  ImGui::Checkbox("Grafo W", &aristas_);
+  anim::casilla("Grafo W", &aristas_);
   ImGui::SameLine();
-  ImGui::Checkbox("Replicar 3 × 3", &replicar_);
+  anim::casilla("Replicar 3 × 3", &replicar_);
   ImGui::SameLine(0, ImGui::GetFontSize() * 1.5f);
   if (distintas == 0)
     ImGui::TextColored(estilo::v4(estilo::bueno), "Mismo esquema: solo difieren por una traslación.");

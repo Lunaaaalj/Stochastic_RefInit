@@ -135,6 +135,7 @@ if(REFOR_GUI)
     gui/main.cpp
     gui/app.cpp
     gui/estilo.cpp
+    gui/animacion.cpp
     gui/vista_config.cpp
     gui/vista_compra.cpp
     gui/vista_mosaico.cpp
