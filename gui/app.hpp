@@ -55,6 +55,7 @@ struct ResultadoPlan {
   int corridas = 0;
   double segundos = 0;
   std::vector<int> grupo_de;  // mosaico de cada compra (-1 si no planta)
+  Config cfg;                 // con la que se calculó, para avisar si cambió
 };
 
 struct ResultadoFrontera {
@@ -120,13 +121,15 @@ class App {
  public:
   explicit App(std::string datos_dir);
   void cuadro();  // dibuja un cuadro completo de la interfaz
+  bool ocupado() const {
+    return t_plan_.ocupado() || t_frontera_.ocupado() || t_barrido_.ocupado() || t_exacto_.ocupado();
+  }
+  bool quiere_salir() const { return salir_; }
 
  private:
   void cargar();
   std::vector<int> ids_seleccionados() const;
-  bool ocupado() const {
-    return t_plan_.ocupado() || t_frontera_.ocupado() || t_barrido_.ocupado() || t_exacto_.ocupado();
-  }
+  void cancelar_todo();
   void lanzar_plan();
   void lanzar_exacto(int mosaico);  // -1: todos los que aún no se resuelven
   void lanzar_frontera();
@@ -136,8 +139,14 @@ class App {
   void layout_inicial(ImGuiID dock);
 
   // Una ventana por vista; cada grupo vive en su propio archivo vista_*.cpp.
+  void menu_principal();
+  void barra_estado();
+  void atajos();
+  // Qué cambió en la configuración desde el último plan, en una frase; vacío
+  // si nada o si no hay plan. Se calcula una vez por cuadro en cambios_.
+  std::string cambios_plan() const;
+  void chip_desactualizado();  // etiqueta «desactualizado» con los cambios en su tooltip
   void vista_config();
-  void barra_progreso();
   void vista_compra();
   void vista_mosaico();
   void lienzo_mosaico(const ResultadoPlan& r, const memetico::Individuo& asig, const Resaltado* res = nullptr);
@@ -161,6 +170,9 @@ class App {
   std::vector<PlantacionMapa> plantacion_;  // paralelo a mapa_; vacío sin plan
   std::string mensaje_;  // último error o aviso, en la barra de configuración
   double t_resultado_ = -1;  // ImGui::GetTime() al llegar el último resultado
+  std::string cambios_;      // cambios_plan() de este cuadro
+  double t_cambios_ = -1;    // cuando el plan quedó desactualizado, para el pulso del botón
+  bool salir_ = false, mostrar_fps_ = false;
   void velo_resultados();    // fundido de entrada de las vistas tras un resultado
   bool mensaje_es_error_ = false;
 
@@ -191,6 +203,7 @@ class App {
   bool mapa_plantas_ = true;
   std::vector<int> orden_compras_;
   bool layout_hecho_ = false;
+  int enfocar_ = 0;  // cuadros que faltan para elegir las pestañas activas
 
   // Al final: se destruyen primero y esperan a sus hilos.
   Trabajo<ResultadoPlan> t_plan_;
@@ -209,5 +222,16 @@ inline constexpr const char* kFrontera = "Frontera B*(α)";
 inline constexpr const char* kBarrido = "Barrido α × B";
 inline constexpr const char* kComparacion = "Memético vs. exacto";
 inline constexpr const char* kMapa = "Mapa del cerco";
+
+// Atajos, como se muestran en menús y tooltips.
+#ifdef __APPLE__
+inline constexpr const char* kTeclaPlan = "⌘↵";
+inline constexpr const char* kTeclaGuardar = "⌘S";
+inline constexpr const char* kTeclaSalir = "⌘Q";
+#else
+inline constexpr const char* kTeclaPlan = "Ctrl+Enter";
+inline constexpr const char* kTeclaGuardar = "Ctrl+S";
+inline constexpr const char* kTeclaSalir = nullptr;
+#endif
 
 }  // namespace refor::gui

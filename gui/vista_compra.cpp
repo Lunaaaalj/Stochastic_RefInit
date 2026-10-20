@@ -84,6 +84,10 @@ void App::vista_compra() {
   ImGui::TextDisabled("α = %.3f", r.alfa);
   ImGui::TextDisabled("B = $%.0f/ha", r.B);
   ImGui::EndGroup();
+  if (!cambios_.empty()) {
+    ImGui::SameLine();
+    chip_desactualizado();
+  }
 
   // Tabla de polígonos, ordenable.
   if (orden_compras_.size() != compras.size()) {

@@ -262,6 +262,10 @@ void App::vista_mosaico() {
   ImGui::SameLine();
   anim::casilla("Replicar 3 × 3", &replicar_);
   ImGui::SetItemTooltip("Repite el mosaico como lo hace la cuadrilla: el borde periódico se vuelve visible.");
+  if (!cambios_.empty()) {
+    ImGui::SameLine();
+    chip_desactualizado();
+  }
 
   const Espacial& g = grupos[mosaico_sel_];
   // Cifra principal: el coeficiente frente al azar.

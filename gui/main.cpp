@@ -103,6 +103,7 @@ int main(int argc, char** argv) {
       ImGui_ImplGlfw_NewFrame();
       ImGui::NewFrame();
       app.cuadro();
+      if (app.quiere_salir()) glfwSetWindowShouldClose(ventana, GLFW_TRUE);
       ImGui::Render();
 
       int w = 0, h = 0;

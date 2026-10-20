@@ -138,6 +138,10 @@ void App::vista_mapa() {
   ImGui::SameLine();
   ImGui::TextDisabled("(?)");
   ImGui::SetItemTooltip("Rueda: zoom · arrastrar: mover · clic: detalle · doble clic: encuadrar el polígono");
+  if (!cambios_.empty() && plan) {
+    ImGui::SameLine();
+    chip_desactualizado();
+  }
 
   // Lo que cada polígono del mapa tiene en los datos y en el plan.
   struct Info {

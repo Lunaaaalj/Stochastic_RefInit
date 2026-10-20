@@ -118,7 +118,7 @@ void App::lanzar_plan() {
     };
     const memetico::Mosaico m(pe.filas, pe.columnas);
     ResultadoPlan r{datos, w, m, ejecutar_plan(*datos, curvas, cfg.alfa, cfg.B, cfg.p.theta, m, *w, pe),
-                    cfg.alfa, cfg.B, pe.corridas, 0, {}};
+                    cfg.alfa, cfg.B, pe.corridas, 0, {}, cfg};
 
     for (const auto& c : r.plan.compras) {
       int g = -1;
@@ -308,15 +308,96 @@ void App::guardar_plan() {
 }
 
 void App::layout_inicial(ImGuiID dock) {
+  // Configuración a la izquierda; a la derecha, arriba lo espacial (mapa y
+  // mosaicos) y abajo las tablas y gráficas. Así lo que se elige en Compra
+  // se ve de inmediato en el mapa o el mosaico de arriba.
   ImGui::DockBuilderRemoveNode(dock);
   ImGui::DockBuilderAddNode(dock, ImGuiDockNodeFlags_DockSpace);
   ImGui::DockBuilderSetNodeSize(dock, ImGui::GetMainViewport()->WorkSize);
-  ImGuiID izq = 0, der = 0;
+  ImGuiID izq = 0, der = 0, arriba = 0, abajo = 0;
   ImGui::DockBuilderSplitNode(dock, ImGuiDir_Left, 0.28f, &izq, &der);
+  ImGui::DockBuilderSplitNode(der, ImGuiDir_Up, 0.6f, &arriba, &abajo);
   ImGui::DockBuilderDockWindow(kConfig, izq);
-  for (const char* v : {kMosaico, kMapa, kComparacion, kCompra, kConvergencia, kCompetencia, kFrontera, kBarrido})
-    ImGui::DockBuilderDockWindow(v, der);
+  for (const char* v : {kMapa, kMosaico, kComparacion}) ImGui::DockBuilderDockWindow(v, arriba);
+  for (const char* v : {kCompra, kConvergencia, kCompetencia, kFrontera, kBarrido}) ImGui::DockBuilderDockWindow(v, abajo);
   ImGui::DockBuilderFinish(dock);
+}
+
+void App::cancelar_todo() {
+  t_plan_.cancelar();
+  t_frontera_.cancelar();
+  t_barrido_.cancelar();
+  t_exacto_.cancelar();
+}
+
+std::string App::cambios_plan() const {
+  if (!plan_) return {};
+  const Config& a = plan_->cfg;
+  const Config& b = cfg_;
+  std::vector<std::string> c;
+  if (plan_->datos != datos_) c.push_back("datos recargados");
+  else if (a.poligonos != b.poligonos) c.push_back("selección de polígonos");
+  if (a.alfa != b.alfa) c.push_back(std::format("α {:.3f} → {:.3f}", a.alfa, b.alfa));
+  if (a.B != b.B) c.push_back(std::format("B ${:.0f} → ${:.0f}", a.B, b.B));
+  if (a.p.theta != b.p.theta) c.push_back(std::format("θ {:.2f} → {:.2f}", a.p.theta, b.p.theta));
+  if (a.p.delta != b.p.delta) c.push_back(std::format("δ {:.2f} → {:.2f}", a.p.delta, b.p.delta));
+  if (a.p.metodo != b.p.metodo || (b.p.metodo == Metodo::MonteCarlo && a.p.K != b.p.K)) c.push_back("método x*(n)");
+  if (a.p.semilla != b.p.semilla) c.push_back("semilla");
+  if (a.pe.filas != b.pe.filas || a.pe.columnas != b.pe.columnas) c.push_back("tamaño del mosaico");
+  const auto& ma = a.pe.memetico;
+  const auto& mb = b.pe.memetico;
+  if (a.pe.corridas != b.pe.corridas || ma.poblacion != mb.poblacion || ma.generaciones_max != mb.generaciones_max ||
+      ma.generaciones_sin_mejora_max != mb.generaciones_sin_mejora_max ||
+      ma.tabu.iteraciones_sin_mejora != mb.tabu.iteraciones_sin_mejora)
+    c.push_back("parámetros del memético");
+  std::string r;
+  for (const auto& s : c) r += (r.empty() ? "" : ", ") + s;
+  return r;
+}
+
+void App::chip_desactualizado() {
+  if (cambios_.empty()) return;
+  estilo::chip("desactualizado", estilo::aviso);
+  ImGui::SetItemTooltip("La configuración cambió desde el último plan (%s). Ejecútalo de nuevo para verla reflejada.",
+                        cambios_.c_str());
+}
+
+void App::atajos() {
+  // Ctrl es ⌘ en macOS (io.ConfigMacOSXBehaviors). RouteGlobal: funcionan con
+  // el foco en cualquier ventana, pero ceden ante un campo de texto activo.
+  constexpr ImGuiInputFlags global = ImGuiInputFlags_RouteGlobal;
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_Enter, global) || ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_KeypadEnter, global))
+    if (datos_ && !ocupado()) lanzar_plan();
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_S, global) && plan_ && !ocupado()) guardar_plan();
+  if (ocupado() && ImGui::Shortcut(ImGuiKey_Escape, global)) cancelar_todo();
+}
+
+void App::menu_principal() {
+  if (!ImGui::BeginMainMenuBar()) return;
+  const bool libre = datos_ && !ocupado();
+  if (ImGui::BeginMenu("Archivo")) {
+    if (ImGui::MenuItem("Recargar datos", nullptr, false, !ocupado())) cargar();
+    if (ImGui::MenuItem("Guardar resultados", kTeclaGuardar, false, plan_ && !ocupado())) guardar_plan();
+    ImGui::Separator();
+    if (ImGui::MenuItem("Salir", kTeclaSalir)) salir_ = true;
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("Ejecutar")) {
+    if (ImGui::MenuItem("Plan", kTeclaPlan, false, libre)) lanzar_plan();
+    if (ImGui::MenuItem("Frontera B*(α)", nullptr, false, libre)) lanzar_frontera();
+    if (ImGui::MenuItem("Barrido α × B", nullptr, false, libre)) lanzar_barrido();
+    const bool pendientes = std::count(exacto_.begin(), exacto_.end(), std::nullopt) > 0;
+    if (ImGui::MenuItem("Resolver mosaicos pendientes", nullptr, false, libre && plan_ && pendientes)) lanzar_exacto(-1);
+    ImGui::Separator();
+    if (ImGui::MenuItem("Cancelar", "Esc", false, ocupado())) cancelar_todo();
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("Ver")) {
+    if (ImGui::MenuItem("Restablecer acomodo")) layout_hecho_ = false;
+    ImGui::MenuItem("Cuadros por segundo", nullptr, &mostrar_fps_);
+    ImGui::EndMenu();
+  }
+  ImGui::EndMainMenuBar();
 }
 
 void App::velo_resultados() {
@@ -339,20 +420,37 @@ void App::velo_resultados() {
 void App::cuadro() {
   anim::nuevo_cuadro();
   recoger();
+  const std::string cambios = cambios_plan();
+  if (!cambios.empty() && cambios_.empty()) t_cambios_ = ImGui::GetTime();
+  cambios_ = cambios;
+  atajos();
+  // Menú y barra de estado antes del dock: reducen el área de trabajo que ocupa.
+  menu_principal();
+  barra_estado();
   const ImGuiID dock = ImGui::DockSpaceOverViewport();
   if (!layout_hecho_) {
     layout_inicial(dock);
     layout_hecho_ = true;
+    enfocar_ = 3;  // las ventanas existen hasta el cuadro siguiente
   }
+  // El orden de dibujo es el de las pestañas en su primer cuadro.
   vista_config();
+  vista_mapa();
+  vista_mosaico();
+  vista_comparacion();
   vista_compra();
   vista_convergencia();
   vista_competencia();
   vista_frontera();
   vista_barrido();
-  vista_comparacion();
-  vista_mapa();
-  vista_mosaico();  // al final: queda como pestaña activa al abrir
+  // Pestañas activas al abrir o restablecer: Compra abajo y el Mapa arriba.
+  // Enfocar selecciona la pestaña solo de la ventana con el foco al final del
+  // cuadro, así que van en cuadros distintos.
+  if (enfocar_ > 0) {
+    --enfocar_;
+    if (enfocar_ == 1) ImGui::SetWindowFocus(kCompra);
+    if (enfocar_ == 0) ImGui::SetWindowFocus(kMapa);
+  }
   velo_resultados();
   if (ocupado()) anim::seguir();  // el progreso cambia aunque nada se anime
 }
