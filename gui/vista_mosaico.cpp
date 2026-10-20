@@ -91,12 +91,15 @@ void App::lienzo_mosaico(const ResultadoPlan& r, const memetico::Individuo& asig
   ImDrawList* dl = ImGui::GetWindowDrawList();
   dl->PushClipRect(p0, ImVec2(p0.x + tam.x, p0.y + tam.y), true);
 
+  // Al cambiar entre género y competencia local, los colores se funden.
+  const float t_modo = anim::valor(ImGui::GetID("modo_color"), color_modo_ == 1 ? 1.0f : 0.0f, 10);
   auto relleno = [&](int v) {
-    return color_modo_ == 0 ? estilo::categorico[generos_.de_especie[asig[v]]]
-                            : estilo::secuencial(norm(local[v], *lmin, *lmax));
+    return anim::mezcla(estilo::categorico[generos_.de_especie[asig[v]]],
+                        estilo::secuencial(norm(local[v], *lmin, *lmax)), t_modo);
   };
   auto tinta_sobre = [&](int v) {
-    return color_modo_ == 0 || norm(local[v], *lmin, *lmax) > 0.45f ? estilo::tinta_oscura : estilo::tinta;
+    const ImU32 local_t = norm(local[v], *lmin, *lmax) > 0.45f ? estilo::tinta_oscura : estilo::tinta;
+    return anim::mezcla(estilo::tinta_oscura, local_t, t_modo);
   };
 
   // Celdas; la de abajo del ratón se recuerda para el resaltado.
@@ -168,15 +171,24 @@ void App::lienzo_mosaico(const ResultadoPlan& r, const memetico::Individuo& asig
         }
   }
 
-  // Resaltado y detalle de la posición bajo el ratón.
-  if (hv >= 0) {
-    for (const auto& [df, dc] : kVecinas) {
-      hexagono(pts, geo.centro(hf + df, hc + dc), s * 0.94f);
-      dl->AddPolyline(pts, 6, estilo::tinta_2, ImDrawFlags_Closed, 1.5f);
+  // Resaltado de la posición bajo el ratón y sus vecinas: entra y sale con
+  // un fundido, así que al recorrer el mosaico queda una estela breve.
+  const ImGuiID base_hex = ImGui::GetID("hex");
+  for (int f = f0; f < f1; ++f)
+    for (int c = c0; c < c1; ++c) {
+      const auto idx = static_cast<ImGuiID>((f - f0) * (c1 - c0) + (c - c0));
+      const float t = anim::valor(base_hex + idx, hv >= 0 && f == hf && c == hc ? 1.0f : 0.0f, 20);
+      if (t < 0.01f) continue;
+      for (const auto& [df, dc] : kVecinas) {
+        hexagono(pts, geo.centro(f + df, c + dc), s * 0.94f);
+        dl->AddPolyline(pts, 6, con_alfa(estilo::tinta_2, t), ImDrawFlags_Closed, 1.5f);
+      }
+      hexagono(pts, geo.centro(f, c), s * (0.94f + 0.04f * t));
+      dl->AddPolyline(pts, 6, con_alfa(estilo::tinta, t), ImDrawFlags_Closed, 1.0f + 1.5f * t);
     }
-    hexagono(pts, geo.centro(hf, hc), s * 0.98f);
-    dl->AddPolyline(pts, 6, estilo::tinta, ImDrawFlags_Closed, 2.5f);
 
+  // Detalle de la posición bajo el ratón.
+  if (hv >= 0) {
     const int fr = ((hf % F) + F) % F, cr = ((hc % C) + C) % C;
     const auto& e = d.especies[asig[hv]];
     ImGui::BeginTooltip();
@@ -253,7 +265,8 @@ void App::vista_mosaico() {
 
   const Espacial& g = grupos[mosaico_sel_];
   // Cifra principal: el coeficiente frente al azar.
-  estilo::cifra(std::format("{:.3f}", g.coeficiente()).c_str(), "coeficiente de competencia",
+  const float coef = anim::valor(ImGui::GetID("kpi_coef"), static_cast<float>(g.coeficiente()), 12, -1, 2e-4f);
+  estilo::cifra(std::format("{:.3f}", coef).c_str(), "coeficiente de competencia",
                 g.coeficiente() < 1 ? estilo::tinta : estilo::aviso);
   ImGui::SameLine();
   ImGui::BeginGroup();

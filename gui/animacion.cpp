@@ -65,10 +65,10 @@ ImVec4 suavizar(ImVec4 actual, ImVec4 objetivo, float velocidad) {
                 suavizar(actual.z, objetivo.z, velocidad, eps), suavizar(actual.w, objetivo.w, velocidad, eps));
 }
 
-float valor(ImGuiID id, float objetivo, float velocidad, float inicial) {
+float valor(ImGuiID id, float objetivo, float velocidad, float inicial, float eps) {
   ImGuiStorage* st = ImGui::GetStateStorage();
   float* v = st->GetFloatRef(id, inicial >= 0 ? inicial : objetivo);
-  *v = suavizar(*v, objetivo, velocidad);
+  *v = suavizar(*v, objetivo, velocidad, eps);
   return *v;
 }
 

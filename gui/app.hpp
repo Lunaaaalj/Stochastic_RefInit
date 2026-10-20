@@ -160,6 +160,8 @@ class App {
   std::unordered_map<int, int> mapa_de_id_;  // id del modelo → índice en mapa_
   std::vector<PlantacionMapa> plantacion_;  // paralelo a mapa_; vacío sin plan
   std::string mensaje_;  // último error o aviso, en la barra de configuración
+  double t_resultado_ = -1;  // ImGui::GetTime() al llegar el último resultado
+  void velo_resultados();    // fundido de entrada de las vistas tras un resultado
   bool mensaje_es_error_ = false;
 
   std::optional<ResultadoPlan> plan_;
@@ -176,8 +178,15 @@ class App {
   bool aristas_ = false;  // grafo de vecindad pesado por W
   int mapa_modo_ = 0;     // 0: selección, 1: existentes/ha, 2: estado, 3: compra $/ha
   int mapa_sel_ = -1;     // índice en mapa_ del polígono en detalle (si no está en el plan)
-  float mapa_zoom_ = 1;   // 1: todo el cerco a la vista
-  ImVec2 mapa_centro_{-1, -1};  // centro de la vista (m); negativo: sin fijar
+  // La vista se mueve hacia su objetivo (rueda, «Ver todo», encuadre) en
+  // vez de saltar; el arrastre escribe ambos para seguir la mano sin retardo.
+  float mapa_zoom_ = 1, mapa_zoom_obj_ = 1;  // 1: todo el cerco a la vista
+  ImVec2 mapa_centro_{-1, -1}, mapa_centro_obj_{-1, -1};  // centro (m); negativo: sin fijar
+  struct AnimPoligono {
+    ImVec4 color{0, 0, 0, 0};  // relleno mostrado; se funde al cambiar de modo
+    float sobre = 0, marca = 0;  // contorno bajo el ratón y de la selección
+  };
+  std::vector<AnimPoligono> mapa_anim_;  // paralelo a mapa_
   int mapa_encuadrar_ = -1;     // polígono a encuadrar en el próximo cuadro
   bool mapa_plantas_ = true;
   std::vector<int> orden_compras_;

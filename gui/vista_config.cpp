@@ -51,8 +51,11 @@ void App::barra_progreso() {
   const std::size_t total = pr->total, hechas = pr->hechas;
   ImGui::TextUnformatted(pr->etapa().c_str());
   if (total > 0) {
+    // La barra avanza suave entre avisos; si un cálculo nuevo arranca, vuelve sin animar.
     const float f = static_cast<float>(hechas) / static_cast<float>(total);
-    ImGui::ProgressBar(f, ImVec2(-1, 0), std::format("{} de {}", hechas, total).c_str());
+    float* mostrado = ImGui::GetStateStorage()->GetFloatRef(ImGui::GetID("avance"), 0.0f);
+    *mostrado = f < *mostrado ? f : anim::suavizar(*mostrado, f, 10);
+    ImGui::ProgressBar(*mostrado, ImVec2(-1, 0), std::format("{} de {}", hechas, total).c_str());
   } else {
     ImGui::ProgressBar(-1.0f * static_cast<float>(ImGui::GetTime()), ImVec2(-1, 0), "calculando…");
   }

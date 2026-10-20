@@ -134,7 +134,7 @@ void App::vista_mapa() {
   ImGui::EndDisabled();
   ImGui::SetItemTooltip("Siembra cada polígono con el mosaico de su plan; se ven al acercarse.");
   ImGui::SameLine();
-  if (anim::boton_chico("Ver todo")) mapa_zoom_ = 1, mapa_centro_ = ImVec2(-1, -1);
+  if (anim::boton_chico("Ver todo")) mapa_zoom_obj_ = 1, mapa_centro_obj_ = ImVec2(-1, -1);
   ImGui::SameLine();
   ImGui::TextDisabled("(?)");
   ImGui::SetItemTooltip("Rueda: zoom · arrastrar: mover · clic: detalle · doble clic: encuadrar el polígono");
@@ -203,13 +203,15 @@ void App::vista_mapa() {
   // Escala con zoom 1: todo el cerco cabe. La vista se guarda como centro (m) y zoom.
   const float s_ajuste = std::max(1e-3f, std::min((tam.x - 2 * margen) / xmax, (tam.y - 2 * margen) / ymax));
   constexpr float kZoomMax = 400;
-  if (mapa_centro_.x < 0) mapa_centro_ = ImVec2(xmax / 2, ymax / 2);
+  if (mapa_centro_obj_.x < 0) mapa_centro_obj_ = ImVec2(xmax / 2, ymax / 2);
+  if (mapa_centro_.x < 0) mapa_centro_ = mapa_centro_obj_;  // la primera vez, sin animar
   if (mapa_encuadrar_ >= 0 && mapa_encuadrar_ < static_cast<int>(mapa_.size())) {
     ImVec2 lo(FLT_MAX, FLT_MAX), hi(-FLT_MAX, -FLT_MAX);
     for (const auto& v : mapa_[mapa_encuadrar_].v)
       lo = ImVec2(std::min(lo.x, v.x), std::min(lo.y, v.y)), hi = ImVec2(std::max(hi.x, v.x), std::max(hi.y, v.y));
-    mapa_centro_ = ImVec2((lo.x + hi.x) / 2, (lo.y + hi.y) / 2);
-    mapa_zoom_ = std::clamp(0.85f * std::min(tam.x / (hi.x - lo.x), tam.y / (hi.y - lo.y)) / s_ajuste, 1.0f, kZoomMax);
+    mapa_centro_obj_ = ImVec2((lo.x + hi.x) / 2, (lo.y + hi.y) / 2);
+    mapa_zoom_obj_ =
+        std::clamp(0.85f * std::min(tam.x / (hi.x - lo.x), tam.y / (hi.y - lo.y)) / s_ajuste, 1.0f, kZoomMax);
   }
   mapa_encuadrar_ = -1;
   const ImVec2 cc(p0.x + tam.x / 2, p0.y + tam.y / 2);
@@ -218,19 +220,24 @@ void App::vista_mapa() {
   const bool sobre = ImGui::IsItemHovered();
   const ImGuiIO& io = ImGui::GetIO();
   const ImVec2 raton = io.MousePos;
-  // Rueda: zoom alrededor del ratón. Arrastre: mover. Un clic sin arrastre selecciona.
+  // Rueda: zoom alrededor del ratón, sobre el objetivo para que varios tics
+  // seguidos se acumulen. Arrastre: mover. Un clic sin arrastre selecciona.
   if (sobre && io.MouseWheel != 0) {
-    const float s0 = s_ajuste * mapa_zoom_;
-    const ImVec2 bajo(mapa_centro_.x + (raton.x - cc.x) / s0, mapa_centro_.y - (raton.y - cc.y) / s0);
-    mapa_zoom_ = std::clamp(mapa_zoom_ * std::pow(1.2f, io.MouseWheel), 1.0f, kZoomMax);
-    const float s1 = s_ajuste * mapa_zoom_;
-    mapa_centro_ = ImVec2(bajo.x - (raton.x - cc.x) / s1, bajo.y + (raton.y - cc.y) / s1);
+    const float s0 = s_ajuste * mapa_zoom_obj_;
+    const ImVec2 bajo(mapa_centro_obj_.x + (raton.x - cc.x) / s0, mapa_centro_obj_.y - (raton.y - cc.y) / s0);
+    mapa_zoom_obj_ = std::clamp(mapa_zoom_obj_ * std::pow(1.2f, io.MouseWheel), 1.0f, kZoomMax);
+    const float s1 = s_ajuste * mapa_zoom_obj_;
+    mapa_centro_obj_ = ImVec2(bajo.x - (raton.x - cc.x) / s1, bajo.y + (raton.y - cc.y) / s1);
   }
   if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left, 3.0f)) {
     const float s0 = s_ajuste * mapa_zoom_;
-    mapa_centro_.x -= io.MouseDelta.x / s0;
-    mapa_centro_.y += io.MouseDelta.y / s0;
+    const ImVec2 d(-io.MouseDelta.x / s0, io.MouseDelta.y / s0);
+    mapa_centro_ = ImVec2(mapa_centro_.x + d.x, mapa_centro_.y + d.y);
+    mapa_centro_obj_ = ImVec2(mapa_centro_obj_.x + d.x, mapa_centro_obj_.y + d.y);
   }
+  // El zoom se interpola en escala logarítmica: cada duplicación tarda lo mismo.
+  mapa_zoom_ = std::exp(anim::suavizar(std::log(mapa_zoom_), std::log(mapa_zoom_obj_), 16, 1e-4f));
+  mapa_centro_ = anim::suavizar(mapa_centro_, mapa_centro_obj_, 16, 0.01f / mapa_zoom_);
   const bool clic = ImGui::IsItemDeactivated() && io.MouseDragMaxDistanceSqr[ImGuiMouseButton_Left] < 9.0f;
   const bool doble = sobre && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
 
@@ -244,10 +251,22 @@ void App::vista_mapa() {
   ImDrawList* dl = ImGui::GetWindowDrawList();
   dl->PushClipRect(p0, ImVec2(p0.x + tam.x, p0.y + tam.y), true);
 
-  // Las plantas se dibujan cuando cada una ocupa al menos un par de píxeles.
+  // Las plantas se dibujan cuando cada una ocupa al menos un par de píxeles,
+  // y aparecen con un fundido mientras crecen de 2 a 5 px al acercarse.
   auto con_plantas = [&](std::size_t k) {
     return mapa_plantas_ && plan && k < plantacion_.size() && plantacion_[k].grupo >= 0 && plantacion_[k].a * s >= 2.0f;
   };
+  auto plantas_t = [&](std::size_t k) { return con_plantas(k) ? std::clamp((plantacion_[k].a * s - 2.0f) / 3.0f, 0.0f, 1.0f) : 0.0f; };
+
+  // Relleno mostrado de cada polígono: se funde hacia el del modo actual, así
+  // cambiar de modo o incluir un polígono no salta de un color a otro.
+  const bool primera = mapa_anim_.size() != mapa_.size();
+  if (primera) mapa_anim_.assign(mapa_.size(), {});
+  for (std::size_t k = 0; k < mapa_.size(); ++k) {
+    const float alfa = info[k].dato < 0 ? 0.6f : 0.9f - 0.65f * plantas_t(k);
+    const ImVec4 obj = estilo::v4(con_alfa(relleno(k), alfa));
+    mapa_anim_[k].color = primera ? obj : anim::suavizar(mapa_anim_[k].color, obj, 10);
+  }
 
   int hk = -1;
   std::vector<ImVec2> pts;
@@ -255,8 +274,8 @@ void App::vista_mapa() {
     const auto& pm = mapa_[k];
     pts.clear();
     for (const auto& v : pm.v) pts.push_back(pantalla(v));
-    const float alfa = info[k].dato < 0 ? 0.6f : con_plantas(k) ? 0.25f : 0.9f;
-    dl->AddConcavePolyFilled(pts.data(), static_cast<int>(pts.size()), con_alfa(relleno(k), alfa));
+    dl->AddConcavePolyFilled(pts.data(), static_cast<int>(pts.size()),
+                             ImGui::ColorConvertFloat4ToU32(mapa_anim_[k].color));
     dl->AddPolyline(pts.data(), static_cast<int>(pts.size()), con_alfa(estilo::tinta_2, 0.55f), ImDrawFlags_Closed, 1.0f);
     if (sobre && dentro(pm.v, raton_m)) hk = static_cast<int>(k);
   }
@@ -271,14 +290,14 @@ void App::vista_mapa() {
     if (!con_plantas(k)) continue;
     const auto& pl = plantacion_[k];
     if (pl.hi.x < vista_lo.x || pl.lo.x > vista_hi.x || pl.hi.y < vista_lo.y || pl.lo.y > vista_hi.y) continue;
-    const float r = 0.4f * pl.a * s;
+    const float r = 0.4f * pl.a * s, aparece = plantas_t(k);
     const float letra_k = std::min(ImGui::GetFontSize(), r * 0.9f);
     for (std::size_t i = 0; i < pl.pos.size(); ++i) {
       const ImVec2 q = pl.pos[i];
       if (q.x < vista_lo.x - pl.a || q.x > vista_hi.x + pl.a || q.y < vista_lo.y - pl.a || q.y > vista_hi.y + pl.a)
         continue;
       const ImVec2 c = pantalla(q);
-      const ImU32 col = estilo::categorico[generos_.de_especie[pl.especie[i]]];
+      const ImU32 col = con_alfa(estilo::categorico[generos_.de_especie[pl.especie[i]]], aparece);
       if (r < 2.0f)
         dl->AddRectFilled(ImVec2(c.x - 1, c.y - 1), ImVec2(c.x + 1, c.y + 1), col);
       else
@@ -308,7 +327,9 @@ void App::vista_mapa() {
   for (std::size_t k = 0; k < mapa_.size(); ++k) {
     const auto& pm = mapa_[k];
     const ImVec2 c = pantalla(pm.rotulo);
-    const ImU32 t = info[k].dato < 0 ? estilo::tinta_tenue : tinta_sobre(relleno(k));
+    const ImVec4 rc = mapa_anim_[k].color;
+    const ImU32 t = info[k].dato < 0 ? estilo::tinta_tenue
+                                     : tinta_sobre(ImGui::ColorConvertFloat4ToU32(ImVec4(rc.x, rc.y, rc.z, 1)));
     const std::string num = std::to_string(pm.etiqueta);
     const bool cabe = pm.holgura * s > letra * 1.1f;
     const ImVec2 tn = fuente->CalcTextSizeA(letra, FLT_MAX, 0, num.c_str());
@@ -330,13 +351,20 @@ void App::vista_mapa() {
   }
 
   // Contornos del polígono en detalle y del que está bajo el ratón.
+  // Ambos entran y salen con un fundido; el de la selección va encima.
   for (std::size_t k = 0; k < mapa_.size(); ++k) {
-    const bool marcado = static_cast<int>(k) == sel;
-    if (!marcado && static_cast<int>(k) != hk) continue;
+    auto& a = mapa_anim_[k];
+    a.sobre = anim::suavizar(a.sobre, static_cast<int>(k) == hk ? 1.0f : 0.0f, 18);
+    a.marca = anim::suavizar(a.marca, static_cast<int>(k) == sel ? 1.0f : 0.0f, 14);
+    if (a.sobre < 0.01f && a.marca < 0.01f) continue;
     pts.clear();
     for (const auto& v : mapa_[k].v) pts.push_back(pantalla(v));
-    dl->AddPolyline(pts.data(), static_cast<int>(pts.size()), marcado ? estilo::aviso : estilo::tinta,
-                    ImDrawFlags_Closed, marcado ? 3.0f : 2.0f);
+    if (a.sobre >= 0.01f)
+      dl->AddPolyline(pts.data(), static_cast<int>(pts.size()), con_alfa(estilo::tinta, a.sobre), ImDrawFlags_Closed,
+                      1.0f + a.sobre);
+    if (a.marca >= 0.01f)
+      dl->AddPolyline(pts.data(), static_cast<int>(pts.size()), con_alfa(estilo::aviso, a.marca), ImDrawFlags_Closed,
+                      1.0f + 2.0f * a.marca);
   }
 
   // Escala gráfica y norte.

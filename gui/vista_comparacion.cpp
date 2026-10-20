@@ -240,8 +240,9 @@ void App::vista_comparacion() {
   // Cifra principal: la distancia del memético al óptimo (o su cota).
   const double brecha = asignacion_exacta::brecha_memetico(g, *e);
   const bool exacta = e->optimo;
+  const float b = anim::valor(ImGui::GetID("kpi_brecha"), static_cast<float>(brecha), 12, -1, 2e-3f);
   if (exacta && brecha < kEps) estilo::cifra("0 %", "distancia al óptimo", estilo::bueno);
-  else estilo::cifra(std::format("{}{:.2f} %", exacta ? "" : "≤ ", brecha).c_str(), "distancia al óptimo");
+  else estilo::cifra(std::format("{}{:.2f} %", exacta ? "" : "≤ ", b).c_str(), "distancia al óptimo");
   ImGui::SameLine();
   ImGui::BeginGroup();
   ImGui::TextDisabled(exacta ? "distancia del memético al óptimo probado"

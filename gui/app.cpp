@@ -70,7 +70,9 @@ void App::cargar() {
     for (std::size_t k = 0; k < mapa_.size(); ++k)
       if (mapa_[k].id >= 0) mapa_de_id_[mapa_[k].id] = static_cast<int>(k);
     mapa_sel_ = -1;
-    mapa_centro_ = ImVec2(-1, -1);
+    mapa_centro_ = mapa_centro_obj_ = ImVec2(-1, -1);
+    mapa_zoom_ = mapa_zoom_obj_ = 1;
+    mapa_anim_.clear();
     sembrar_mapa();
   } catch (const std::exception& e) {
     mapa_.clear();
@@ -230,6 +232,7 @@ void App::lanzar_barrido() {
 void App::recoger() {
   if (auto r = t_plan_.recoger()) {
     plan_ = std::move(*r);
+    t_resultado_ = ImGui::GetTime();
     exacto_.assign(plan_->plan.espacial.size(), std::nullopt);
     compra_sel_ = -1;
     mosaico_sel_ = 0;
@@ -242,6 +245,7 @@ void App::recoger() {
     mensaje_es_error_ = cancelado;
   }
   if (auto r = t_exacto_.recoger()) {
+    t_resultado_ = ImGui::GetTime();
     bool cancelado = r->res.empty();
     for (auto& [k, res] : r->res) {
       cancelado = cancelado || res.cancelado;
@@ -252,8 +256,8 @@ void App::recoger() {
                                        t_exacto_.segundos());
     mensaje_es_error_ = cancelado;
   }
-  if (auto r = t_frontera_.recoger()) frontera_ = std::move(*r);
-  if (auto r = t_barrido_.recoger()) barrido_ = std::move(*r);
+  if (auto r = t_frontera_.recoger()) frontera_ = std::move(*r), t_resultado_ = ImGui::GetTime();
+  if (auto r = t_barrido_.recoger()) barrido_ = std::move(*r), t_resultado_ = ImGui::GetTime();
   for (auto e : {t_plan_.recoger_error(), t_frontera_.recoger_error(), t_barrido_.recoger_error(),
                  t_exacto_.recoger_error()}) {
     if (!e) continue;
@@ -315,6 +319,23 @@ void App::layout_inicial(ImGuiID dock) {
   ImGui::DockBuilderFinish(dock);
 }
 
+void App::velo_resultados() {
+  // Un velo del color de la ventana sobre cada vista visible que se desvanece
+  // en 300 ms: el resultado nuevo aparece en vez de saltar. Se dibuja al
+  // final, encima, para no tocar las vistas ni sus retornos tempranos.
+  if (t_resultado_ < 0) return;
+  const float t = static_cast<float>(ImGui::GetTime() - t_resultado_) / 0.3f;
+  if (t >= 1) return;
+  anim::seguir();
+  const float velo = 1 - t * t * (3 - 2 * t);  // smoothstep, de 1 a 0
+  for (const char* v : {kCompra, kMosaico, kConvergencia, kFrontera, kBarrido, kComparacion, kMapa}) {
+    ImGuiWindow* w = ImGui::FindWindowByName(v);
+    if (!w || !w->Active || w->SkipItems) continue;  // cerrada, plegada o pestaña oculta
+    ImGui::GetForegroundDrawList(w->Viewport)
+        ->AddRectFilled(w->InnerRect.Min, w->InnerRect.Max, estilo::con_alfa(estilo::superficie, velo));
+  }
+}
+
 void App::cuadro() {
   anim::nuevo_cuadro();
   recoger();
@@ -332,6 +353,8 @@ void App::cuadro() {
   vista_comparacion();
   vista_mapa();
   vista_mosaico();  // al final: queda como pestaña activa al abrir
+  velo_resultados();
+  if (ocupado()) anim::seguir();  // el progreso cambia aunque nada se anime
 }
 
 }  // namespace refor::gui

@@ -15,7 +15,7 @@ ImVec4 suavizar(ImVec4 actual, ImVec4 objetivo, float velocidad = 14);
 // Un valor animado guardado en el almacén de la ventana actual bajo id, para
 // animar sin agregar estado a App. La primera vez arranca en el objetivo, o
 // en inicial si se da.
-float valor(ImGuiID id, float objetivo, float velocidad = 14, float inicial = -1);
+float valor(ImGuiID id, float objetivo, float velocidad = 14, float inicial = -1, float eps = 1e-3f);
 
 ImVec4 mezcla(ImVec4 a, ImVec4 b, float t);
 ImU32 mezcla(ImU32 a, ImU32 b, float t);

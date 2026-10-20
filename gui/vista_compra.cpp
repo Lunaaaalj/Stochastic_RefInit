@@ -65,15 +65,20 @@ void App::vista_compra() {
     area += c.poligono->area;
     if (const Solucion* s = reportada(c)) compra += s->costo_compra;
   }
+  // Las cifras cuentan desde su valor anterior (o desde 0 con el primer plan).
   const bool todos = factibles == static_cast<int>(compras.size());
-  estilo::cifra(std::format("{} / {}", factibles, compras.size()).c_str(), "polígonos factibles",
+  const float a_fact = anim::valor(ImGui::GetID("kpi_factibles"), static_cast<float>(factibles), 9, 0, 0.3f);
+  const float a_area = anim::valor(ImGui::GetID("kpi_area"), static_cast<float>(area), 9, 0, 0.004f);
+  const float a_compra = anim::valor(ImGui::GetID("kpi_compra"), static_cast<float>(compra), 9, 0, 0.5f);
+  const float a_ha = anim::valor(ImGui::GetID("kpi_ha"), static_cast<float>(area > 0 ? compra / area : 0.0), 9, 0, 0.5f);
+  estilo::cifra(std::format("{} / {}", std::lround(a_fact), compras.size()).c_str(), "polígonos factibles",
                 todos ? estilo::tinta : estilo::aviso);
   ImGui::SameLine();
-  estilo::cifra(std::format("{:.2f} ha", area).c_str(), "área del plan");
+  estilo::cifra(std::format("{:.2f} ha", a_area).c_str(), "área del plan");
   ImGui::SameLine();
-  estilo::cifra(("$" + estilo::miles(compra)).c_str(), "compra total");
+  estilo::cifra(("$" + estilo::miles(a_compra)).c_str(), "compra total");
   ImGui::SameLine();
-  estilo::cifra(("$" + estilo::miles(area > 0 ? compra / area : 0.0)).c_str(), "por hectárea");
+  estilo::cifra(("$" + estilo::miles(a_ha)).c_str(), "por hectárea");
   ImGui::SameLine();
   ImGui::BeginGroup();
   ImGui::TextDisabled("α = %.3f", r.alfa);
