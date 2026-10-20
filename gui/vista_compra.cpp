@@ -67,10 +67,15 @@ void App::vista_compra() {
   }
   // Las cifras cuentan desde su valor anterior (o desde 0 con el primer plan).
   const bool todos = factibles == static_cast<int>(compras.size());
-  const float a_fact = anim::valor(ImGui::GetID("kpi_factibles"), static_cast<float>(factibles), 9, 0, 0.3f);
-  const float a_area = anim::valor(ImGui::GetID("kpi_area"), static_cast<float>(area), 9, 0, 0.004f);
-  const float a_compra = anim::valor(ImGui::GetID("kpi_compra"), static_cast<float>(compra), 9, 0, 0.5f);
-  const float a_ha = anim::valor(ImGui::GetID("kpi_ha"), static_cast<float>(area > 0 ? compra / area : 0.0), 9, 0, 0.5f);
+  // Al llegar se muestra el valor exacto, no su redondeo a float.
+  auto contar = [](const char* id, double v, float eps) {
+    const float a = anim::valor(ImGui::GetID(id), static_cast<float>(v), 9, 0, eps);
+    return a == static_cast<float>(v) ? v : static_cast<double>(a);
+  };
+  const double a_fact = contar("kpi_factibles", factibles, 0.3f);
+  const double a_area = contar("kpi_area", area, 0.004f);
+  const double a_compra = contar("kpi_compra", compra, 0.5f);
+  const double a_ha = contar("kpi_ha", area > 0 ? compra / area : 0.0, 0.5f);
   estilo::cifra(std::format("{} / {}", std::lround(a_fact), compras.size()).c_str(), "polígonos factibles",
                 todos ? estilo::tinta : estilo::aviso);
   ImGui::SameLine();
@@ -96,7 +101,13 @@ void App::vista_compra() {
   }
   const ImGuiTableFlags tf = ImGuiTableFlags_Sortable | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH |
                              ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Resizable;
-  const float alto = std::max(ImGui::GetContentRegionAvail().y * 0.42f, ImGui::GetTextLineHeightWithSpacing() * 6);
+  // En un panel apaisado y con ancho de sobra para la tabla, tabla y detalle a
+  // la izquierda y la gráfica a la derecha; si no, todo en una columna.
+  const ImVec2 hay = ImGui::GetContentRegionAvail();
+  const bool lado = hay.x > hay.y * 1.8f && hay.x * 0.6f > ImGui::GetFontSize() * 50;
+  if (lado) ImGui::BeginChild("compra_izq", ImVec2((hay.x - ImGui::GetStyle().ItemSpacing.x) * 0.6f, 0));
+  const float alto = std::max(ImGui::GetContentRegionAvail().y * (lado ? 0.5f : 0.42f),
+                              ImGui::GetTextLineHeightWithSpacing() * 6);
   if (ImGui::BeginTable("compras", 8, tf, ImVec2(0, alto))) {
     ImGui::TableSetupScrollFreeze(0, 1);
     ImGui::TableSetupColumn("Polígono", ImGuiTableColumnFlags_DefaultSort);
@@ -187,6 +198,12 @@ void App::vista_compra() {
     ImGui::TextDisabled("Selecciona un polígono para ver su compra por especie.");
   }
 
+  if (lado) {
+    ImGui::EndChild();
+    ImGui::SameLine();
+    ImGui::BeginGroup();
+  }
+
   // Plantas a comprar por género, apiladas por polígono.
   ImGui::SeparatorText("Plantas a comprar por género");
   const int G = static_cast<int>(generos_.nombres.size()), P = static_cast<int>(compras.size());
@@ -230,6 +247,7 @@ void App::vista_compra() {
     ImPlot::EndPlot();
   }
   ImPlot::PopColormap();
+  if (lado) ImGui::EndGroup();
   ImGui::End();
 }
 

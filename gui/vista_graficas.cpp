@@ -35,7 +35,10 @@ void App::vista_convergencia() {
   ImGui::TextDisabled("(se elige en la pestaña Mosaico o en la tabla de Compra)");
 
   const auto mejor = std::min_element(g.competencias.begin(), g.competencias.end()) - g.competencias.begin();
-  const float alto = ImGui::GetContentRegionAvail().y;
+  // En un panel apaisado las dos gráficas van lado a lado; si no, una arriba de otra.
+  const ImVec2 hay = ImGui::GetContentRegionAvail();
+  const bool lado = hay.x > hay.y * 2.0f;
+  const ImVec2 tam_conv = lado ? ImVec2((hay.x - ImGui::GetStyle().ItemSpacing.x) * 0.58f, hay.y) : ImVec2(-1, hay.y * 0.58f);
 
   // Mejor competencia por generación de cada corrida; la mejor resaltada.
   // Límites explícitos: todas las corridas comparten etiqueta y el
@@ -49,8 +52,8 @@ void App::vista_convergencia() {
     gens = std::max(gens, h.size());
   }
   const double pad = std::max(1e-3, (ymax - ymin) * 0.06);
-  if (ImPlot::BeginPlot("Convergencia", ImVec2(-1, alto * 0.58f))) {
-    ImPlot::SetupAxes("Generación", "Mejor competencia total");
+  if (ImPlot::BeginPlot("Convergencia", tam_conv)) {
+    ImPlot::SetupAxes("Generación", "Mejor competencia");
     ImPlot::SetupAxesLimits(0, static_cast<double>(gens - 1), ymin - pad, ymax + pad, ImPlotCond_Always);
     ImPlot::SetupLegend(ImPlotLocation_NorthEast);
     for (std::size_t i = 0; i < g.historias.size(); ++i) {
@@ -66,6 +69,7 @@ void App::vista_convergencia() {
   }
 
   // Distribución de la competencia final entre corridas.
+  if (lado) ImGui::SameLine();
   if (ImPlot::BeginPlot("Competencia final de las corridas", ImVec2(-1, -1))) {
     ImPlot::SetupAxes("Competencia total", "Corridas", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
     ImPlotSpec barras;
