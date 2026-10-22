@@ -182,6 +182,83 @@ i, em, .binomial { font-style: italic; }
 .tuberia li:last-child { border-bottom: 0; padding-bottom: 0; }
 .tuberia .n { font: 400 var(--t-xl)/1 var(--f-display); color: var(--ocre-hondo); }
 .tuberia h3 { margin-bottom: 4px; }
+.tuberia.amplia li { grid-template-columns: 52px 1fr 400px; }
+
+/* Lámina 6: la tubería como árbol, dibujada a tinta sobre la hoja (el mapa se apaga).
+   Cada tramo de rama trae su largo (--largo), su inicio (--t) y su duración (--d). */
+.dibujo { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: visible; font-family: var(--f-rotulo); }
+.dibujo .trazo { fill: none; stroke: var(--tierra); stroke-linecap: round; transition: stroke var(--d-respuesta) var(--ease-salida); }
+.dibujo .raiz .trazo { stroke: var(--tierra-suave); }
+.dibujo .linaje .trazo { stroke: var(--ocre-hondo); }
+.dibujo .suelo { fill: none; stroke: var(--tierra-suave); stroke-width: 1; stroke-linecap: butt; }
+.dibujo .guia { fill: none; stroke: var(--tierra-suave); stroke-width: 1.25; stroke-dasharray: 1 6; stroke-linecap: round; }
+.dibujo .guia-punto { fill: var(--tierra-suave); }
+.dibujo text { fill: var(--tierra-suave); font-size: var(--t-xs); text-anchor: middle; }
+.dibujo .hex { stroke: var(--tierra-suave); stroke-width: .75; transition: stroke var(--d-respuesta) var(--ease-salida); }
+.dibujo .brote { transform-box: fill-box; transform-origin: center; }
+.dibujo .roseta.activa .hex { stroke: var(--ocre-hondo); stroke-width: 1.5; }
+.arbol-titulo { position: absolute; left: 96px; top: 80px; width: 640px; }
+.anota { position: absolute; left: 96px; width: 430px; display: grid; grid-template-columns: 52px 1fr; gap: 14px; }
+.anota .n { font: 400 var(--t-xl)/1 var(--f-display); color: var(--ocre-hondo); }
+.anota h3 { margin-bottom: 4px; }
+.ficha-arbol { position: absolute; right: 96px; bottom: 80px; width: 236px; padding: 10px 14px 12px; gap: 6px; }
+.ficha-arbol .titulo { font: 400 var(--t-s)/1.2 var(--f-texto); color: var(--tinta); }
+.generos-mini { display: flex; gap: 12px; }
+.generos-mini span { display: inline-flex; align-items: center; gap: 5px; }
+.generos-mini svg { width: 14px; height: 16px; overflow: visible; }
+.lamina.entra > .dibujo { animation: none; }
+.lamina.datos .dibujo .trazo { stroke-dasharray: var(--largo); animation: trazo var(--d) linear var(--t) both, aparece 1ms linear var(--t) both; }
+.lamina.datos .dibujo .aparece { animation: aparece var(--d-contenido) var(--ease-salida) var(--t) both; }
+.lamina.datos .dibujo .brote { animation: brote 420ms var(--ease-salida) var(--t) both; }
+.lamina.datos.entra > :is(.anota, .ficha-arbol) { animation: entra var(--d-contenido) var(--ease-salida) var(--t, 0ms) both; }
+@keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
+@keyframes brote { from { opacity: 0; transform: scale(.25); } to { opacity: 1; transform: scale(1); } }
+
+/* Hojas de método (láminas 8, 12 y 14): papel sin mapa, notas al margen, poca tinta */
+.metodo-titulo { position: absolute; left: 96px; top: 80px; width: 1500px; }
+.metodo-entrada { position: absolute; left: 96px; top: 160px; width: 880px; color: var(--tierra); }
+.metodo-fuente { position: absolute; left: 96px; bottom: 80px; width: 880px; }
+.ex-conclusion { position: absolute; left: 980px; top: 912px; width: 844px; color: var(--tierra); }
+.metodo-pie { position: absolute; left: 96px; top: 870px; width: 1500px; color: var(--tierra); }
+.bloque h3 .n, .estacion h3 .n { font: 400 var(--t-l)/1 var(--f-display); color: var(--ocre-hondo); margin-right: 12px; }
+.bloque { display: grid; gap: 4px; }
+.estacion { position: absolute; display: grid; gap: 4px; width: 270px; }
+.lamina.datos.entra > :is(.estacion, .bloque, .metodo-pie, .ex-conclusion) { animation: entra var(--d-contenido) var(--ease-salida) var(--t, 0ms) both; }
+.dibujo .rotulo-izq { text-anchor: start; }
+.dibujo .rotulo-der { text-anchor: end; }
+.dibujo .fuerte { fill: var(--tierra); font-weight: 500; }
+.dibujo .flecha { fill: none; stroke: var(--tierra); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Lámina 8: el programa, con una nota al margen por renglón */
+.programa { position: absolute; left: 96px; top: 250px; width: 900px; display: grid; grid-template-columns: 128px auto 1fr;
+  column-gap: 28px; row-gap: 14px; align-items: baseline; }
+.programa .verbo { font: 400 var(--t-s)/1 var(--f-rotulo); color: var(--tierra-suave); }
+.programa .mat { font: 400 30px/1.25 var(--f-texto); color: var(--tinta); white-space: nowrap; font-variant-numeric: lining-nums; }
+.programa .mat sub, .programa .mat sup { font-size: .6em; line-height: 0; }
+.programa .mat .op { font-family: var(--f-display); font-size: 1.15em; }
+.programa .nota { font: 400 var(--t-xs)/1.35 var(--f-rotulo); color: var(--tierra-suave); max-width: 300px; }
+.programa .ref { font: 500 13px/0 var(--f-rotulo); color: var(--ocre-hondo); vertical-align: super; margin-left: 3px; }
+.programa .nota .ref { margin: 0 4px 0 0; }
+.programa .corazon .mat, .programa .corazon .nota { color: var(--ocre-hondo); }
+.programa .separa { grid-column: 1 / -1; border-top: 1px solid var(--linea); margin: 4px 0; }
+.programa .glosario { grid-column: 1 / -1; font: 400 var(--t-xs)/1.5 var(--f-rotulo); color: var(--tierra-suave); margin-top: 6px; }
+.programa .glosario i { font-family: var(--f-texto); font-size: 18px; color: var(--tierra); }
+.calculo { position: absolute; left: 1060px; top: 150px; width: 764px; display: flex; flex-direction: column; gap: 12px; }
+.lamina.datos.entra > :is(.programa, .calculo) { animation: entra var(--d-contenido) var(--ease-salida) both; }
+.lamina.datos.entra > .calculo { animation-delay: 300ms; }
+
+/* Láminas 7 y 10: la meta elegida se desliza desde la referencia; dos plantas se intercambian */
+.lamina.datos .elige { animation: elige var(--d-datos) var(--ease-salida) both; animation-delay: calc(var(--i, 0) * 50ms + 350ms); }
+@keyframes elige { from { transform: translateY(var(--dy)); } }
+.lamina.datos .desliza { animation: desliza var(--d-datos) var(--ease-salida) both; animation-delay: calc(var(--i, 0) * 50ms + 500ms); }
+@keyframes desliza { from { transform: translateX(var(--dx)); } }
+.lamina.datos .cambia { animation: cambia 1100ms var(--ease-camara) 500ms both; }
+@keyframes cambia {
+  from { transform: translate(var(--dx), 0); }
+  50% { transform: translate(calc(var(--dx) * .5), var(--arco)); }
+  to { transform: none; }
+}
+.lamina.datos .aparece-tarde { animation: aparece var(--d-contenido) var(--ease-salida) 1500ms both; }
 
 /* Lámina 9: mosaico */
 .mosaico-ficha { cursor: default; }
@@ -269,6 +346,8 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
   #giro { transition: opacity 300ms linear; }
   #giro.deriva { animation: none; }
   .lamina.entra > *, .lamina.datos .crece, .lamina.datos .traza { animation: none; }
+  .lamina.datos :is(.dibujo *, .elige, .desliza, .cambia, .aparece-tarde), .lamina.datos.entra > :is(.anota, .ficha-arbol, .estacion, .bloque, .metodo-pie, .ex-conclusion, .programa, .calculo) { animation: none; }
+  .lamina.datos .dibujo .trazo { stroke-dasharray: none; }
 }
 
 /* Impresión: una lámina por página, con la cámara en su encuadre final */

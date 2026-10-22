@@ -100,20 +100,52 @@
   </section>
 
   <!-- 6 · Cómo lo resolvimos -->
-  <section class="lamina" data-cam="sitio" aria-label="Cómo lo resolvimos">
-    <div class="panel panel-a ancho">
-      <h2>Cómo lo resolvimos</h2>
-      <ol class="tuberia">
-        <li><span class="n">1</span><div><h3>Datos de INECOL</h3><p class="chico">Superficie de cada polígono, plantas que ya existen, supervivencia y costo de cada especie.</p></div><svg class="grafica" id="m-datos" width="220" height="96"></svg></li>
-        <li><span class="n">2</span><div><h3>10,000 escenarios de supervivencia</h3><p class="chico" id="t-escenarios"></p></div><svg class="grafica" id="m-escenarios" width="220" height="96"></svg></li>
-        <li><span class="n">3</span><div><h3>La compra más barata que cumple</h3><p class="chico">Una meta por especie, sin alejarse más de 10 % de la composición de referencia, al menor costo de compra más reposición esperada.</p></div><svg class="grafica" id="m-compra" width="220" height="96"></svg></li>
-        <li><span class="n">4</span><div><h3>La clave de plantación</h3><p class="chico">Un algoritmo memético con búsqueda tabú acomoda la compra en un mosaico de 52 posiciones que se repite sobre el polígono.</p></div><svg class="grafica" id="m-mosaico" width="220" height="96"></svg></li>
-      </ol>
-      <p class="fuente">Fuente: modelo <code>refor</code>, reporte E2, semilla 42.</p>
+  <!-- La tubería como un árbol sobre la hoja, sin mapa: raíces (datos), tronco (escenarios),
+       ramas (compra por polígono, agrupadas por clave) y hojas (la clave). Lo dibuja deck.js. -->
+  <section class="lamina" data-cam="poligono" aria-label="Cómo lo resolvimos">
+    <svg class="dibujo" id="arbol" viewBox="0 0 1920 1080" role="img" aria-label="Árbol de la tubería: de los datos de INECOL a la clave de plantación de los 30 polígonos"></svg>
+    <h2 class="arbol-titulo">Cómo lo resolvimos: de los datos a la clave de plantación</h2>
+    <div class="anota" id="anota-4"><span class="n">4</span><div><h3>La clave de plantación</h3><p class="chico">Cada hoja es una planta con sus seis vecinas. El memético acomoda las especies para que compitan poco.</p></div></div>
+    <div class="anota" id="anota-3"><span class="n">3</span><div><h3>Una compra por polígono</h3><p class="chico">Una rama por polígono; los que piden la misma composición comparten clave.</p></div></div>
+    <div class="anota" id="anota-2"><span class="n">2</span><div><h3>10,000 escenarios</h3><p class="chico">Un tronco común: los mismos escenarios de supervivencia sirven para toda meta y todo riesgo.</p></div></div>
+    <div class="anota" id="anota-1"><span class="n">1</span><div><h3>Datos de INECOL</h3><p class="chico">Superficie, plantas existentes, supervivencia, costo y competencia entre especies.</p></div></div>
+    <div class="etiqueta-herbario ficha-arbol">
+      <span class="titulo">La tubería de <code>refor</code></span>
+      <span class="rotulo">Grosor de cada rama: la superficie que alimenta. Pase el cursor por una hoja.</span>
+      <span class="rotulo generos-mini" id="arbol-generos"></span>
+      <span class="rotulo">Fuente: modelo <code>refor</code>, semilla 42.</span>
     </div>
   </section>
 
-  <!-- 7 · La compra -->
+  <!-- 7 · El modelo de compra -->
+  <section class="lamina" data-cam="poligono" aria-label="El modelo de compra">
+    <div class="panel panel-a ancho">
+      <h2>Comprar lo justo para cumplir la meta en el 95 % de los escenarios</h2>
+      <ol class="tuberia amplia">
+        <li><span class="n">1</span><div><h3>Lo que falta</h3><p class="chico" id="mc-falta"></p></div><svg class="grafica" id="mc-meta" width="400" height="104"></svg></li>
+        <li><span class="n">2</span><div><h3>Cuántas comprar</h3><p class="chico" id="mc-escenarios"></p></div><svg class="grafica" id="mc-hist" width="400" height="176"></svg></li>
+        <li><span class="n">3</span><div><h3>Una meta por especie</h3><p class="chico" id="mc-mochila-texto"></p></div><svg class="grafica" id="mc-mochila" width="400" height="176"></svg></li>
+      </ol>
+      <p class="fuente">Ejemplo: <i>Agave salmiana</i> en el polígono 1. Banda: meta elegida en todo el sitio frente a la referencia de INECOL. Fuente: <code>refor plan</code>, α = 0.05, K = 10,000, semilla 42.</p>
+    </div>
+  </section>
+
+  <!-- 8 · La formulación de la compra -->
+  <!-- Hoja de método, a la manera de Tufte: el programa con notas al margen y el cálculo con datos del polígono 1. -->
+  <section class="lamina" data-cam="poligono" aria-label="La formulación de la compra">
+    <h2 class="metodo-titulo">Qué se minimiza y cómo se calcula</h2>
+    <p class="metodo-entrada chico">En cada polígono, el modelo elige para cada especie <i>s</i> su meta <i>n<sub>s</sub></i> (cuántas plantas deben quedar) y su compra <i>x<sub>s</sub></i> (cuántas comprar).</p>
+    <div class="programa" id="programa"></div>
+    <div class="calculo">
+      <div class="bloque"><h3><span class="n">1</span>El costo de cada meta</h3><p class="chico" id="fc-texto-curva"></p></div>
+      <svg class="grafica" id="fc-curva" width="764" height="240"></svg>
+      <div class="bloque"><h3><span class="n">2</span>La mochila elige una meta por especie</h3><p class="chico" id="fc-texto-eleccion"></p></div>
+      <svg class="grafica" id="fc-eleccion" width="764" height="284"></svg>
+    </div>
+    <p class="fuente metodo-fuente" id="fc-fuente"></p>
+  </section>
+
+  <!-- 9 · La compra -->
   <section class="lamina" data-cam="sitio-datos" aria-label="La compra">
     <div class="panel panel-b">
       <h2 id="c-titulo"></h2>
@@ -125,7 +157,7 @@
     <div id="leyenda-compra" style="position: absolute; left: 96px; top: 950px"></div>
   </section>
 
-  <!-- 8 · El presupuesto -->
+  <!-- 10 · El presupuesto -->
   <section class="lamina" data-cam="sitio-datos" aria-label="El presupuesto">
     <div class="panel panel-b">
       <h2>Ningún polígono cabe en $12,500 por hectárea</h2>
@@ -136,7 +168,33 @@
     <div id="leyenda-presupuesto" style="position: absolute; left: 96px; top: 950px"></div>
   </section>
 
-  <!-- 9 · La clave de plantación -->
+  <!-- 11 · Los modelos de asignación -->
+  <section class="lamina" data-cam="poligono" aria-label="Los modelos de asignación">
+    <div class="panel panel-a ancho">
+      <h2>Acomodar las plantas para que las vecinas compitan poco</h2>
+      <ol class="tuberia amplia">
+        <li><span class="n">1</span><div><h3>Seis vecinas</h3><p class="chico" id="ma-problema"></p></div><svg class="grafica" id="ma-vecinas" width="400" height="176"></svg></li>
+        <li><span class="n">2</span><div><h3>El memético</h3><p class="chico">Parte de 20 claves al azar y cruza las mejores. Cada hija se pule con búsqueda tabú: intercambia dos plantas si baja la competencia y no deshace ese cambio en 5 a 15 pasos.</p></div><svg class="grafica" id="ma-cambio" width="400" height="150"></svg></li>
+        <li><span class="n">3</span><div><h3>El modelo exacto</h3><p class="chico" id="ma-exacto"></p></div><svg class="grafica" id="ma-brecha" width="400" height="150"></svg></li>
+      </ol>
+      <p class="fuente">Fuente: <code>refor plan --exacto</code>, clave 1, semilla 42. La matriz <i>W</i> es una estimación por validar en campo.</p>
+    </div>
+  </section>
+
+  <!-- 12 · Cómo funciona el memético -->
+  <!-- El ciclo de una generación con la composición de la clave 1. Lo dibuja deck.js. -->
+  <section class="lamina" data-cam="poligono" aria-label="Cómo funciona el memético">
+    <svg class="dibujo" id="memetico" viewBox="0 0 1920 1080" role="img" aria-label="Ciclo del algoritmo memético: población, torneo, cruce, búsqueda tabú y reemplazo"></svg>
+    <h2 class="metodo-titulo">El memético: claves que se cruzan y se pulen, generación tras generación</h2>
+    <div class="estacion" id="est-0"><h3>Población</h3><p class="chico">20 claves con las mismas plantas, acomodadas al azar.</p></div>
+    <div class="estacion" id="est-1"><h3><span class="n">1</span>Torneo</h3><p class="chico">Se toman dos claves al azar y gana la que compite menos. Dos torneos dan los padres.</p></div>
+    <div class="estacion" id="est-2"><h3><span class="n">2</span>Cruce</h3><p class="chico">El hijo hereda especies completas de cada padre, en sus mismos lugares, y lo que falta se llena con lo que menos compite.</p></div>
+    <div class="estacion" id="est-3"><h3><span class="n">3</span>Búsqueda tabú</h3><p class="chico">Intercambia dos plantas una y otra vez, siempre el mejor cambio, sin deshacer los recientes.</p></div>
+    <div class="estacion" id="est-4"><h3><span class="n">4</span>Reemplazo</h3><p class="chico">El hijo entra a la población si supera a la peor clave y no es copia de otra.</p></div>
+    <p class="chico metodo-pie" id="mm-pie"></p>
+  </section>
+
+  <!-- 13 · La clave de plantación -->
   <section class="lamina" data-cam="reticula" aria-label="La clave de plantación">
     <div class="titular sobre-mapa" style="width: 1240px; gap: 24px">
       <h1>Seis claves de plantación cubren los 30&nbsp;polígonos</h1>
@@ -165,7 +223,17 @@
     <p class="fuente" style="position: absolute; right: 96px; top: 952px; text-align: right">Fuente: <code>refor plan</code>, α = 0.05, semilla 42. Clave 1 de 6; la usan 18 polígonos.</p>
   </section>
 
-  <!-- 10 · Qué tan buena es -->
+  <!-- 14 · Cómo funciona el modelo exacto -->
+  <section class="lamina" data-cam="tesela" aria-label="Cómo funciona el modelo exacto">
+    <svg class="dibujo" id="exacto" viewBox="0 0 1920 1080" role="img" aria-label="El modelo exacto: interruptores por lugar y especie, ramificación y poda, y techo y piso de las seis claves"></svg>
+    <h2 class="metodo-titulo">El modelo exacto: un techo, un piso y la brecha entre ambos</h2>
+    <div class="bloque" id="ex-b1"><h3><span class="n">1</span>Todo se vuelve interruptores</h3><p class="chico" id="ex-t1"></p></div>
+    <div class="bloque" id="ex-b2"><h3><span class="n">2</span>Ramificar y podar</h3><p class="chico">El solver (HiGHS) fija una decisión a la vez y, en cada rama, calcula un piso: lo menos que podría competir cualquier clave de esa rama. Si el piso ya es peor que la mejor clave conocida, descarta la rama entera.</p></div>
+    <div class="bloque" id="ex-b3"><h3><span class="n">3</span>Techo y piso, en las seis claves</h3><p class="chico">El techo es la mejor clave encontrada; arranca en la del memético. El piso es lo que el solver prueba que ninguna clave puede mejorar. Entre ambos queda la brecha.</p></div>
+    <p class="chico ex-conclusion" id="ex-conclusion"></p>
+  </section>
+
+  <!-- 15 · Qué tan buena es -->
   <section class="lamina" data-cam="tesela" aria-label="Qué tan buena es">
     <div class="panel" style="left: 96px; right: 96px; top: 330px; bottom: 80px; flex-direction: row; gap: 56px">
       <div style="display: flex; flex-direction: column; gap: 24px; width: 600px; flex: none">
@@ -178,7 +246,7 @@
     <p class="rotulo" style="position: absolute; left: 96px; top: 80px">Polígono 1 completo: la clave 1 repetida sobre sus 331 m de largo.</p>
   </section>
 
-  <!-- 11 · La herramienta -->
+  <!-- 16 · La herramienta -->
   <section class="lamina" data-cam="ventana" aria-label="La herramienta">
     <div class="titular" style="width: 1300px">
       <h2><code style="font-family: var(--f-rotulo); font-weight: 500; font-size: .86em">refor_gui</code>: configurar, ejecutar y exportar</h2>
@@ -199,14 +267,14 @@
     </div>
   </section>
 
-  <!-- 12 · El visor -->
+  <!-- 17 · El visor -->
   <!-- El visor de docs/visor/ embebido: solo funciona si el repositorio se sirve desde su raíz (ver docs/visor/README.md). -->
   <section class="lamina" data-cam="ventana" aria-label="El visor">
     <h2 style="position: absolute; left: 96px; top: 72px; width: 1500px">El visor: los resultados de <code style="font-family: var(--f-rotulo); font-weight: 500; font-size: .86em">refor</code>, polígono por polígono</h2>
     <iframe class="visor-embebido interactivo" src="../visor/index.html" title="Visor de resultados de refor"></iframe>
   </section>
 
-  <!-- 13 · Recomendaciones -->
+  <!-- 18 · Recomendaciones -->
   <section class="lamina" data-cam="sitio" aria-label="Recomendaciones">
     <div class="panel panel-a">
       <h2>Lo que recomendamos</h2>
@@ -220,7 +288,7 @@
     </div>
   </section>
 
-  <!-- 14 · Cierre -->
+  <!-- 19 · Cierre -->
   <section class="lamina" data-cam="portada" aria-label="Cierre">
     <div class="titular centrado sobre-mapa" style="top: 300px; width: 1400px; gap: 20px">
       <h1 style="font-size: 120px; line-height: 1">Gracias</h1>
@@ -247,7 +315,7 @@
     <span id="utm"></span>
     <span class="nota">Curvas de nivel ilustrativas</span>
   </div>
-  <svg id="avance" width="330" height="34" aria-label="Avance"></svg>
+  <svg id="avance" width="440" height="34" aria-label="Avance"></svg>
   <span id="numero"></span>
   <div class="etiqueta" id="etiqueta" hidden></div>
 
