@@ -171,7 +171,6 @@
     }
   }
   const terreno = $("terreno"), ctxT = terreno.getContext("2d");
-  let inclinado = false;
   function tamanoTerreno() {
     const dpr = Math.min(2, devicePixelRatio || 1);
     terreno.width = Math.round(1920 * k * dpr);
@@ -181,8 +180,8 @@
     const e = terreno.width / 1920;
     ctxT.setTransform(1, 0, 0, 1, 0, 0);
     ctxT.clearRect(0, 0, terreno.width, terreno.height);
-    // Rectángulo visible en el mundo (con margen; la portada inclinada ve más allá del lienzo).
-    const a = c.rot * Math.PI / 180, cos = Math.cos(a), sin = Math.sin(a), extra = inclinado ? 900 : 40;
+    // Rectángulo visible en el mundo, con margen.
+    const a = c.rot * Math.PI / 180, cos = Math.cos(a), sin = Math.sin(a), extra = 40;
     const esq = [[-extra, -extra], [1920 + extra, -extra], [-extra, 1080 + extra], [1920 + extra, 1080 + extra]].map(([sx, sy]) => {
       const vx = (sx - c.ax) / c.s, vy = (sy - c.ay) / c.s;
       return [c.cx + vx * cos - vy * sin, c.cy + vx * sin + vy * cos];
@@ -297,8 +296,8 @@
   // Centro del mosaico 4 × 13 en el mundo.
   const TC = (() => { const [lx, ly] = [(-0.866 + R3 * 13.5 + 0.866) / 2, 2.25]; return [O[0] - ly * R, O[1] + lx * R]; })();
   const CAMARAS = {
-    portada: encuadre(SITIO, { x: 160, y: 140, w: 1600, h: 800 }),
     hoja: encuadre(SITIO, { x: 1000, y: 100, w: 820, h: 860 }),
+    cierre: encuadre(SITIO, { x: 1060, y: 150, w: 760, h: 760 }),
     resumen: encuadre(SITIO, { x: 1220, y: 160, w: 620, h: 760 }),
     sitio: encuadre(SITIO, { x: 60, y: 90, w: 1000, h: 880 }),
     "sitio-datos": encuadre(SITIO, { x: 40, y: 150, w: 680, h: 760 }),
@@ -306,6 +305,10 @@
     reticula: { cx: TC[0], cy: TC[1], s: 44 / R, rot: 90, ax: 96 + 552.5, ay: 430 + 143 },
     replica: { cx: TC[0], cy: TC[1], s: Math.min(1144 / 77.07, 300 / 18.5) / R, rot: 90, ax: 96 + 572, ay: 430 + 137 },
     tesela: ENCUADRE_TESELA,
+    // Lámina 13: el polígono 1 como franja dentro del ciclo del memético; de ahí la 14 se acerca a la retícula.
+    memetico: encuadre(B1, { x: 96, y: 688, w: 1728, h: 84 }, 90),
+    // Lámina 15: el polígono 1 teselado, en el hueco bajo la conclusión; la 14 se aleja hasta aquí.
+    exacto: encuadre(B1, { x: 980, y: 878, w: 844, h: 84 }, 90),
     ventana: encuadre(SITIO, { x: 120, y: 360, w: 812, h: 480 }),
   };
 
@@ -484,6 +487,7 @@
     for (const p of pols) {
       const e = gPol.querySelector(`[data-e="${p.e}"]`);
       e.classList.toggle("insinuado", !!cap.insinuado && p.p !== null);
+      e.classList.toggle("lejano", cap.foco !== undefined && p.p !== cap.foco);
       if (cap.coro && p.p !== null) e.style.fill = RAMPA[clasif(p[cap.coro], CORO[cap.coro].cortes)];
       else e.style.fill = "";
     }
@@ -812,22 +816,28 @@
   }
 
   // ---------- Lámina 8: cómo se decide la compra ----------
-  // El modelo en lenguaje llano: un objetivo y cuatro reglas con las cifras del polígono 1, y cómo
+  // El modelo en lenguaje llano y en ecuaciones: un objetivo y cuatro reglas, cada una con su
+  // ecuación y las cifras del polígono 1. A la derecha, cómo
   // elige: lo que cuesta una planta más de cada especie (cola binomial exacta) y dónde quedó su meta.
   {
     const P = D.compra_p1, th = P.theta;
-    $("fc-entrada").innerHTML = `En cada polígono, el modelo decide cuántas plantas de cada especie deben quedar vivas y cuántas comprar para lograrlo. Ejemplo: el polígono 1, de ${fmt(P.area, 2)} ha.`;
+    $("fc-entrada").innerHTML = `En cada polígono, el modelo decide para cada especie <i>s</i> cuántas plantas deben quedar vivas (<i>n<sub>s</sub></i>) y cuántas comprar para lograrlo (<i>x<sub>s</sub></i>). Ejemplo: el polígono 1, de ${fmt(P.area, 2)} ha.`;
+    const iv = (v, s = "s") => `<i>${v}</i><sub>${s}</sub>`, SUMA = `<span class="op">Σ</span><sub>s</sub>`;
+    const n0 = `<i>n</i><sup>0</sup><sub>s</sub><i>A</i>`;
     const REGLAS = [
-      ["Llegar a la densidad", `Entre todas las especies deben quedar ${fmt(P.total)} plantas: ${fmt(T.meta_ha)} por hectárea.`],
-      ["Respetar la mezcla de INECOL", `Cada especie puede quedar hasta ${fmt(P.delta * 100)} % arriba o abajo de su proporción de referencia.`],
-      ["Cumplir aunque algunas mueran", `Las que ya existen más las compradas que sobreviven alcanzan la meta en ${fmt((1 - P.alfa) * 100)} de cada 100 escenarios simulados.`, "corazon"],
-      ["Caber en el presupuesto", `La compra no puede pasar de ${dinero(T.presupuesto)} por hectárea. Ningún polígono lo logra (lámina 10), así que aquí se muestra la compra sin ese tope.`],
+      ["Llegar a la densidad", `${SUMA} ${iv("n")} = ${fmt(T.meta_ha)} <i>A</i>`, `Entre todas las especies deben quedar ${fmt(P.total)} plantas: ${fmt(T.meta_ha)} por hectárea.`],
+      ["Respetar la mezcla de INECOL", `${fmt(1 - P.delta, 1)} ${n0} ≤ ${iv("n")} ≤ ${fmt(1 + P.delta, 1)} ${n0}`, `Cada especie puede quedar hasta ${fmt(P.delta * 100)} % arriba o abajo de su proporción de referencia.`],
+      ["Cumplir aunque algunas mueran", `P(${iv("E")} + ${iv("S")}(${iv("x")}) ≥ ${iv("n")}) ≥ ${fmt(1 - P.alfa, 2)}`, `Las que ya existen más las compradas que sobreviven alcanzan la meta en ${fmt((1 - P.alfa) * 100)} de cada 100 escenarios simulados.`, "corazon"],
+      ["Caber en el presupuesto", `(1 + <i>θ</i>) ${SUMA} ${iv("c")} ${iv("x")} ≤ <i>B A</i>`, `La compra no puede pasar de ${dinero(T.presupuesto)} por hectárea. Ningún polígono lo logra (lámina 10), así que aquí se muestra la compra sin ese tope.`],
     ];
     $("reglas").innerHTML =
       `<p class="rotulo">Objetivo</p>` +
-      `<div class="regla-fila objetivo"><span class="n">$</span><div><h3>Pagar lo menos posible</h3><p class="chico">La compra más lo que se espera gastar en reponer las que mueran el primer año. En el polígono 1: ${dinero(P.costo_compra)} de compra y ${dinero(P.costo_reposicion)} de reposición esperada.</p></div></div>` +
+      `<div class="regla-fila objetivo"><span class="n">$</span><div><div class="regla-cabeza"><h3>Pagar lo menos posible</h3>` +
+      `<span class="mat">mín (1 + <i>θ</i>) ${SUMA} ${iv("c")} (${iv("x")} + E[${iv("D")}])</span></div><p class="chico">La compra más lo que se espera gastar en reponer las que mueran el primer año. En el polígono 1: ${dinero(P.costo_compra)} de compra y ${dinero(P.costo_reposicion)} de reposición esperada.</p></div></div>` +
       `<p class="rotulo">Las reglas</p>` +
-      REGLAS.map(([h, t, c], i) => `<div class="regla-fila ${c ?? ""}"><span class="n">${i + 1}</span><div><h3>${h}</h3><p class="chico">${t}</p></div></div>`).join("");
+      REGLAS.map(([h, m, t, c], i) => `<div class="regla-fila ${c ?? ""}"><span class="n">${i + 1}</span><div><div class="regla-cabeza"><h3>${h}</h3><span class="mat">${m}</span></div><p class="chico">${t}</p></div></div>`).join("") +
+      `<p class="glosario">${iv("c")} costo por planta · ${iv("E")} plantas que ya existen · ${iv("S")}(<i>x</i>) ~ Bin(<i>x</i>, ${iv("q")}) cuántas de <i>x</i> sobreviven · ` +
+      `E[${iv("D")}] faltante esperado al año · <i>n</i><sup>0</sup><sub>s</sub> densidad de referencia · <i>A</i> hectáreas · <i>B</i> presupuesto por hectárea · <i>θ</i> = ${th} logística</p>`;
 
     // Lo que cuesta una planta más de cada especie, de un extremo al otro de su banda de metas.
     const costo = (e, x, d) => (1 + th) * ESP[e.ab].costo * (x + d);
@@ -851,6 +861,31 @@
     const yb = 50 + filas.length * h;
     texto(s2, B1, yb + 8, `cada hexágono: la meta elegida, hasta ±${fmt(P.delta * 100)} %`, { "text-anchor": "end" });
     $("fc-fuente").innerHTML = `Polígono 1, ${fmt(P.area, 2)} ha · riesgo α = ${P.alfa} · logística θ = ${th}. Costo de una planta más: cola binomial exacta; metas, compra y reposición: <code>refor plan</code>, semilla 42.`;
+  }
+
+  // ---------- Lámina 19: cierre ----------
+  // Las tres cifras del resumen; cada una lleva a la lámina que la respalda. Se cuentan al entrar.
+  const LLEVARSE = [
+    [T.B_min, dinero, `por hectárea es el presupuesto mínimo para cumplir la meta con ${fmt((1 - T.alfa) * 100)} % de probabilidad; hoy hay ${dinero(T.presupuesto)}.`, 10],
+    [T.compra, fmt, `plantas para los ${T.poligonos} polígonos: ${fmt(T.compra_ha)} por hectárea, más las ${fmt(T.existentes_ha)} que ya existen.`, 9],
+    [T.reduccion * 100, v => `−${fmt(v)} %`, `de competencia entre plantas vecinas frente a sembrar al azar, con ${D.mosaicos.length} claves de plantación.`, 14],
+  ];
+  $("llevarse").innerHTML = LLEVARSE.map(([v, f, t, n]) =>
+    `<li><button data-lamina="${n}"><span class="cifra">${f(v)}</span><span class="chico">${t}<span class="rotulo">Lámina ${n} →</span></span></button></li>`).join("");
+  for (const b of document.querySelectorAll("#llevarse button")) b.addEventListener("click", ev => { if (ev.detail) b.blur(); ir(+b.dataset.lamina - 1); });
+  function llevarse() {
+    if (reducir) return;
+    document.querySelectorAll("#llevarse .cifra").forEach((e, i) => {
+      const [v, f] = LLEVARSE[i], t0 = performance.now() + 450 + i * 180, dur = 1100;
+      e.textContent = f(0);
+      const paso = ahora => {
+        const u = Math.max(0, Math.min(1, (ahora - t0) / dur));
+        e.textContent = f(u < 1 ? Math.round(v * eSalida(u)) : v);
+        if (u < 1 && actual === LAMINAS.length - 1) requestAnimationFrame(paso);
+        else e.textContent = f(v);
+      };
+      requestAnimationFrame(paso);
+    });
   }
 
   // ---------- Lámina 9: la compra ----------
@@ -1542,8 +1577,6 @@
       c.animate([{ opacity: 0 }, { opacity: 1 }, { opacity: 0.3 }, { opacity: 1 }], { duration: 900, delay: +c.dataset.retraso, easing: "ease-out", fill: "backwards" });
     }
   }
-  // La deriva de la portada es una animación CSS sobre #giro (capa compuesta): no repinta el mapa.
-  const derivar = () => { if (!reducir) giro.classList.add("deriva"); };
 
   // ================= Láminas =================
   const secciones = [...document.querySelectorAll(".lamina")];
@@ -1560,13 +1593,13 @@
     { cam: "sitio-datos", capas: { ids: true, hover: true, coro: "Bmin", resalte: [1, 4] }, datos: true },
     { cam: "poligono", capas: { tenue: 0 }, sinCartela: true },
     { cam: "poligono", capas: { reticula: true, resalte: [1] }, datos: true },
-    { cam: "poligono", capas: { tenue: 0 }, datos: true, sinCartela: true },
+    { cam: "memetico", capas: { reticula: true, resalte: [1], foco: 1 }, datos: true },
     { cam: "reticula", capas: { reticula: true, tile: true }, antes: () => Mos.preparar(), entrar: adelante => Mos.entrar(adelante), salir: () => Mos.salir() },
-    { cam: "tesela", capas: { tenue: 0 }, datos: true, sinCartela: true },
+    { cam: "exacto", capas: { tesela: true, resalte: [1], foco: 1 }, datos: true },
     { cam: "tesela", capas: { tesela: true }, datos: true },
     { cam: "ventana", capas: { tenue: 0.85 } },
     { cam: "sitio", capas: { tenue: 0.55 } },
-    { cam: "portada", inclinado: true, capas: {}, plantar: 0.7, entrar: () => { ondas(0.7); derivar(); }, sinCartela: true },
+    { cam: "cierre", capas: { hover: true }, plantar: 0.85, entrar: adelante => { ondas(0.85); if (adelante) llevarse(); }, sinCartela: true },
   ];
 
   // Barra de avance: un punto por lámina, al tresbolillo.
@@ -1644,7 +1677,6 @@
       s.classList.add("sale");
       setTimeout(() => s.classList.remove("sale"), 260);
     }
-    giro.classList.remove("deriva");
     ocultarEtiqueta();
     actual = i;
     pintarAvance(i);
@@ -1657,8 +1689,6 @@
     if (!L.capas.plantado) {
       for (const ov of gPlantado.children) { ov.style.transition = "opacity 500ms var(--ease-salida)"; ov.style.opacity = 0; }
     }
-    inclinado = !!L.inclinado;
-    vista.classList.toggle("inclinado", inclinado);
     $("cartela").style.opacity = L.sinCartela ? 0 : 1;
     const s = secciones[i];
     let mostrado = false;
