@@ -214,7 +214,7 @@ i, em, .binomial { font-style: italic; }
 @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
 @keyframes brote { from { opacity: 0; transform: scale(.25); } to { opacity: 1; transform: scale(1); } }
 
-/* Hojas de método (láminas 8, 12 y 14): papel sin mapa, notas al margen, poca tinta */
+/* Hojas de método (láminas 8, 13 y 15): papel sin mapa, notas al margen, poca tinta */
 .metodo-titulo { position: absolute; left: 96px; top: 80px; width: 1500px; }
 .metodo-entrada { position: absolute; left: 96px; top: 160px; width: 880px; color: var(--tierra); }
 .metodo-fuente { position: absolute; left: 96px; bottom: 80px; width: 880px; }
@@ -247,7 +247,7 @@ i, em, .binomial { font-style: italic; }
 .lamina.datos.entra > :is(.programa, .calculo) { animation: entra var(--d-contenido) var(--ease-salida) both; }
 .lamina.datos.entra > .calculo { animation-delay: 300ms; }
 
-/* Láminas 7 y 10: la meta elegida se desliza desde la referencia; dos plantas se intercambian */
+/* Láminas 7 y 12: la meta elegida se desliza desde la referencia; dos plantas se intercambian */
 .lamina.datos .elige { animation: elige var(--d-datos) var(--ease-salida) both; animation-delay: calc(var(--i, 0) * 50ms + 350ms); }
 @keyframes elige { from { transform: translateY(var(--dy)); } }
 .lamina.datos .desliza { animation: desliza var(--d-datos) var(--ease-salida) both; animation-delay: calc(var(--i, 0) * 50ms + 500ms); }
@@ -260,7 +260,14 @@ i, em, .binomial { font-style: italic; }
 }
 .lamina.datos .aparece-tarde { animation: aparece var(--d-contenido) var(--ease-salida) 1500ms both; }
 
-/* Lámina 9: mosaico */
+/* Lámina 11: la fórmula de W y sus términos, con la misma voz que el programa de la lámina 8 */
+.formula { font: 400 30px/1.25 var(--f-texto); color: var(--tinta); white-space: nowrap; font-variant-numeric: lining-nums; }
+.formula sub, .formula sup, .terminos sub { font-size: .6em; line-height: 0; }
+.terminos { margin: 0; display: grid; grid-template-columns: 96px 1fr; gap: 10px 16px; align-items: baseline; }
+.terminos dt { font: 400 var(--t-s)/1.3 var(--f-texto); color: var(--tinta); white-space: nowrap; font-variant-numeric: lining-nums; }
+.terminos dd { margin: 0; font: 400 var(--t-xs)/1.4 var(--f-rotulo); color: var(--tierra-suave); }
+
+/* Lámina 14: mosaico */
 .mosaico-ficha { cursor: default; }
 .mosaico-ficha text { font-family: var(--f-rotulo); font-weight: 500; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 .controles { position: absolute; left: 96px; top: 916px; display: flex; align-items: center; gap: 28px; padding: 10px 14px;
@@ -298,7 +305,7 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 .regla span:first-child { transform: none; }
 .regla span:last-child { transform: translateX(-100%); }
 
-/* Lámina 11: ventana de la herramienta */
+/* Lámina 17: ventana de la herramienta */
 .ventana { position: absolute; left: 96px; top: 300px; width: 860px; height: 576px; border: 1px solid var(--tierra);
   border-radius: 3px; overflow: hidden; background: transparent; box-shadow: 0 18px 48px rgb(76 69 65 / .1); }
 .ventana .barra-titulo { height: 40px; border-bottom: 1px solid var(--tierra); display: flex; align-items: center; padding: 0 16px;
@@ -309,7 +316,7 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 .vistas li { display: grid; grid-template-columns: 230px 1fr; gap: 16px; font: 400 var(--t-s)/1.4 var(--f-texto); }
 .vistas b { font: 500 var(--t-s)/1.4 var(--f-rotulo); color: var(--tierra); }
 
-/* Lámina 13: decisiones */
+/* Lámina 19: decisiones */
 .decisiones { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
 .decisiones li { display: grid; grid-template-columns: 52px 1fr; gap: 16px; }
 .decisiones .n { font: 400 var(--t-xl)/1 var(--f-display); color: var(--ocre-hondo); }
@@ -318,16 +325,17 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 .capas-futuras span { display: inline-flex; align-items: center; gap: 8px; }
 .capas-futuras i { font-style: normal; display: inline-block; width: 34px; height: 18px; border: 1.5px dashed var(--tierra-suave); }
 
-/* Lámina 12: visor embebido */
+/* Lámina 18: visor embebido */
 .visor-embebido { position: absolute; left: 96px; right: 96px; top: 170px; bottom: 80px; width: calc(100% - 192px); height: calc(100% - 250px);
   border: 1px solid var(--tierra); border-radius: 3px; background: var(--papel); box-shadow: 0 18px 48px rgb(76 69 65 / .1); }
 
-/* Lámina 14 */
+/* Lámina 20 */
 .qr { width: 150px; height: 150px; display: block; padding: 14px; background: var(--papel); border: 1px solid var(--linea); }
 .cierre-pie { display: flex; align-items: center; gap: 28px; text-align: left; }
 
 /* Barra de avance: hilera al tresbolillo */
-#avance { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); overflow: visible; }
+/* Desplazada a la derecha del centro para no encimarse con la cartela. */
+#avance { position: absolute; left: calc(50% + 36px); bottom: 22px; transform: translateX(-50%); overflow: visible; }
 .punto { cursor: pointer; }
 .punto circle { transition: fill var(--d-respuesta) var(--ease-salida), stroke var(--d-respuesta) var(--ease-salida); }
 #numero { position: absolute; right: 96px; bottom: 26px; font: 400 var(--t-xs) var(--f-rotulo); color: var(--tierra-suave); font-variant-numeric: tabular-nums; }

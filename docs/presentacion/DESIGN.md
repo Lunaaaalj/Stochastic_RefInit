@@ -31,7 +31,7 @@ especies, planos de plantación).
 2. **La animación explica.** Cada movimiento cuenta una parte del razonamiento
    (de la región al hexágono, de lo aleatorio a lo óptimo). Si no explica
    nada, no se anima.
-3. **Un solo momento estelar.** El mosaico que se reordena (lámina 13) es el
+3. **Un solo momento estelar.** El mosaico que se reordena (lámina 14) es el
    único espectáculo; lo demás se mueve con discreción.
 4. **La conclusión va primero.** El veredicto (presupuesto insuficiente,
    cuánto comprar, cuánto mejora la siembra) aparece en la lámina 2; el método
@@ -120,7 +120,8 @@ gráficas donde no hay especies (lámina 10).
 ### Rampa secuencial
 
 Para las coropletas (láminas 9 y 10) y la vista de competencia del mosaico
-(lámina 13). Sale de la marca: interpolada en OKLab de `--papel-hondo` a
+(lámina 14), y la matriz de competencia (lámina 11). Sale de la marca:
+interpolada en OKLab de `--papel-hondo` a
 `--salvia` y `--salvia-honda`. Cinco clases, con la leyenda escrita junto al
 mapa.
 
@@ -248,7 +249,7 @@ no se mueve y la capa del mapa baja a opacidad 0.
 - **Hover:** la hoja se resalta y el camino de la hoja al tronco se pinta en
   `--ocre-hondo`; la etiqueta da el polígono, su área, su compra y su clave.
 
-### 4.2 Hojas de método (láminas 8, 12 y 14)
+### 4.2 Hojas de método (láminas 8, 13 y 15)
 
 Explican los modelos a quien no es técnico. Van sobre papel, sin mapa ni
 paneles, a la manera de Tufte: poca tinta, rótulos directos, notas al margen
@@ -323,15 +324,16 @@ Región ──► Sitio (30 polígonos) ──► Un polígono ──► La ret�
 | 8 | Formulación de la compra | Sobre el polígono 1, sin moverse | El mapa se apaga: hoja de método |
 | 9 | Compra | Vista del sitio | Coropleta de plantas/ha |
 | 10 | Presupuesto | Vista del sitio | Coropleta de B\*/ha; resaltan los polígonos 1 y 4, los más caros |
-| 11 | Modelos de asignación | Sobre el polígono 1 | La retícula vacía que va a llenarse |
-| 12 | Memético | Sobre el polígono 1, sin moverse | El mapa se apaga: hoja de método |
-| 13 | Mosaico | Zoom profundo a la retícula | La retícula se vuelve el mosaico real y se reordena |
-| 14 | Modelo exacto | Se aleja al encuadre de la 15 | El mapa se apaga: hoja de método |
-| 15 | Validación | Se aleja un poco | El mosaico se tesela sobre todo el polígono |
-| 16 | Herramienta | El mapa se encoge a la ventana de la GUI | Liga el mapa con `refor_gui` |
-| 17 | Visor | Igual que la 16; el mapa queda detrás del visor | El visor de `docs/visor/` embebido y operable |
-| 18 | Recomendaciones | Vista del sitio, tenue | Capas futuras punteadas: agua, pendiente, suelo |
-| 19 | Cierre | Lejana e inclinada (perspectiva suave), con deriva lenta | Todos los polígonos plantados |
+| 11 | Competencia | Sobre el polígono 1, sin moverse | El mapa se apaga: la fórmula de *W* no compite con la franja del polígono |
+| 12 | Modelos de asignación | Sobre el polígono 1 | La retícula vacía que va a llenarse |
+| 13 | Memético | Sobre el polígono 1, sin moverse | El mapa se apaga: hoja de método |
+| 14 | Mosaico | Zoom profundo a la retícula | La retícula se vuelve el mosaico real y se reordena |
+| 15 | Modelo exacto | Se aleja al encuadre de la 16 | El mapa se apaga: hoja de método |
+| 16 | Validación | Se aleja un poco | El mosaico se tesela sobre todo el polígono |
+| 17 | Herramienta | El mapa se encoge a la ventana de la GUI | Liga el mapa con `refor_gui` |
+| 18 | Visor | Igual que la 17; el mapa queda detrás del visor | El visor de `docs/visor/` embebido y operable |
+| 19 | Recomendaciones | Vista del sitio, tenue | Capas futuras punteadas: agua, pendiente, suelo |
+| 20 | Cierre | Lejana e inclinada (perspectiva suave), con deriva lenta | Todos los polígonos plantados |
 
 ### Implementación
 
@@ -357,7 +359,7 @@ Región ──► Sitio (30 polígonos) ──► Un polígono ──► La ret�
   - las curvas de nivel van en un `<canvas>` bajo el SVG, partidas en bloques,
     y solo se trazan los bloques visibles;
   - una capa desvanecida sale del render con `display: none`;
-  - la teselación de la lámina 15 y los polígonos plantados son un solo trazo
+  - la teselación de la lámina 16 y los polígonos plantados son un solo trazo
     con `<pattern>`, no un elemento por hexágono;
   - la inclinación y la deriva del cierre, y el atenuado del mapa, son
     `transform` y `opacity` de CSS sobre capas compuestas (`#vista`, `#giro`):
@@ -392,7 +394,7 @@ composiciones, según dónde deje espacio la cámara; la portada tiene la suya
 │ ░░░░░░░░░░░░ └─────────┘  │  │ ░░└───────────────────┘░░ │  │ ░░░░░░░░░░░░░░░░░░░░░░░░░ │
 │ ∙∙∙∙∙∙∙∙∘∘∘∘∘∘∘           │  │ ∙∙∙∙∙∙∙∙∙∙∘∘∘∘∘           │  │ ∙∙∘∘∘∘∘∘∘∘∘∘∘∘∘           │
 └───────────────────────────┘  └───────────────────────────┘  └───────────────────────────┘
-  láminas 3–5, 7, 11, 17           láminas 9, 10, 15, 16           láminas 2, 13, 18
+  láminas 3–5, 7, 12, 18           láminas 9–11, 16, 17            láminas 2, 14, 19
 ```
 
 - **Lienzo:** 1920 × 1080 escalado a la ventana (16 : 9), con márgenes de
@@ -402,7 +404,7 @@ composiciones, según dónde deje espacio la cámara; la portada tiene la suya
 - **Paneles de papel, no tarjetas:** `--papel` al 92 % sobre el mapa, borde de
   1 px en `--linea`, sombra cálida muy difusa (`0 18px 48px` con `--tierra` al
   8–10 %) y esquinas de 2 px, como hoja recortada.
-- **Sin variante oscura.** Las láminas C (2, 13 y 18) se distinguen por
+- **Sin variante oscura.** Las láminas C (2, 14 y 19) se distinguen por
   composición: titular grande directo sobre el mapa, sin panel.
 - **Portada: hoja de carta.** La lámina 1 es una hoja de carta topográfica, no
   un titular sobre el mapa: el título nunca va encima de los polígonos
@@ -420,7 +422,7 @@ composiciones, según dónde deje espacio la cámara; la portada tiene la suya
   - Detalle circular del polígono 29 (clave 1) con hexágonos de 15 px por
     género, unido con una línea a su lugar en el mapa. Hace legible la leyenda,
     que en la vista del sitio no se distingue.
-- **Controles en C.** La lámina 13 necesita el conmutador género/competencia y
+- **Controles en C.** La lámina 14 necesita el conmutador género/competencia y
   la réplica 3 × 3. Van en una tira mínima de papel al pie, alineada a la
   izquierda, en Instrument Sans `--t-s`; no se convierte en panel.
 
@@ -450,7 +452,7 @@ demás la sigue y no compite con ella.
 | Cámara | 1.4–1.8 s | `cubic-bezier(.65, 0, .35, 1)` | Cambio de encuadre del mapa |
 | Contenido | 450 ms; empieza cuando la cámara va al 70 % | `cubic-bezier(.2, .7, .2, 1)` | Fundido y barrido de máscara de izquierda a derecha, como tinta que se escribe |
 | Datos | 600–900 ms | `cubic-bezier(.2, .7, .2, 1)` | Barras que crecen, curvas que se trazan; solo en láminas de resultados |
-| Momento estelar | ≈ 2.5 s, coreografiado | por elemento | El mosaico de la lámina 13 pasa de una asignación al azar a la óptima |
+| Momento estelar | ≈ 2.5 s, coreografiado | por elemento | El mosaico de la lámina 14 pasa de una asignación al azar a la óptima |
 | Hoja de método | 3–5 s, siguiendo el razonamiento | tramos lineales y fundidos | El diagrama se dibuja en el orden en que se explica (secciones 4.1 y 4.2) |
 | Árbol | ≈ 3.5 s, de las raíces a las hojas | tramos lineales que siguen una salida suave | La tubería de la lámina 6 crece; cada anotación aparece cuando crece su parte |
 | Respuesta | 150–200 ms | `cubic-bezier(.2, .7, .2, 1)` | Hover sobre polígonos, conmutadores |
@@ -485,19 +487,20 @@ su encuadre final.
 | 8 | Qué se minimiza y cómo se calcula | El programa de compra en lenguaje llano; cada planta extra cuesta distinto y la mochila sube las baratas | Programa con una nota al margen por renglón; *x\**, E[*D*] y *C* de *A. salmiana* como líneas alineadas; puntos ordenados por costo de una planta más | Hoja de método |
 | 9 | La compra | 594 plantas/ha + 129 existentes = 723/ha (10 % sobre la meta); Opuntia +10 %; Prosopis, Yucca y A. scabra −10 % | Barras divergentes por especie; barra apilada de densidad | B |
 | 10 | El presupuesto | Con $12,500/ha ningún polígono es factible; aceptar 50 veces más riesgo ahorra menos del 4 % | Frontera B\*(α) con la línea del presupuesto debajo de toda la curva | B |
-| 11 | Los modelos de asignación | Seis vecinas y la matriz *W*; el memético con búsqueda tabú; el exacto acota la brecha | Recorte de la clave 1 con una planta y sus vecinas, un intercambio animado y la recta azar / memético / cota | A |
-| 12 | Cómo funciona el memético | Población, torneo, cruce, búsqueda tabú y reemplazo; 30 corridas llegan al mismo valor | El ciclo de una generación con claves en miniatura y la competencia de cada una | Hoja de método |
-| 13 | La clave de plantación | 30 polígonos, 6 claves; el mezquite separa | El mosaico real se reordena del azar al óptimo; conmutador género/competencia y réplica 3 × 3 | C |
-| 14 | Cómo funciona el exacto | Interruptores sí/no, ramificar y podar; techo, piso y brecha | Matriz lugar × especie de la clave 1, esquema de ramificación y la traza de HiGHS en seis múltiplos pequeños | Hoja de método |
-| 15 | Qué tan buena es | 14.5–16.3 % menos competencia que al azar; d.e. ≤ 0.006; brecha con el óptimo exacto | Barras azar / memético / exacto por mosaico, con la cota del exacto | B |
-| 16 | La herramienta | `refor_gui`: configurar, ejecutar, exportar; reproducible | Captura de `refor_gui` en un marco de ventana | B |
-| 17 | El visor | Los resultados de `refor`, polígono por polígono | El visor embebido (iframe); se usa en vivo. Requiere servir el repo desde su raíz | C |
-| 18 | Recomendaciones | Ajustar presupuesto o meta; validar la matriz W; ampliar el monitoreo | Decisiones numeradas y línea de tiempo de siguientes pasos | A |
-| 19 | Cierre | Gracias y preguntas | El sitio inclinado y todo plantado; QR al repositorio | C |
+| 11 | Qué compite con qué | Lo que más compite es una planta junto a otra de su especie; el mezquite compite mucho consigo mismo y poco con las suculentas. Abre la segunda pregunta: la 12 usa *W* y la 14 se apoya en la regla del mezquite | Matriz *W* de 10 × 10 en la rampa secuencial, con el valor en cada celda; fila y columna del mezquite con contorno de resaltado; etiqueta por celda. Debajo, la escala de 0 a 1.5 con una marca por pareja y qué significan 0, 1 y 1.5. A la izquierda, la fórmula *W* = *γ*^[a=b] · *T* · *N* − *φF* del reporte E2 con sus cuatro términos. Panel a todo lo ancho, como la 16 | B |
+| 12 | Los modelos de asignación | Seis vecinas y la matriz *W*; el memético con búsqueda tabú; el exacto acota la brecha | Recorte de la clave 1 con una planta y sus vecinas, un intercambio animado y la recta azar / memético / cota | A |
+| 13 | Cómo funciona el memético | Población, torneo, cruce, búsqueda tabú y reemplazo; 30 corridas llegan al mismo valor | El ciclo de una generación con claves en miniatura y la competencia de cada una | Hoja de método |
+| 14 | La clave de plantación | 30 polígonos, 6 claves; el mezquite separa | El mosaico real se reordena del azar al óptimo; conmutador género/competencia y réplica 3 × 3 | C |
+| 15 | Cómo funciona el exacto | Interruptores sí/no, ramificar y podar; techo, piso y brecha | Matriz lugar × especie de la clave 1, esquema de ramificación y la traza de HiGHS en seis múltiplos pequeños | Hoja de método |
+| 16 | Qué tan buena es | 14.5–16.3 % menos competencia que al azar; d.e. ≤ 0.006; brecha con el óptimo exacto | Barras azar / memético / exacto por mosaico, con la cota del exacto | B |
+| 17 | La herramienta | `refor_gui`: configurar, ejecutar, exportar; reproducible | Captura de `refor_gui` en un marco de ventana | B |
+| 18 | El visor | Los resultados de `refor`, polígono por polígono | El visor embebido (iframe); se usa en vivo. Requiere servir el repo desde su raíz | C |
+| 19 | Recomendaciones | Ajustar presupuesto o meta; validar la matriz W; ampliar el monitoreo | Decisiones numeradas y línea de tiempo de siguientes pasos | A |
+| 20 | Cierre | Gracias y preguntas | El sitio inclinado y todo plantado; QR al repositorio | C |
 
 **Anexo** (si preguntan por el método): formulación de la compra con
-restricción probabilística, algoritmo memético con búsqueda tabú y matriz de
-competencia W.
+restricción probabilística y algoritmo memético con búsqueda tabú. La matriz
+de competencia W ya no va en el anexo: es la lámina 11.
 
 ### Fuentes de datos por lámina
 
@@ -510,8 +513,9 @@ competencia W.
 | 8 | `refor plan` → `compra.json` (polígono 1); curvas *x\*(n)* y E[*D*](*n*) de toda la banda con la cola binomial exacta en `scripts/datos_presentacion.py` |
 | 9 | `refor plan` → `compra.json` |
 | 10 | `refor frontera` → `frontera.csv` |
-| 11, 13, 14, 15 | `refor plan --exacto` → `espacial.json`, `exacto.json` |
-| 12 | Composición de la clave 1 (`espacial.json`) y *W* (`competencia.csv`); la generación se simula en el navegador con semilla fija |
+| 11 | `data/processed/competencia.csv` (matriz *W*) |
+| 12, 14, 15, 16 | `refor plan --exacto` → `espacial.json`, `exacto.json` |
+| 13 | Composición de la clave 1 (`espacial.json`) y *W* (`competencia.csv`); la generación se simula en el navegador con semilla fija |
 
 Todas las corridas con α = 0.05, θ = 0.05, δ = 0.10, K = 10,000 y semilla 42,
 como en el reporte E2.
@@ -565,13 +569,13 @@ como en el reporte E2.
 
 | Archivo | Contenido |
 |---|---|
-| `index.html` | Las 19 láminas |
+| `index.html` | Las 20 láminas |
 | `estilo.css` | Tokens y composición |
 | `deck.js` | Mapa, cámara, navegación, gráficas, el árbol (6), los diagramas de las hojas de método (8, 12, 14) y el mosaico (13) |
 | `herbario.js` | Dibujos provisionales de las 10 especies |
 | `datos/datos.js` | Generado por `scripts/datos_presentacion.py`; no se edita a mano |
 | `fuentes/`, `fuentes.css` | Fuentes locales |
-| `qr-repositorio.svg` | QR de la lámina 19 |
+| `qr-repositorio.svg` | QR de la lámina 20 |
 
 Para regenerar los datos, desde la raíz del repo:
 
@@ -592,9 +596,9 @@ URL abre la lámina *n*.
 - Las 10 ilustraciones de herbario definitivas: origen, licencias y
   vectorización. Hoy la lámina 4 usa dibujos propios provisionales
   (`herbario.js`).
-- Capturas de `refor_gui` para la lámina 16 (hoy, marco con «Captura
+- Capturas de `refor_gui` para la lámina 17 (hoy, marco con «Captura
   pendiente»).
-- Histograma de las 30 corridas por mosaico en la lámina 15: `refor` solo
+- Histograma de las 30 corridas por mosaico en la lámina 16: `refor` solo
   exporta la media y la desviación estándar, no cada corrida.
 - Validar en el proyector los tonos de especie y la rampa secuencial. En
   simulación ya se comprobó que los tres colores de género se distinguen con

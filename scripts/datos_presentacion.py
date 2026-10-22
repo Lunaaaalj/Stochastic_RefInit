@@ -225,7 +225,7 @@ def main():
     print(f"  B* ponderado ${b_pond:,.0f}/ha, compra {x_tot:,} plantas, reducción de competencia {reduccion:.1%}")
     print(f"  escenarios A. salmiana pol. 1: cuantil 95 % exacto = {q95}, compra (Monte Carlo) = {asa['x']}")
     if exacto is None:
-        print("  aviso: falta docs/res/plan/exacto.json; la lámina 10 quedará sin el modelo entero")
+        print("  aviso: falta docs/res/plan/exacto.json; las láminas 15 y 16 quedarán sin el modelo entero")
 
 
 if __name__ == "__main__":

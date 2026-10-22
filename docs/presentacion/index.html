@@ -168,7 +168,27 @@
     <div id="leyenda-presupuesto" style="position: absolute; left: 96px; top: 950px"></div>
   </section>
 
-  <!-- 11 · Los modelos de asignación -->
+  <!-- 11 · Qué compite con qué -->
+  <!-- La matriz W abre la segunda pregunta: la lámina 12 y la regla del mezquite de la 14 se apoyan en ella. -->
+  <section class="lamina" data-cam="poligono" aria-label="Qué compite con qué">
+    <div class="panel" style="left: 96px; right: 96px; top: 80px; bottom: 80px; flex-direction: row; align-items: center; gap: 48px">
+      <div style="display: flex; flex-direction: column; gap: 24px; width: 580px; flex: none; align-self: stretch">
+        <h2>Lo que más compite es una planta junto a otra de su misma especie</h2>
+        <p class="chico" id="w-texto"></p>
+        <p class="formula" aria-label="W de a b igual a gama elevada a uno si a es igual a b, por T de a b, por N de a b, menos fi por F de a b"><i>W<sub>ab</sub></i> = <i>γ</i><sup>[<i>a</i> = <i>b</i>]</sup> · <i>T<sub>ab</sub></i> · <i>N<sub>ab</sub></i> − <i>φ</i> <i>F<sub>ab</sub></i></p>
+        <dl class="terminos">
+          <dt><i>T<sub>ab</sub></i></dt><dd>Copa: qué parte de los 4.19 m entre vecinas cubren las dos copas adultas. Vale 1 si se tocan.</dd>
+          <dt><i>N<sub>ab</sub></i></dt><dd>Raíz: cuánto coinciden sus raíces en tres profundidades. Vale 1 si toman agua del mismo estrato.</dd>
+          <dt><i>γ</i> = 1.5</dt><dd>Misma especie: usan los mismos recursos y comparten plagas. Solo cuenta si <i>a</i> = <i>b</i>.</dd>
+          <dt><i>φ</i> = 0.3</dt><dd>Nodriza: se resta cuando una es mezquite y la otra una suculenta (<i>F<sub>ab</sub></i> = 1).</dd>
+        </dl>
+        <p class="fuente">Rasgos aproximados; <i>γ</i> y <i>φ</i> son supuestos por validar en campo. Fuente: <code>data/processed/competencia.csv</code>, reporte E2.</p>
+      </div>
+      <svg class="grafica" id="g-matriz" width="1000" height="780" role="img" aria-labelledby="w-desc"><desc id="w-desc">Matriz de competencia W entre las 10 especies, en cinco clases, con su escala de 0 a 1.5.</desc></svg>
+    </div>
+  </section>
+
+  <!-- 12 · Los modelos de asignación -->
   <section class="lamina" data-cam="poligono" aria-label="Los modelos de asignación">
     <div class="panel panel-a ancho">
       <h2>Acomodar las plantas para que las vecinas compitan poco</h2>
@@ -181,7 +201,7 @@
     </div>
   </section>
 
-  <!-- 12 · Cómo funciona el memético -->
+  <!-- 13 · Cómo funciona el memético -->
   <!-- El ciclo de una generación con la composición de la clave 1. Lo dibuja deck.js. -->
   <section class="lamina" data-cam="poligono" aria-label="Cómo funciona el memético">
     <svg class="dibujo" id="memetico" viewBox="0 0 1920 1080" role="img" aria-label="Ciclo del algoritmo memético: población, torneo, cruce, búsqueda tabú y reemplazo"></svg>
@@ -194,7 +214,7 @@
     <p class="chico metodo-pie" id="mm-pie"></p>
   </section>
 
-  <!-- 13 · La clave de plantación -->
+  <!-- 14 · La clave de plantación -->
   <section class="lamina" data-cam="reticula" aria-label="La clave de plantación">
     <div class="titular sobre-mapa" style="width: 1240px; gap: 24px">
       <h1>Seis claves de plantación cubren los 30&nbsp;polígonos</h1>
@@ -223,7 +243,7 @@
     <p class="fuente" style="position: absolute; right: 96px; top: 952px; text-align: right">Fuente: <code>refor plan</code>, α = 0.05, semilla 42. Clave 1 de 6; la usan 18 polígonos.</p>
   </section>
 
-  <!-- 14 · Cómo funciona el modelo exacto -->
+  <!-- 15 · Cómo funciona el modelo exacto -->
   <section class="lamina" data-cam="tesela" aria-label="Cómo funciona el modelo exacto">
     <svg class="dibujo" id="exacto" viewBox="0 0 1920 1080" role="img" aria-label="El modelo exacto: interruptores por lugar y especie, ramificación y poda, y techo y piso de las seis claves"></svg>
     <h2 class="metodo-titulo">El modelo exacto: un techo, un piso y la brecha entre ambos</h2>
@@ -233,7 +253,7 @@
     <p class="chico ex-conclusion" id="ex-conclusion"></p>
   </section>
 
-  <!-- 15 · Qué tan buena es -->
+  <!-- 16 · Qué tan buena es -->
   <section class="lamina" data-cam="tesela" aria-label="Qué tan buena es">
     <div class="panel" style="left: 96px; right: 96px; top: 330px; bottom: 80px; flex-direction: row; gap: 56px">
       <div style="display: flex; flex-direction: column; gap: 24px; width: 600px; flex: none">
@@ -246,7 +266,7 @@
     <p class="rotulo" style="position: absolute; left: 96px; top: 80px">Polígono 1 completo: la clave 1 repetida sobre sus 331 m de largo.</p>
   </section>
 
-  <!-- 16 · La herramienta -->
+  <!-- 17 · La herramienta -->
   <section class="lamina" data-cam="ventana" aria-label="La herramienta">
     <div class="titular" style="width: 1300px">
       <h2><code style="font-family: var(--f-rotulo); font-weight: 500; font-size: .86em">refor_gui</code>: configurar, ejecutar y exportar</h2>
@@ -267,14 +287,14 @@
     </div>
   </section>
 
-  <!-- 17 · El visor -->
+  <!-- 18 · El visor -->
   <!-- El visor de docs/visor/ embebido: solo funciona si el repositorio se sirve desde su raíz (ver docs/visor/README.md). -->
   <section class="lamina" data-cam="ventana" aria-label="El visor">
     <h2 style="position: absolute; left: 96px; top: 72px; width: 1500px">El visor: los resultados de <code style="font-family: var(--f-rotulo); font-weight: 500; font-size: .86em">refor</code>, polígono por polígono</h2>
     <iframe class="visor-embebido interactivo" src="../visor/index.html" title="Visor de resultados de refor"></iframe>
   </section>
 
-  <!-- 18 · Recomendaciones -->
+  <!-- 19 · Recomendaciones -->
   <section class="lamina" data-cam="sitio" aria-label="Recomendaciones">
     <div class="panel panel-a">
       <h2>Lo que recomendamos</h2>
@@ -288,7 +308,7 @@
     </div>
   </section>
 
-  <!-- 19 · Cierre -->
+  <!-- 20 · Cierre -->
   <section class="lamina" data-cam="portada" aria-label="Cierre">
     <div class="titular centrado sobre-mapa" style="top: 300px; width: 1400px; gap: 20px">
       <h1 style="font-size: 120px; line-height: 1">Gracias</h1>
@@ -315,7 +335,7 @@
     <span id="utm"></span>
     <span class="nota">Curvas de nivel ilustrativas</span>
   </div>
-  <svg id="avance" width="440" height="34" aria-label="Avance"></svg>
+  <svg id="avance" width="430" height="34" aria-label="Avance"></svg>
   <span id="numero"></span>
   <div class="etiqueta" id="etiqueta" hidden></div>
 

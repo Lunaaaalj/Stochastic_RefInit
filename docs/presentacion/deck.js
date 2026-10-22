@@ -951,7 +951,70 @@
     $("rec-presupuesto").textContent = `Con ${dinero(T.presupuesto)}/ha ningún polígono cumple la meta con 95 % de probabilidad. Hacen falta ${dinero(T.B_min)}/ha, o bien revisar la meta de ${T.meta_ha} plantas por hectárea.`;
   }
 
-  // ---------- Lámina 11: los modelos de asignación ----------
+  // ---------- Lámina 11: matriz de competencia ----------
+  // Rampa secuencial con cortes redondos: la clase alta son justo los valores mayores que 1.
+  {
+    const s = svgEl("g-matriz"), abs = D.especies.map(e => e.ab);
+    const cortes = [0.3, 0.5, 0.7, 1];
+    const x0 = 300, y0 = 76, cw = 70, ch = 56, n = abs.length;
+    abs.forEach((ab, i) => {
+      const y = y0 + i * ch + ch / 2;
+      muestraHex(s, 12, y, 12, ESP[ab].c);
+      texto(s, 34, y + 7, ab, { class: "ab" });
+      texto(s, 84, y + 7, corto(ESP[ab].nombre), { class: "bin" });
+      const x = x0 + i * cw + cw / 2;
+      muestraHex(s, x, 16, 12, ESP[ab].c);
+      texto(s, x, 60, ab, { class: "ab", "text-anchor": "middle" });
+    });
+    const celdas = el("g", {}, s);
+    abs.forEach((a, i) => abs.forEach((b, j) => {
+      const w = W(a, b), k = clasif(w, cortes);
+      const g = el("g", { class: "celda" }, celdas);
+      g.dataset.a = a; g.dataset.b = b;
+      el("rect", { x: x0 + j * cw, y: y0 + i * ch, width: cw, height: ch, fill: RAMPA[k], stroke: COL.tierraSuave, "stroke-width": 0.75 }, g);
+      texto(g, x0 + j * cw + cw / 2, y0 + i * ch + ch / 2 + 8, fmt(w, 2), { "text-anchor": "middle", style: `font-size:var(--t-s);fill:${TXT[RAMPA_T[k]]}${w > 1 ? ";font-weight:500" : ""}` });
+    }));
+    // El mezquite, fila y columna, con el contorno de resaltado.
+    const iP = abs.indexOf("Pla");
+    el("rect", { x: x0, y: y0 + iP * ch, width: n * cw, height: ch, class: "resalte", fill: "none" }, s);
+    el("rect", { x: x0 + iP * cw, y: y0, width: cw, height: n * ch, class: "resalte", fill: "none" }, s);
+    const marca = el("rect", { width: cw, height: ch, class: "resalte", fill: "none", visibility: "hidden", "pointer-events": "none" }, s);
+
+    // Escala de 0 a 1.5 en las clases de la rampa, con una marca por pareja de especies. Los
+    // hitos salen de la fórmula: sin traslape (0), traslape pleno (1) y traslape pleno de la misma especie (γ = 1.5).
+    const pares = abs.flatMap((a, i) => abs.slice(i).map(b => ({ a, b, w: W(a, b) })));
+    const yb = y0 + n * ch + 58, X = w => w / 1.5 * 1000, lim = [0, ...cortes, 1.5];
+    texto(s, 0, yb - 22, "Penalización W: cada marca es una pareja de especies", { class: "fuerte" });
+    RAMPA.forEach((c, k) => el("rect", { x: X(lim[k]), y: yb, width: X(lim[k + 1]) - X(lim[k]), height: 14, fill: c, stroke: COL.tierraSuave, "stroke-width": 0.75 }, s));
+    for (const p of pares) el("path", { d: `M${X(p.w).toFixed(1)} ${yb - 9}v8`, stroke: COL.tierra, "stroke-width": 1.25 }, s);
+    const hitos = [
+      [0, "start", "0 · no compiten", "copas o raíces que no se alcanzan"],
+      [1, "end", "1 · competencia plena", "dos especies, copas y raíces juntas"],
+      [1.5, "end", "1.5 · el máximo", "lo mismo, de la misma especie"],
+    ];
+    for (const [w, ancla, t1, t2] of hitos) {
+      el("path", { d: `M${X(w)} ${yb}v22`, stroke: COL.tierra, "stroke-width": 1.25 }, s);
+      texto(s, X(w), yb + 42, t1, { class: "fuerte", "text-anchor": ancla });
+      texto(s, X(w), yb + 62, t2, { "text-anchor": ancla });
+    }
+
+    celdas.addEventListener("pointermove", ev => {
+      const g = ev.target.closest(".celda");
+      if (!g) return;
+      const { a, b } = g.dataset, r = g.firstChild;
+      marca.setAttribute("x", r.getAttribute("x")); marca.setAttribute("y", r.getAttribute("y")); marca.setAttribute("visibility", "visible");
+      const [x, y] = aLienzo(ev.clientX, ev.clientY);
+      const par = a === b ? `Dos <i>${ESP[a].nombre}</i> vecinas` : `<i>${ESP[a].nombre}</i> junto a <i>${ESP[b].nombre}</i>`;
+      mostrarEtiqueta(`<span class="titulo">${par}</span><span class="valor">W = ${fmt(W(a, b), 2)}</span>`, x, y);
+    });
+    celdas.addEventListener("pointerleave", () => { marca.setAttribute("visibility", "hidden"); ocultarEtiqueta(); });
+
+    const altos = pares.filter(p => p.w > 1);
+    const conSuculentas = D.especies.filter(e => e.genero !== "Otras").map(e => W("Pla", e.ab));
+    $("w-texto").innerHTML = `Los ${altos.length} valores mayores que 1 son de una especie junto a sí misma. El mezquite va de ${fmt(W("Pla", "Pla"), 2)} junto a otro mezquite a <span class="num" style="white-space: nowrap">${fmt(Math.min(...conSuculentas), 2)}–${fmt(Math.max(...conSuculentas), 2)}</span> junto a agaves y nopales, por su raíz profunda y su efecto nodriza.`;
+  }
+
+  // ---------- Lámina 12: los modelos de asignación ----------
   {
     const m1 = D.mosaicos[0], plano = m1.clave.flat();
     const [par, wMax] = Object.entries(D.W).sort((a, b) => b[1] - a[1])[0];
@@ -1020,7 +1083,7 @@
     }
   }
 
-  // ---------- Lámina 12: cómo funciona el memético ----------
+  // ---------- Lámina 13: cómo funciona el memético ----------
   // Una generación con la composición de la clave 1: población al azar, torneo, cruce, búsqueda
   // tabú y reemplazo. Las claves salen del azar con semilla fija y su competencia se calcula con
   // W, como en refor (las vecinas envuelven: el mosaico se repite).
@@ -1156,7 +1219,7 @@
     $("mm-pie").style.setProperty("--t", "4800ms");
   }
 
-  // ---------- Lámina 14: cómo funciona el modelo exacto ----------
+  // ---------- Lámina 15: cómo funciona el modelo exacto ----------
   {
     const s = svgEl("exacto"), m1 = D.mosaicos[0], plano = m1.clave.flat(), abs = Object.keys(ESP);
     $("ex-t1").innerHTML = `Cada uno de los ${N} lugares y cada una de las ${abs.length} especies es un interruptor sí/no: ${fmt(N * abs.length)} en total. En cada columna se enciende uno; cada fila, tantos como plantas de esa especie se compraron. Así se ve la clave 1.`;
@@ -1235,7 +1298,7 @@
     $("ex-conclusion").style.setProperty("--t", "3400ms");
   }
 
-  // ---------- Lámina 15: validación ----------
+  // ---------- Lámina 16: validación ----------
   {
     const s = svgEl("g-validacion");
     const hay = D.mosaicos.every(m => m.exacto);
@@ -1287,7 +1350,7 @@
     $("v-texto").innerHTML = t;
   }
 
-  // ================= Lámina 13: el mosaico =================
+  // ================= Lámina 14: el mosaico =================
   const Mos = (() => {
     const m1 = D.mosaicos[0];
     const optima = m1.clave.flat();
@@ -1520,6 +1583,7 @@
     { cam: "poligono", capas: { tenue: 0 }, datos: true, sinCartela: true },
     { cam: "sitio-datos", capas: { ids: true, hover: true, coro: "compra_ha" }, datos: true },
     { cam: "sitio-datos", capas: { ids: true, hover: true, coro: "Bmin", resalte: [1, 4] }, datos: true },
+    { cam: "poligono", capas: { tenue: 0 }, sinCartela: true },
     { cam: "poligono", capas: { reticula: true, resalte: [1] }, datos: true },
     { cam: "poligono", capas: { tenue: 0 }, datos: true, sinCartela: true },
     { cam: "reticula", capas: { reticula: true, tile: true }, antes: () => Mos.preparar(), entrar: adelante => Mos.entrar(adelante), salir: () => Mos.salir() },
@@ -1535,7 +1599,7 @@
   const avance = $("avance");
   const puntos = LAMINAS.map((_, i) => {
     const g = el("g", { class: "punto", tabindex: 0, role: "button", "aria-label": `Ir a la lámina ${i + 1}` }, avance);
-    el("circle", { cx: 12 + i * 23, cy: i % 2 ? 24 : 10, r: 5.5, "stroke-width": 1.25 }, g);
+    el("circle", { cx: 12 + i * 21, cy: i % 2 ? 24 : 10, r: 5.5, "stroke-width": 1.25 }, g);
     g.addEventListener("click", () => ir(i));
     g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); ir(i); } });
     return g;
