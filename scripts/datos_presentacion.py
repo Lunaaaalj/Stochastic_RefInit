@@ -47,6 +47,26 @@ def binom_cdf(k, n, p):
     return total
 
 
+def binom_pmf(k, n, p):
+    return math.exp(math.lgamma(n + 1) - math.lgamma(k + 1) - math.lgamma(n - k + 1)
+                    + k * math.log(p) + (n - k) * math.log1p(-p))
+
+
+def compra_minima(m, q, alfa):
+    """Menor x con P(Bin(x, q) >= m) >= 1 - alfa: la cola exacta de `refor --metodo exacto`."""
+    if m <= 0:
+        return 0
+    x = m
+    while 1.0 - binom_cdf(m - 1, x, q) < 1 - alfa:
+        x += 1
+    return x
+
+
+def deficit_esperado(m, x, q):
+    """E[(m - S)^+] con S ~ Bin(x, q): las plantas que faltarían al año."""
+    return sum((m - k) * binom_pmf(k, x, q) for k in range(min(m, x + 1))) if m > 0 else 0.0
+
+
 def plantas_necesarias(m, q, x_max):
     """Distribución de las plantas que hay que comprar para que sobrevivan m.
 
@@ -142,6 +162,7 @@ def main():
             "exacto": None if x is None else {
                 "valor": x["competencia_exacto"], "cota": x["cota_inferior"], "brecha": x["brecha_memetico_pct"],
                 "optimo": x["optimo"], "segundos": x["segundos"], "distintas": x["posiciones_distintas"],
+                "traza": x.get("traza", []),
             },
         })
     reduccion = sum((1 - m["coef"]) * m["area"] for m in mosaicos) / sum(m["area"] for m in mosaicos)
@@ -151,6 +172,25 @@ def main():
     asa = next(s for s in p1["especies"] if s["especie"] == "Agave salmiana")
     q_asa = next(float(r["q"]) for r in especies if r["especie"] == "Agave salmiana")
     dist, q95 = plantas_necesarias(asa["n"] - asa["E"], q_asa, asa["n"] * 2)
+
+    # Curvas de costo del polígono 1 (lámina de la formulación): para cada especie y cada meta n
+    # de su banda, la compra mínima x*(n) y el déficit esperado E[D](n) con la cola binomial
+    # exacta. El punto elegido (n, x, déficit) es el de `refor plan`. θ se deduce del costo de
+    # compra que reporta refor; δ es el de refor por omisión (src/modelo.hpp), el del reporte E2.
+    delta, alfa = 0.10, p1["alfa"]
+    c_de = {r["especie"]: float(r["c"]) for r in especies}
+    theta = p1["costo_compra"] / sum(c_de[s["especie"]] * s["x"] for s in p1["especies"]) - 1
+    curvas_p1 = []
+    for s in p1["especies"]:
+        r = next(r for r in especies if r["especie"] == s["especie"])
+        q, centro = float(r["q"]), int(r["n0"]) * p1["area"]
+        n_min, n_max = math.ceil(centro * (1 - delta) - 1e-9), math.floor(centro * (1 + delta) + 1e-9)
+        filas = []
+        for n in range(n_min, n_max + 1):
+            x = compra_minima(n - s["E"], q, alfa)
+            filas.append([n, x, round(deficit_esperado(n - s["E"], x, q), 4)])
+        curvas_p1.append({"ab": abrev(s["especie"]), "n0A": round(centro, 2), "E": s["E"], "n": s["n"], "x": s["x"],
+                          "deficit": s["deficit"], "curva": filas})
 
     W = {}
     for r in leer_csv(DATOS / "competencia.csv"):
@@ -173,6 +213,9 @@ def main():
         "escenarios": {"especie": "Agave salmiana", "poligono": 1, "meta": asa["n"], "existentes": asa["E"],
                        "compra": asa["x"], "q": q_asa, "q95": q95, "dist": [[x, round(p, 5)] for x, p in dist]},
         "existentes_p1": {s["especie"]: s["E"] for s in p1["especies"]},
+        "compra_p1": {"area": p1["area"], "theta": round(theta, 6), "delta": delta, "alfa": alfa,
+                      "total": sum(s["n"] for s in p1["especies"]), "costo_compra": p1["costo_compra"],
+                      "costo_reposicion": p1["costo_reposicion"], "especies": curvas_p1},
         "origen_utm": [x0, y1],
     }
     SALIDA.parent.mkdir(parents=True, exist_ok=True)
@@ -182,7 +225,7 @@ def main():
     print(f"  B* ponderado ${b_pond:,.0f}/ha, compra {x_tot:,} plantas, reducción de competencia {reduccion:.1%}")
     print(f"  escenarios A. salmiana pol. 1: cuantil 95 % exacto = {q95}, compra (Monte Carlo) = {asa['x']}")
     if exacto is None:
-        print("  aviso: falta docs/res/plan/exacto.json; la lámina 10 quedará sin el modelo entero")
+        print("  aviso: falta docs/res/plan/exacto.json; las láminas 15 y 16 quedarán sin el modelo entero")
 
 
 if __name__ == "__main__":

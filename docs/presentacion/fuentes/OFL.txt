@@ -1,5 +1,6 @@
 Copyright 2012 The Libre Caslon Project Authors (https://github.com/impallari/Libre-Caslon)
 Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans)
+Copyright 2020 The Bodoni Moda Project Authors (https://github.com/indestructible-type/Bodoni)
 
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.

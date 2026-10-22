@@ -10,10 +10,12 @@
   --salvia-honda: #6F6D43;
   --ocre: #F2C46A;
   --ocre-hondo: #8C6418;
+  --salvia-oscura: #26331C;
   --linea: rgb(76 69 65 / .15);
   --marco: #1C1917;
 
   --f-display: "Libre Caslon Display", "Libre Caslon Text", Georgia, serif;
+  --f-portada: "Bodoni Moda", "Libre Caslon Display", Georgia, serif;
   --f-texto: "Libre Caslon Text", Georgia, serif;
   --f-rotulo: "Instrument Sans", system-ui, sans-serif;
 
@@ -84,6 +86,8 @@ body { background: var(--marco); color: var(--tierra); overflow: hidden; }
 .lamina.entra > :nth-child(2) { animation-delay: 60ms; }
 .lamina.entra > :nth-child(3) { animation-delay: 120ms; }
 .lamina.entra > :nth-child(4) { animation-delay: 180ms; }
+/* Hacia atrás la lámina ya está completa: solo se funde. */
+.lamina.vuelve { animation: aparece 380ms var(--ease-salida) both; }
 @keyframes entra {
   from { opacity: 0; clip-path: inset(0 100% 0 0); }
   to { opacity: 1; clip-path: inset(0 0 0 0); }
@@ -101,6 +105,8 @@ h1, h2, h3, p { margin: 0; }
 h1 { font: 400 var(--t-2xl)/1.1 var(--f-display); color: var(--tierra); text-wrap: balance; letter-spacing: -.005em; }
 h2 { font: 400 var(--t-xl)/1.15 var(--f-display); color: var(--tierra); text-wrap: balance; letter-spacing: -.003em; }
 h3 { font: 400 var(--t-m)/1.35 var(--f-texto); color: var(--tierra); }
+/* Solo el título de la portada va en Bodoni Moda Bold (corte de 72 pt, pensado para tamaños grandes). */
+.titulo-portada { font: 700 60px/1.06 var(--f-portada); letter-spacing: -.012em; color: var(--salvia-oscura); }
 .texto { font: 400 var(--t-m)/1.5 var(--f-texto); max-width: 34em; text-wrap: pretty; }
 .apoyo { font: 400 var(--t-l)/1.35 var(--f-texto); text-wrap: pretty; }
 .chico { font: 400 var(--t-s)/1.45 var(--f-texto); text-wrap: pretty; }
@@ -133,6 +139,37 @@ i, em, .binomial { font-style: italic; }
 @keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .lamina.datos .traza { stroke-dasharray: var(--largo); animation: trazo var(--d-datos) var(--ease-salida) both 200ms; }
 
+/* Lámina 1: hoja de carta. El cuadro de título es papel opaco: el texto nunca va sobre el mapa. */
+.hoja { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: visible; font-family: var(--f-rotulo); }
+.hoja .margen { fill: var(--papel); }
+.hoja .marco-ext { fill: none; stroke: var(--tierra); stroke-width: 1.5; }
+.hoja .marco-int { fill: none; stroke: var(--tierra); stroke-width: .75; }
+.hoja .cuadricula { stroke: var(--tierra-suave); stroke-width: 1; fill: none; }
+.hoja text { fill: var(--tierra-suave); font-size: 18px; font-variant-numeric: tabular-nums; }
+.hoja text .menor { font-size: 13px; }
+.hoja .detalle-marca { fill: none; stroke: var(--tierra); stroke-width: 1.25; }
+.hoja .detalle-fondo { fill: var(--papel); }
+.hoja .detalle-hex { stroke: var(--tierra-suave); stroke-width: .75; }
+.hoja .detalle-borde { fill: none; stroke: var(--tierra); stroke-width: 1.5; }
+.hoja .detalle-pie { fill: var(--tierra); font-size: var(--t-xs); }
+.cuadro-titulo { position: absolute; left: 96px; top: 88px; bottom: 112px; width: 880px; box-sizing: border-box;
+  display: flex; flex-direction: column; background: var(--papel); border: 1px solid var(--tierra); color: var(--tinta); }
+.cuadro-titulo > div { padding-inline: 52px; }
+.cuadro-cabeza { padding-top: 60px; padding-bottom: 40px; display: grid; gap: 28px; }
+.apoyo-portada { font: 400 var(--t-m)/1.45 var(--f-texto); color: var(--tierra); max-width: 31em; text-wrap: pretty; }
+.cuadro-leyenda { border-top: 1px solid var(--linea); padding-top: 24px; padding-bottom: 26px; display: grid; gap: 12px; }
+.cuadro-leyenda .rotulo { font-size: var(--t-s); }
+.generos { list-style: none; margin: 0; padding: 0; display: flex; gap: 36px; font: 400 var(--t-m)/1 var(--f-texto); color: var(--tinta); }
+.generos li { display: flex; align-items: center; gap: 12px; }
+.generos svg { width: 30px; height: 26px; overflow: visible; }
+.generos path { stroke: var(--tierra-suave); stroke-width: .06; }
+.datos-hoja { font: 500 var(--t-s)/1.3 var(--f-rotulo); color: var(--tierra); font-variant-numeric: tabular-nums; }
+.cuadro-pie { margin-top: auto; border-top: 1px solid var(--linea); padding-top: 22px; padding-bottom: 26px; display: grid; gap: 8px; }
+.autores { font: 400 var(--t-s)/1.45 var(--f-texto); color: var(--tinta); }
+.institucion { font: 400 var(--t-s)/1.45 var(--f-rotulo); color: var(--tierra-suave); }
+/* El contorno de cada polígono plantado queda encima del patrón. */
+.plantado path { stroke: var(--tierra); stroke-width: 1; vector-effect: non-scaling-stroke; }
+
 /* Lámina 4: herbario */
 .herbario { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px 16px; }
 .lamina-herbario { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
@@ -147,8 +184,89 @@ i, em, .binomial { font-style: italic; }
 .tuberia li:last-child { border-bottom: 0; padding-bottom: 0; }
 .tuberia .n { font: 400 var(--t-xl)/1 var(--f-display); color: var(--ocre-hondo); }
 .tuberia h3 { margin-bottom: 4px; }
+.tuberia.amplia li { grid-template-columns: 52px 1fr 400px; }
 
-/* Lámina 9: mosaico */
+/* Lámina 6: la tubería como árbol, dibujada a tinta sobre la hoja (el mapa se apaga).
+   Cada tramo de rama trae su largo (--largo), su inicio (--t) y su duración (--d). */
+.dibujo { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: visible; font-family: var(--f-rotulo); }
+.dibujo .trazo { fill: none; stroke: var(--tierra); stroke-linecap: round; transition: stroke var(--d-respuesta) var(--ease-salida); }
+.dibujo .raiz .trazo { stroke: var(--tierra-suave); }
+.dibujo .linaje .trazo { stroke: var(--ocre-hondo); }
+.dibujo .suelo { fill: none; stroke: var(--tierra-suave); stroke-width: 1; stroke-linecap: butt; }
+.dibujo .guia { fill: none; stroke: var(--tierra-suave); stroke-width: 1.25; stroke-dasharray: 1 6; stroke-linecap: round; }
+.dibujo .guia-punto { fill: var(--tierra-suave); }
+.dibujo text { fill: var(--tierra-suave); font-size: var(--t-xs); text-anchor: middle; }
+.dibujo .hex { stroke: var(--tierra-suave); stroke-width: .75; transition: stroke var(--d-respuesta) var(--ease-salida); }
+.dibujo .brote { transform-box: fill-box; transform-origin: center; }
+.dibujo .roseta.activa .hex { stroke: var(--ocre-hondo); stroke-width: 1.5; }
+.arbol-titulo { position: absolute; left: 96px; top: 80px; width: 640px; }
+.anota { position: absolute; left: 96px; width: 430px; display: grid; grid-template-columns: 52px 1fr; gap: 14px; }
+.anota .n { font: 400 var(--t-xl)/1 var(--f-display); color: var(--ocre-hondo); }
+.anota h3 { margin-bottom: 4px; }
+.ficha-arbol { position: absolute; right: 96px; bottom: 80px; width: 236px; padding: 10px 14px 12px; gap: 6px; }
+.ficha-arbol .titulo { font: 400 var(--t-s)/1.2 var(--f-texto); color: var(--tinta); }
+.generos-mini { display: flex; gap: 12px; }
+.generos-mini span { display: inline-flex; align-items: center; gap: 5px; }
+.generos-mini svg { width: 14px; height: 16px; overflow: visible; }
+.lamina.entra > .dibujo { animation: none; }
+.lamina.datos .dibujo .trazo { stroke-dasharray: var(--largo); animation: trazo var(--d) linear var(--t) both, aparece 1ms linear var(--t) both; }
+.lamina.datos .dibujo .aparece { animation: aparece var(--d-contenido) var(--ease-salida) var(--t) both; }
+.lamina.datos .dibujo .brote { animation: brote 420ms var(--ease-salida) var(--t) both; }
+.lamina.datos.entra > :is(.anota, .ficha-arbol) { animation: entra var(--d-contenido) var(--ease-salida) var(--t, 0ms) both; }
+@keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
+@keyframes brote { from { opacity: 0; transform: scale(.25); } to { opacity: 1; transform: scale(1); } }
+
+/* Hojas de método (láminas 8, 13 y 15): papel sin mapa, rótulos directos, poca tinta */
+.metodo-titulo { position: absolute; left: 96px; top: 80px; width: 1500px; }
+.metodo-entrada { position: absolute; left: 96px; top: 160px; width: 880px; color: var(--tierra); }
+.metodo-fuente { position: absolute; left: 96px; bottom: 80px; width: 880px; }
+.ex-conclusion { position: absolute; left: 980px; top: 800px; width: 844px; color: var(--tierra); }
+.metodo-pie { position: absolute; left: 96px; top: 870px; width: 1500px; color: var(--tierra); }
+.bloque h3 .n, .estacion h3 .n { font: 400 var(--t-l)/1 var(--f-display); color: var(--ocre-hondo); margin-right: 12px; }
+.bloque { display: grid; gap: 4px; }
+.estacion { position: absolute; display: grid; gap: 4px; width: 270px; }
+.lamina.datos.entra > :is(.estacion, .bloque, .metodo-pie, .ex-conclusion) { animation: entra var(--d-contenido) var(--ease-salida) var(--t, 0ms) both; }
+.dibujo .rotulo-izq { text-anchor: start; }
+.dibujo .rotulo-der { text-anchor: end; }
+.dibujo .fuerte { fill: var(--tierra); font-weight: 500; }
+.dibujo .flecha { fill: none; stroke: var(--tierra); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Lámina 8: el objetivo y las cuatro reglas de la compra, en lenguaje llano */
+.reglas { position: absolute; left: 96px; top: 262px; width: 880px; display: grid; gap: 12px; }
+.reglas > .rotulo + .regla-fila { margin-top: -2px; }
+.regla-fila + .rotulo { margin-top: 10px; }
+.regla-fila { display: grid; grid-template-columns: 52px 1fr; gap: 16px; }
+.regla-fila .n { font: 400 var(--t-xl)/1 var(--f-display); color: var(--ocre-hondo); }
+.regla-fila h3 { margin-bottom: 2px; }
+.regla-fila.corazon h3 { color: var(--ocre-hondo); }
+.calculo { position: absolute; left: 1060px; top: 150px; width: 764px; display: flex; flex-direction: column; gap: 12px; }
+.lamina.datos.entra > :is(.reglas, .calculo) { animation: entra var(--d-contenido) var(--ease-salida) both; }
+.lamina.datos.entra > .calculo { animation-delay: 300ms; }
+
+/* Láminas 7 y 12: la meta elegida se desliza desde la referencia; dos plantas se intercambian */
+.lamina.datos .elige { animation: elige var(--d-datos) var(--ease-salida) both; animation-delay: calc(var(--i, 0) * 50ms + 350ms); }
+@keyframes elige { from { transform: translateY(var(--dy)); } }
+.lamina.datos .desliza { animation: desliza var(--d-datos) var(--ease-salida) both; animation-delay: calc(var(--i, 0) * 50ms + 500ms); }
+@keyframes desliza { from { transform: translateX(var(--dx)); } }
+.lamina.datos .cambia { animation: cambia 1100ms var(--ease-camara) 500ms both; }
+@keyframes cambia {
+  from { transform: translate(var(--dx), 0); }
+  50% { transform: translate(calc(var(--dx) * .5), var(--arco)); }
+  to { transform: none; }
+}
+.lamina.datos .aparece-tarde { animation: aparece var(--d-contenido) var(--ease-salida) 1500ms both; }
+/* Lámina 15: el techo llega desde el azar y el piso, desde la izquierda */
+.lamina.datos .dibujo .llega { animation: llega 900ms var(--ease-salida) var(--t) both; }
+@keyframes llega { from { opacity: 0; transform: translateX(var(--dx)); } 30% { opacity: 1; } }
+
+/* Lámina 11: la fórmula de W y sus términos, con la misma voz que el programa de la lámina 8 */
+.formula { font: 400 30px/1.25 var(--f-texto); color: var(--tinta); white-space: nowrap; font-variant-numeric: lining-nums; }
+.formula sub, .formula sup, .terminos sub { font-size: .6em; line-height: 0; }
+.terminos { margin: 0; display: grid; grid-template-columns: 96px 1fr; gap: 10px 16px; align-items: baseline; }
+.terminos dt { font: 400 var(--t-s)/1.3 var(--f-texto); color: var(--tinta); white-space: nowrap; font-variant-numeric: lining-nums; }
+.terminos dd { margin: 0; font: 400 var(--t-xs)/1.4 var(--f-rotulo); color: var(--tierra-suave); }
+
+/* Lámina 14: mosaico */
 .mosaico-ficha { cursor: default; }
 .mosaico-ficha text { font-family: var(--f-rotulo); font-weight: 500; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 .controles { position: absolute; left: 96px; top: 916px; display: flex; align-items: center; gap: 28px; padding: 10px 14px;
@@ -186,18 +304,18 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 .regla span:first-child { transform: none; }
 .regla span:last-child { transform: translateX(-100%); }
 
-/* Lámina 11: ventana de la herramienta */
-.ventana { position: absolute; left: 96px; top: 300px; width: 860px; height: 560px; border: 1px solid var(--tierra);
-  border-radius: 3px; background: transparent; box-shadow: 0 18px 48px rgb(76 69 65 / .1); }
+/* Lámina 17: ventana de la herramienta */
+.ventana { position: absolute; left: 96px; top: 300px; width: 860px; height: 576px; border: 1px solid var(--tierra);
+  border-radius: 3px; overflow: hidden; background: transparent; box-shadow: 0 18px 48px rgb(76 69 65 / .1); }
 .ventana .barra-titulo { height: 40px; border-bottom: 1px solid var(--tierra); display: flex; align-items: center; padding: 0 16px;
   font: 500 var(--t-xs) var(--f-rotulo); color: var(--tierra); background: rgb(252 240 218 / .95); }
-.ventana .pendiente { position: absolute; left: 24px; bottom: 20px; font: 400 var(--t-xs) var(--f-rotulo); color: var(--tierra-suave);
-  background: rgb(252 240 218 / .9); padding: 6px 10px; border: 1px dashed var(--tierra-suave); }
+/* Captura de refor_gui sin la barra nativa (1720 × 1071, el doble del ancho de la ventana). */
+.ventana img { display: block; width: 860px; height: auto; }
 .vistas { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 .vistas li { display: grid; grid-template-columns: 230px 1fr; gap: 16px; font: 400 var(--t-s)/1.4 var(--f-texto); }
 .vistas b { font: 500 var(--t-s)/1.4 var(--f-rotulo); color: var(--tierra); }
 
-/* Lámina 12: decisiones */
+/* Lámina 18: decisiones */
 .decisiones { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
 .decisiones li { display: grid; grid-template-columns: 52px 1fr; gap: 16px; }
 .decisiones .n { font: 400 var(--t-xl)/1 var(--f-display); color: var(--ocre-hondo); }
@@ -206,15 +324,31 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 .capas-futuras span { display: inline-flex; align-items: center; gap: 8px; }
 .capas-futuras i { font-style: normal; display: inline-block; width: 34px; height: 18px; border: 1.5px dashed var(--tierra-suave); }
 
-/* Lámina 13 */
+/* Lámina 19 */
 .qr { width: 150px; height: 150px; display: block; padding: 14px; background: var(--papel); border: 1px solid var(--linea); }
 .cierre-pie { display: flex; align-items: center; gap: 28px; text-align: left; }
 
 /* Barra de avance: hilera al tresbolillo */
-#avance { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); overflow: visible; }
+/* Desplazada a la derecha del centro para no encimarse con la cartela. */
+#avance { position: absolute; left: calc(50% + 36px); bottom: 22px; transform: translateX(-50%); overflow: visible; }
 .punto { cursor: pointer; }
 .punto circle { transition: fill var(--d-respuesta) var(--ease-salida), stroke var(--d-respuesta) var(--ease-salida); }
-#numero { position: absolute; right: 96px; bottom: 26px; font: 400 var(--t-xs) var(--f-rotulo); color: var(--tierra-suave); font-variant-numeric: tabular-nums; }
+/* Índice, pantalla completa y número de lámina, en la esquina inferior derecha */
+.navegacion { position: absolute; right: 96px; bottom: 16px; display: flex; align-items: center; gap: 10px; z-index: 25; }
+.navegacion button { font: 500 var(--t-xs)/1 var(--f-rotulo); padding: 9px 13px; background: rgb(252 240 218 / .92); }
+.navegacion button[aria-pressed="true"] { background: rgb(252 240 218 / .92); color: var(--tierra); }
+.navegacion button:hover, .navegacion button[aria-expanded="true"] { background: var(--papel-hondo); }
+#numero { margin-left: 6px; min-width: 56px; text-align: right; font: 400 var(--t-xs) var(--f-rotulo); color: var(--tierra-suave); font-variant-numeric: tabular-nums; }
+.indice { position: absolute; right: 96px; bottom: 74px; z-index: 30; width: 860px; box-sizing: border-box; padding: 24px 28px 26px;
+  background: var(--papel); border: 1px solid var(--tierra); border-radius: 2px; box-shadow: 0 18px 48px rgb(76 69 65 / .14);
+  animation: aparece var(--d-respuesta) var(--ease-salida) both; }
+.indice kbd { font: 500 var(--t-xs) var(--f-rotulo); border: 1px solid var(--tierra-suave); border-radius: 2px; padding: 0 5px; color: var(--tierra); }
+.indice ol { list-style: none; margin: 14px 0 0; padding: 0; columns: 2; column-gap: 28px; }
+.indice li { break-inside: avoid; }
+.indice ol button { width: 100%; display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: baseline; text-align: left;
+  font: 400 var(--t-s)/1.25 var(--f-texto); padding: 7px 10px; }
+.indice ol button .n { font: 400 var(--t-m)/1 var(--f-display); color: var(--ocre-hondo); font-variant-numeric: lining-nums tabular-nums; }
+.indice ol button[aria-current] { background: var(--papel-hondo); box-shadow: inset 2.5px 0 0 var(--ocre-hondo); }
 
 /* Etiqueta flotante (polígonos y mosaico): recuadro de herbario */
 .etiqueta { position: absolute; z-index: 20; pointer-events: none; min-width: 250px; padding: 12px 16px 14px;
@@ -230,6 +364,9 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
   #giro { transition: opacity 300ms linear; }
   #giro.deriva { animation: none; }
   .lamina.entra > *, .lamina.datos .crece, .lamina.datos .traza { animation: none; }
+  .lamina.vuelve, .indice { animation: none; }
+  .lamina.datos :is(.dibujo *, .elige, .desliza, .cambia, .aparece-tarde), .lamina.datos.entra > :is(.anota, .ficha-arbol, .estacion, .bloque, .metodo-pie, .ex-conclusion, .reglas, .calculo) { animation: none; }
+  .lamina.datos .dibujo .trazo { stroke-dasharray: none; }
 }
 
 /* Impresión: una lámina por página, con la cámara en su encuadre final */
@@ -241,7 +378,7 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
   .lienzo { position: static; transform: none; width: auto; height: auto; overflow: visible; background: none; }
   /* El mapa queda oculto pero renderizado: sus patrones y recortes sirven a las copias impresas. */
   #vista { position: absolute !important; width: 0 !important; height: 0 !important; overflow: hidden; visibility: hidden; }
-  .grano, .cartela, #avance, #numero, .etiqueta, .controles { display: none !important; }
+  .grano, .cartela, #avance, .navegacion, .indice, .etiqueta, .controles { display: none !important; }
   .lamina { position: relative; width: 1920px; height: 1080px; visibility: visible; opacity: 1; break-after: page;
     overflow: hidden; background: var(--papel); }
   .lamina > * { animation: none !important; }

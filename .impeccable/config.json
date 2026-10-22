@@ -20,6 +20,24 @@
         ],
         "createdAt": "2026-10-20T19:41:54.993Z",
         "reason": "Claude: el detector mide 16px en todos los roles; la escala real (16/21/28/37/50/67 px, razón 1.333) vive en estilo.css y DESIGN.md sección 3"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "docs/presentacion/index.html"
+        ],
+        "createdAt": "2026-10-21T15:50:52.813Z",
+        "reason": "Claude triage: only bordered <li> is .tuberia li (slide 6) with padding-bottom 18px on the 1920 canvas; detector measures the canvas scaled down by --k, so the inset reads below 8px. Predates this session."
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "docs/visor/index.html"
+        ],
+        "createdAt": "2026-10-21T16:08:48.005Z",
+        "reason": "Claude triage: --papel #FCF0DA is the pinned brand background in docs/presentacion/DESIGN.md (Carta de campo), reused by the visor."
       }
     ]
   }
