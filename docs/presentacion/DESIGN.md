@@ -255,25 +255,24 @@ Explican los modelos a quien no es técnico. Van sobre papel, sin mapa ni
 paneles, a la manera de Tufte: poca tinta, rótulos directos, notas al margen
 y datos reales en lugar de esquemas cuando los hay.
 
-- **Formulación (8).** El programa de compra escrito completo, un renglón por
-  término o restricción, con una nota al margen numerada en lenguaje llano.
-  La restricción de probabilidad, el corazón estocástico, va en
-  `--ocre-hondo`. A la derecha, el cálculo con el polígono 1: tres líneas
-  alineadas (*x\**, E[*D*], *C*) sobre la misma banda de metas, la cuenta de
-  *C* en la meta elegida y un diagrama de puntos ordenado por lo que cuesta una
-  planta más, donde se ve que la mochila sube las especies baratas al +10 % y
-  baja las caras al −10 %.
+- **Compra (8).** Sin fórmulas: el objetivo (pagar lo menos posible) y cuatro
+  reglas numeradas en lenguaje llano, cada una con su cifra del polígono 1.
+  La regla de probabilidad, el corazón estocástico, va en `--ocre-hondo`. A la
+  derecha, un diagrama de puntos ordenado por lo que cuesta una planta más,
+  donde se ve que el modelo sube las especies baratas al +10 % y baja las
+  caras al −10 %. La formulación completa queda en el reporte.
 - **Memético (12).** El ciclo de una generación de izquierda a derecha
   (población → torneo → cruce → búsqueda tabú → reemplazo) y una flecha de
   regreso. Las claves son miniaturas por género con la composición de la
   clave 1; la generación se simula en el navegador con la misma lógica que
   `src/memetico/` y su competencia se calcula con *W*. El ganador y el hijo
   que entra se marcan con el contorno de resaltado.
-- **Exacto (14).** Tres ideas: la clave como matriz de interruptores lugar ×
-  especie, un esquema de ramificar y podar sin cifras, y la traza real de
-  HiGHS (techo y piso contra el tiempo) en seis múltiplos pequeños con la
-  misma escala. Techo: línea de 2 px en `--tierra`; piso: discontinua de
-  1.25 px, como la cota; brecha: `--papel-hondo`.
+- **Exacto (15).** Tres ideas sin fórmulas: cuántas claves distintas hay con
+  las mismas plantas de la clave 1 (52! / ∏ *n*ₛ!, con tres miniaturas), un
+  esquema de ramificar y podar sin cifras, y el techo y el piso de la clave 1
+  sobre una regla de competencia, con el azar como referencia. El techo llega
+  desde el azar y el piso desde la izquierda. Techo: punto en `--tierra`;
+  piso: discontinua de 1.5 px, como la cota; brecha: `--papel-hondo`.
 
 ---
 
@@ -331,9 +330,8 @@ Región ──► Sitio (30 polígonos) ──► Un polígono ──► La ret�
 | 15 | Modelo exacto | Se aleja al encuadre de la 16 | El mapa se apaga: hoja de método |
 | 16 | Validación | Se aleja un poco | El mosaico se tesela sobre todo el polígono |
 | 17 | Herramienta | El mapa se encoge a la ventana de la GUI | Liga el mapa con `refor_gui` |
-| 18 | Visor | Igual que la 17; el mapa queda detrás del visor | El visor de `docs/visor/` embebido y operable |
-| 19 | Recomendaciones | Vista del sitio, tenue | Capas futuras punteadas: agua, pendiente, suelo |
-| 20 | Cierre | Lejana e inclinada (perspectiva suave), con deriva lenta | Todos los polígonos plantados |
+| 18 | Recomendaciones | Vista del sitio, tenue | Capas futuras punteadas: agua, pendiente, suelo |
+| 19 | Cierre | Lejana e inclinada (perspectiva suave), con deriva lenta | Todos los polígonos plantados |
 
 ### Implementación
 
@@ -449,16 +447,16 @@ demás la sigue y no compite con ella.
 
 | Tipo | Duración | Curva | Uso |
 |---|---|---|---|
-| Cámara | 1.4–1.8 s | `cubic-bezier(.65, 0, .35, 1)` | Cambio de encuadre del mapa |
-| Contenido | 450 ms; empieza cuando la cámara va al 70 % | `cubic-bezier(.2, .7, .2, 1)` | Fundido y barrido de máscara de izquierda a derecha, como tinta que se escribe |
+| Cámara | 0.65–1.7 s, según cuánto cambia el encuadre; 0 si no se mueve | `cubic-bezier(.65, 0, .35, 1)` | Cambio de encuadre del mapa |
+| Contenido | 450 ms; empieza cuando la cámara va al 70 %, o a los 140 ms si no se mueve | `cubic-bezier(.2, .7, .2, 1)` | Fundido y barrido de máscara de izquierda a derecha, como tinta que se escribe |
 | Datos | 600–900 ms | `cubic-bezier(.2, .7, .2, 1)` | Barras que crecen, curvas que se trazan; solo en láminas de resultados |
 | Momento estelar | ≈ 2.5 s, coreografiado | por elemento | El mosaico de la lámina 14 pasa de una asignación al azar a la óptima |
 | Hoja de método | 3–5 s, siguiendo el razonamiento | tramos lineales y fundidos | El diagrama se dibuja en el orden en que se explica (secciones 4.1 y 4.2) |
 | Árbol | ≈ 3.5 s, de las raíces a las hojas | tramos lineales que siguen una salida suave | La tubería de la lámina 6 crece; cada anotación aparece cuando crece su parte |
 | Respuesta | 150–200 ms | `cubic-bezier(.2, .7, .2, 1)` | Hover sobre polígonos, conmutadores |
 
-- **Hacia atrás:** la cámara hace el recorrido inverso y el contenido aparece
-  sin animación de entrada.
+- **Hacia atrás:** la cámara hace el recorrido inverso con la misma duración y
+  el contenido, ya completo, se funde en 380 ms al mismo 70 %.
 - **`prefers-reduced-motion`:** la cámara cambia de encuadre con un fundido y
   las gráficas aparecen ya completas.
 - **Prohibido:** entradas «fade y sube» en cada elemento, rebotes, parallax
@@ -467,7 +465,9 @@ demás la sigue y no compite con ella.
 ### Navegación
 
 Flechas, barra espaciadora, `Re Pág` y `Av Pág`; `F` para pantalla completa;
-`Inicio` y `Fin`. La URL refleja la lámina (`#7`) para poder recargar sin
+`I` para el índice (`Esc` lo cierra); `Inicio` y `Fin`. En la esquina inferior
+derecha, junto al número de lámina, van los botones «Índice» y «Pantalla
+completa»; el índice lista las láminas por su `aria-label`. La URL refleja la lámina (`#7`) para poder recargar sin
 perder el lugar. `@media print` exporta una lámina por página con la cámara en
 su encuadre final.
 
@@ -484,19 +484,18 @@ su encuadre final.
 | 5 | Lo que no sabemos | Mortalidad, plantas existentes, competencia | Supervivencia *q* por especie con banda de incertidumbre | A |
 | 6 | Cómo lo resolvimos | Datos INECOL → 10,000 escenarios → compra por polígono → clave de plantación | La tubería como árbol (sección 4.1); cuatro anotaciones numeradas, porque es secuencia | Hoja |
 | 7 | El modelo de compra | Comprar lo justo para cumplir la meta en el 95 % de los escenarios; una meta por especie | Ejemplo de *A. salmiana* en el polígono 1: lo que falta, histograma de plantas necesarias con su cuantil y la meta elegida por especie | A |
-| 8 | Qué se minimiza y cómo se calcula | El programa de compra en lenguaje llano; cada planta extra cuesta distinto y la mochila sube las baratas | Programa con una nota al margen por renglón; *x\**, E[*D*] y *C* de *A. salmiana* como líneas alineadas; puntos ordenados por costo de una planta más | Hoja de método |
+| 8 | Cómo se decide la compra | La compra más barata que cumple cuatro reglas; cada planta extra cuesta distinto y el modelo sube las baratas | Objetivo y cuatro reglas en lenguaje llano, con las cifras del polígono 1; puntos ordenados por costo de una planta más | Hoja de método |
 | 9 | La compra | 594 plantas/ha + 129 existentes = 723/ha (10 % sobre la meta); Opuntia +10 %; Prosopis, Yucca y A. scabra −10 % | Barras divergentes por especie; barra apilada de densidad | B |
 | 10 | El presupuesto | Con $12,500/ha ningún polígono es factible; aceptar 50 veces más riesgo ahorra menos del 4 % | Frontera B\*(α) con la línea del presupuesto debajo de toda la curva | B |
 | 11 | Qué compite con qué | Lo que más compite es una planta junto a otra de su especie; el mezquite compite mucho consigo mismo y poco con las suculentas. Abre la segunda pregunta: la 12 usa *W* y la 14 se apoya en la regla del mezquite | Matriz *W* de 10 × 10 en la rampa secuencial, con el valor en cada celda; fila y columna del mezquite con contorno de resaltado; etiqueta por celda. Debajo, la escala de 0 a 1.5 con una marca por pareja y qué significan 0, 1 y 1.5. A la izquierda, la fórmula *W* = *γ*^[a=b] · *T* · *N* − *φF* del reporte E2 con sus cuatro términos. Panel a todo lo ancho, como la 16 | B |
 | 12 | Los modelos de asignación | Seis vecinas y la matriz *W*; el memético con búsqueda tabú; el exacto acota la brecha | Recorte de la clave 1 con una planta y sus vecinas, un intercambio animado y la recta azar / memético / cota | A |
 | 13 | Cómo funciona el memético | Población, torneo, cruce, búsqueda tabú y reemplazo; 30 corridas llegan al mismo valor | El ciclo de una generación con claves en miniatura y la competencia de cada una | Hoja de método |
 | 14 | La clave de plantación | 30 polígonos, 6 claves; el mezquite separa | El mosaico real se reordena del azar al óptimo; conmutador género/competencia y réplica 3 × 3 | C |
-| 15 | Cómo funciona el exacto | Interruptores sí/no, ramificar y podar; techo, piso y brecha | Matriz lugar × especie de la clave 1, esquema de ramificación y la traza de HiGHS en seis múltiplos pequeños | Hoja de método |
+| 15 | Cómo funciona el exacto | Demasiadas claves para probarlas todas; descartar familias enteras; techo, piso y brecha | Cuántas claves hay con las plantas de la clave 1, esquema de ramificación y el techo y el piso de la clave 1 sobre una regla de competencia | Hoja de método |
 | 16 | Qué tan buena es | 14.5–16.3 % menos competencia que al azar; d.e. ≤ 0.006; brecha con el óptimo exacto | Barras azar / memético / exacto por mosaico, con la cota del exacto | B |
 | 17 | La herramienta | `refor_gui`: configurar, ejecutar, exportar; reproducible | Captura de `refor_gui` en un marco de ventana | B |
-| 18 | El visor | Los resultados de `refor`, polígono por polígono | El visor embebido (iframe); se usa en vivo. Requiere servir el repo desde su raíz | C |
-| 19 | Recomendaciones | Ajustar presupuesto o meta; validar la matriz W; ampliar el monitoreo | Decisiones numeradas y línea de tiempo de siguientes pasos | A |
-| 20 | Cierre | Gracias y preguntas | El sitio inclinado y todo plantado; QR al repositorio | C |
+| 18 | Recomendaciones | Ajustar presupuesto o meta; validar la matriz W; ampliar el monitoreo | Decisiones numeradas y línea de tiempo de siguientes pasos | A |
+| 19 | Cierre | Gracias y preguntas | El sitio inclinado y todo plantado; QR al repositorio | C |
 
 **Anexo** (si preguntan por el método): formulación de la compra con
 restricción probabilística y algoritmo memético con búsqueda tabú. La matriz
@@ -569,13 +568,13 @@ como en el reporte E2.
 
 | Archivo | Contenido |
 |---|---|
-| `index.html` | Las 20 láminas |
+| `index.html` | Las 19 láminas |
 | `estilo.css` | Tokens y composición |
-| `deck.js` | Mapa, cámara, navegación, gráficas, el árbol (6), los diagramas de las hojas de método (8, 12, 14) y el mosaico (13) |
+| `deck.js` | Mapa, cámara, navegación, gráficas, el árbol (6), los diagramas de las hojas de método (8, 13, 15) y el mosaico (14) |
 | `herbario.js` | Dibujos provisionales de las 10 especies |
 | `datos/datos.js` | Generado por `scripts/datos_presentacion.py`; no se edita a mano |
 | `fuentes/`, `fuentes.css` | Fuentes locales |
-| `qr-repositorio.svg` | QR de la lámina 20 |
+| `qr-repositorio.svg` | QR de la lámina 19 |
 
 Para regenerar los datos, desde la raíz del repo:
 

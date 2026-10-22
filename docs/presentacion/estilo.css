@@ -86,6 +86,8 @@ body { background: var(--marco); color: var(--tierra); overflow: hidden; }
 .lamina.entra > :nth-child(2) { animation-delay: 60ms; }
 .lamina.entra > :nth-child(3) { animation-delay: 120ms; }
 .lamina.entra > :nth-child(4) { animation-delay: 180ms; }
+/* Hacia atrás la lámina ya está completa: solo se funde. */
+.lamina.vuelve { animation: aparece 380ms var(--ease-salida) both; }
 @keyframes entra {
   from { opacity: 0; clip-path: inset(0 100% 0 0); }
   to { opacity: 1; clip-path: inset(0 0 0 0); }
@@ -214,11 +216,11 @@ i, em, .binomial { font-style: italic; }
 @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
 @keyframes brote { from { opacity: 0; transform: scale(.25); } to { opacity: 1; transform: scale(1); } }
 
-/* Hojas de método (láminas 8, 13 y 15): papel sin mapa, notas al margen, poca tinta */
+/* Hojas de método (láminas 8, 13 y 15): papel sin mapa, rótulos directos, poca tinta */
 .metodo-titulo { position: absolute; left: 96px; top: 80px; width: 1500px; }
 .metodo-entrada { position: absolute; left: 96px; top: 160px; width: 880px; color: var(--tierra); }
 .metodo-fuente { position: absolute; left: 96px; bottom: 80px; width: 880px; }
-.ex-conclusion { position: absolute; left: 980px; top: 912px; width: 844px; color: var(--tierra); }
+.ex-conclusion { position: absolute; left: 980px; top: 800px; width: 844px; color: var(--tierra); }
 .metodo-pie { position: absolute; left: 96px; top: 870px; width: 1500px; color: var(--tierra); }
 .bloque h3 .n, .estacion h3 .n { font: 400 var(--t-l)/1 var(--f-display); color: var(--ocre-hondo); margin-right: 12px; }
 .bloque { display: grid; gap: 4px; }
@@ -229,22 +231,16 @@ i, em, .binomial { font-style: italic; }
 .dibujo .fuerte { fill: var(--tierra); font-weight: 500; }
 .dibujo .flecha { fill: none; stroke: var(--tierra); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 
-/* Lámina 8: el programa, con una nota al margen por renglón */
-.programa { position: absolute; left: 96px; top: 250px; width: 900px; display: grid; grid-template-columns: 128px auto 1fr;
-  column-gap: 28px; row-gap: 14px; align-items: baseline; }
-.programa .verbo { font: 400 var(--t-s)/1 var(--f-rotulo); color: var(--tierra-suave); }
-.programa .mat { font: 400 30px/1.25 var(--f-texto); color: var(--tinta); white-space: nowrap; font-variant-numeric: lining-nums; }
-.programa .mat sub, .programa .mat sup { font-size: .6em; line-height: 0; }
-.programa .mat .op { font-family: var(--f-display); font-size: 1.15em; }
-.programa .nota { font: 400 var(--t-xs)/1.35 var(--f-rotulo); color: var(--tierra-suave); max-width: 300px; }
-.programa .ref { font: 500 13px/0 var(--f-rotulo); color: var(--ocre-hondo); vertical-align: super; margin-left: 3px; }
-.programa .nota .ref { margin: 0 4px 0 0; }
-.programa .corazon .mat, .programa .corazon .nota { color: var(--ocre-hondo); }
-.programa .separa { grid-column: 1 / -1; border-top: 1px solid var(--linea); margin: 4px 0; }
-.programa .glosario { grid-column: 1 / -1; font: 400 var(--t-xs)/1.5 var(--f-rotulo); color: var(--tierra-suave); margin-top: 6px; }
-.programa .glosario i { font-family: var(--f-texto); font-size: 18px; color: var(--tierra); }
+/* Lámina 8: el objetivo y las cuatro reglas de la compra, en lenguaje llano */
+.reglas { position: absolute; left: 96px; top: 262px; width: 880px; display: grid; gap: 12px; }
+.reglas > .rotulo + .regla-fila { margin-top: -2px; }
+.regla-fila + .rotulo { margin-top: 10px; }
+.regla-fila { display: grid; grid-template-columns: 52px 1fr; gap: 16px; }
+.regla-fila .n { font: 400 var(--t-xl)/1 var(--f-display); color: var(--ocre-hondo); }
+.regla-fila h3 { margin-bottom: 2px; }
+.regla-fila.corazon h3 { color: var(--ocre-hondo); }
 .calculo { position: absolute; left: 1060px; top: 150px; width: 764px; display: flex; flex-direction: column; gap: 12px; }
-.lamina.datos.entra > :is(.programa, .calculo) { animation: entra var(--d-contenido) var(--ease-salida) both; }
+.lamina.datos.entra > :is(.reglas, .calculo) { animation: entra var(--d-contenido) var(--ease-salida) both; }
 .lamina.datos.entra > .calculo { animation-delay: 300ms; }
 
 /* Láminas 7 y 12: la meta elegida se desliza desde la referencia; dos plantas se intercambian */
@@ -259,6 +255,9 @@ i, em, .binomial { font-style: italic; }
   to { transform: none; }
 }
 .lamina.datos .aparece-tarde { animation: aparece var(--d-contenido) var(--ease-salida) 1500ms both; }
+/* Lámina 15: el techo llega desde el azar y el piso, desde la izquierda */
+.lamina.datos .dibujo .llega { animation: llega 900ms var(--ease-salida) var(--t) both; }
+@keyframes llega { from { opacity: 0; transform: translateX(var(--dx)); } 30% { opacity: 1; } }
 
 /* Lámina 11: la fórmula de W y sus términos, con la misma voz que el programa de la lámina 8 */
 .formula { font: 400 30px/1.25 var(--f-texto); color: var(--tinta); white-space: nowrap; font-variant-numeric: lining-nums; }
@@ -316,7 +315,7 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 .vistas li { display: grid; grid-template-columns: 230px 1fr; gap: 16px; font: 400 var(--t-s)/1.4 var(--f-texto); }
 .vistas b { font: 500 var(--t-s)/1.4 var(--f-rotulo); color: var(--tierra); }
 
-/* Lámina 19: decisiones */
+/* Lámina 18: decisiones */
 .decisiones { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
 .decisiones li { display: grid; grid-template-columns: 52px 1fr; gap: 16px; }
 .decisiones .n { font: 400 var(--t-xl)/1 var(--f-display); color: var(--ocre-hondo); }
@@ -325,11 +324,7 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 .capas-futuras span { display: inline-flex; align-items: center; gap: 8px; }
 .capas-futuras i { font-style: normal; display: inline-block; width: 34px; height: 18px; border: 1.5px dashed var(--tierra-suave); }
 
-/* Lámina 18: visor embebido */
-.visor-embebido { position: absolute; left: 96px; right: 96px; top: 170px; bottom: 80px; width: calc(100% - 192px); height: calc(100% - 250px);
-  border: 1px solid var(--tierra); border-radius: 3px; background: var(--papel); box-shadow: 0 18px 48px rgb(76 69 65 / .1); }
-
-/* Lámina 20 */
+/* Lámina 19 */
 .qr { width: 150px; height: 150px; display: block; padding: 14px; background: var(--papel); border: 1px solid var(--linea); }
 .cierre-pie { display: flex; align-items: center; gap: 28px; text-align: left; }
 
@@ -338,7 +333,22 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 #avance { position: absolute; left: calc(50% + 36px); bottom: 22px; transform: translateX(-50%); overflow: visible; }
 .punto { cursor: pointer; }
 .punto circle { transition: fill var(--d-respuesta) var(--ease-salida), stroke var(--d-respuesta) var(--ease-salida); }
-#numero { position: absolute; right: 96px; bottom: 26px; font: 400 var(--t-xs) var(--f-rotulo); color: var(--tierra-suave); font-variant-numeric: tabular-nums; }
+/* Índice, pantalla completa y número de lámina, en la esquina inferior derecha */
+.navegacion { position: absolute; right: 96px; bottom: 16px; display: flex; align-items: center; gap: 10px; z-index: 25; }
+.navegacion button { font: 500 var(--t-xs)/1 var(--f-rotulo); padding: 9px 13px; background: rgb(252 240 218 / .92); }
+.navegacion button[aria-pressed="true"] { background: rgb(252 240 218 / .92); color: var(--tierra); }
+.navegacion button:hover, .navegacion button[aria-expanded="true"] { background: var(--papel-hondo); }
+#numero { margin-left: 6px; min-width: 56px; text-align: right; font: 400 var(--t-xs) var(--f-rotulo); color: var(--tierra-suave); font-variant-numeric: tabular-nums; }
+.indice { position: absolute; right: 96px; bottom: 74px; z-index: 30; width: 860px; box-sizing: border-box; padding: 24px 28px 26px;
+  background: var(--papel); border: 1px solid var(--tierra); border-radius: 2px; box-shadow: 0 18px 48px rgb(76 69 65 / .14);
+  animation: aparece var(--d-respuesta) var(--ease-salida) both; }
+.indice kbd { font: 500 var(--t-xs) var(--f-rotulo); border: 1px solid var(--tierra-suave); border-radius: 2px; padding: 0 5px; color: var(--tierra); }
+.indice ol { list-style: none; margin: 14px 0 0; padding: 0; columns: 2; column-gap: 28px; }
+.indice li { break-inside: avoid; }
+.indice ol button { width: 100%; display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: baseline; text-align: left;
+  font: 400 var(--t-s)/1.25 var(--f-texto); padding: 7px 10px; }
+.indice ol button .n { font: 400 var(--t-m)/1 var(--f-display); color: var(--ocre-hondo); font-variant-numeric: lining-nums tabular-nums; }
+.indice ol button[aria-current] { background: var(--papel-hondo); box-shadow: inset 2.5px 0 0 var(--ocre-hondo); }
 
 /* Etiqueta flotante (polígonos y mosaico): recuadro de herbario */
 .etiqueta { position: absolute; z-index: 20; pointer-events: none; min-width: 250px; padding: 12px 16px 14px;
@@ -354,7 +364,8 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
   #giro { transition: opacity 300ms linear; }
   #giro.deriva { animation: none; }
   .lamina.entra > *, .lamina.datos .crece, .lamina.datos .traza { animation: none; }
-  .lamina.datos :is(.dibujo *, .elige, .desliza, .cambia, .aparece-tarde), .lamina.datos.entra > :is(.anota, .ficha-arbol, .estacion, .bloque, .metodo-pie, .ex-conclusion, .programa, .calculo) { animation: none; }
+  .lamina.vuelve, .indice { animation: none; }
+  .lamina.datos :is(.dibujo *, .elige, .desliza, .cambia, .aparece-tarde), .lamina.datos.entra > :is(.anota, .ficha-arbol, .estacion, .bloque, .metodo-pie, .ex-conclusion, .reglas, .calculo) { animation: none; }
   .lamina.datos .dibujo .trazo { stroke-dasharray: none; }
 }
 
@@ -367,7 +378,7 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
   .lienzo { position: static; transform: none; width: auto; height: auto; overflow: visible; background: none; }
   /* El mapa queda oculto pero renderizado: sus patrones y recortes sirven a las copias impresas. */
   #vista { position: absolute !important; width: 0 !important; height: 0 !important; overflow: hidden; visibility: hidden; }
-  .grano, .cartela, #avance, #numero, .etiqueta, .controles { display: none !important; }
+  .grano, .cartela, #avance, .navegacion, .indice, .etiqueta, .controles { display: none !important; }
   .lamina { position: relative; width: 1920px; height: 1080px; visibility: visible; opacity: 1; break-after: page;
     overflow: hidden; background: var(--papel); }
   .lamina > * { animation: none !important; }

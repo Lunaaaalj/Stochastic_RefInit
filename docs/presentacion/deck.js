@@ -331,6 +331,16 @@
     if (dr < -180) dr += 360;
     return { cx: a.cx + (b.cx - a.cx) * w, cy: a.cy + (b.cy - a.cy) * w, s, rot: a.rot + dr * p, ax: a.ax + (b.ax - a.ax) * p, ay: a.ay + (b.ay - a.ay) * p };
   }
+  // Duración del viaje según cuánto cambia el encuadre: el acercamiento en escala logarítmica, el
+  // desplazamiento en anchos de pantalla, el giro y el ancla. Si la cámara no se mueve, 0 ms.
+  function duracionViaje(a, b) {
+    if (!a) return 0;
+    let dr = Math.abs(b.rot - a.rot) % 360;
+    if (dr > 180) dr = 360 - dr;
+    const d = Math.abs(Math.log(b.s / a.s)) + Math.hypot(b.cx - a.cx, b.cy - a.cy) * Math.min(a.s, b.s) / 1920 +
+      dr / 90 + Math.hypot(b.ax - a.ax, b.ay - a.ay) / 1920;
+    return d < 0.005 ? 0 : Math.round(Math.min(1700, 650 + 700 * d));
+  }
   let viaje = null;
   function moverCamara(dest, { dur = 1600, progreso, fin } = {}) {
     if (viaje) cancelAnimationFrame(viaje.raf);
@@ -801,87 +811,46 @@
     });
   }
 
-  // ---------- Lámina 8: la formulación de la compra ----------
-  // A la manera de Tufte: el programa con una nota al margen por renglón, y el cálculo con los
-  // datos del polígono 1. Curvas: cola binomial exacta; metas elegidas, compra y déficit: refor plan.
+  // ---------- Lámina 8: cómo se decide la compra ----------
+  // El modelo en lenguaje llano: un objetivo y cuatro reglas con las cifras del polígono 1, y cómo
+  // elige: lo que cuesta una planta más de cada especie (cola binomial exacta) y dónde quedó su meta.
   {
     const P = D.compra_p1, th = P.theta;
-    const iv = (v, s = "s") => `<i>${v}</i><sub>${s}</sub>`, SUMA = `<span class="op">Σ</span><sub>s</sub>`;
-    const n0 = `<i>n</i><sup>0</sup><sub>s</sub><i>A</i>`;
-    const FILAS = [
-      ["minimizar", `(1 + <i>θ</i>) ${SUMA} ${iv("c")} ${iv("x")}`, `Lo que se paga por la compra, con ${fmt(th * 100)} % de logística.`],
-      ["", `+ (1 + <i>θ</i>) ${SUMA} ${iv("c")} E[${iv("D")}]`, "Lo que se espera pagar por reponer las que falten al año."],
-      null,
-      ["sujeto a", `${SUMA} ${iv("n")} = ${fmt(T.meta_ha)} <i>A</i>`, `La densidad: ${fmt(T.meta_ha)} plantas por hectárea.`],
-      ["", `${fmt(1 - P.delta, 1)} ${n0} ≤ ${iv("n")} ≤ ${fmt(1 + P.delta, 1)} ${n0}`, `La composición de INECOL, con ±${fmt(P.delta * 100)} % de margen.`],
-      ["", `P(${iv("E")} + ${iv("S")}(${iv("x")}) ≥ ${iv("n")}) ≥ ${fmt(1 - P.alfa, 2)}`, `Lo que ya existe más lo que sobrevive alcanza la meta en ${fmt((1 - P.alfa) * 100)} de cada 100 escenarios.`, "corazon"],
-      ["", `(1 + <i>θ</i>) ${SUMA} ${iv("c")} ${iv("x")} ≤ <i>B A</i>`, "La compra cabe en el presupuesto."],
+    $("fc-entrada").innerHTML = `En cada polígono, el modelo decide cuántas plantas de cada especie deben quedar vivas y cuántas comprar para lograrlo. Ejemplo: el polígono 1, de ${fmt(P.area, 2)} ha.`;
+    const REGLAS = [
+      ["Llegar a la densidad", `Entre todas las especies deben quedar ${fmt(P.total)} plantas: ${fmt(T.meta_ha)} por hectárea.`],
+      ["Respetar la mezcla de INECOL", `Cada especie puede quedar hasta ${fmt(P.delta * 100)} % arriba o abajo de su proporción de referencia.`],
+      ["Cumplir aunque algunas mueran", `Las que ya existen más las compradas que sobreviven alcanzan la meta en ${fmt((1 - P.alfa) * 100)} de cada 100 escenarios simulados.`, "corazon"],
+      ["Caber en el presupuesto", `La compra no puede pasar de ${dinero(T.presupuesto)} por hectárea. Ningún polígono lo logra (lámina 10), así que aquí se muestra la compra sin ese tope.`],
     ];
-    let k = 0;
-    $("programa").innerHTML = FILAS.map(f => {
-      if (!f) return '<div class="separa"></div>';
-      k++;
-      return `<div class="${f[3] ?? ""}" style="display:contents"><span class="verbo">${f[0]}</span>` +
-        `<span class="mat">${f[1]}<span class="ref">${k}</span></span><span class="nota"><span class="ref">${k}</span>${f[2]}</span></div>`;
-    }).join("") +
-      `<p class="glosario">${iv("c")} costo por planta · ${iv("E")} plantas que ya existen · ${iv("S")}(<i>x</i>) cuántas de <i>x</i> sobreviven, cada una con probabilidad ${iv("q")} · ` +
-      `${iv("D")} las que faltan al año · <i>A</i> hectáreas del polígono · <i>B</i> presupuesto por hectárea · <i>θ</i> = ${th}</p>`;
+    $("reglas").innerHTML =
+      `<p class="rotulo">Objetivo</p>` +
+      `<div class="regla-fila objetivo"><span class="n">$</span><div><h3>Pagar lo menos posible</h3><p class="chico">La compra más lo que se espera gastar en reponer las que mueran el primer año. En el polígono 1: ${dinero(P.costo_compra)} de compra y ${dinero(P.costo_reposicion)} de reposición esperada.</p></div></div>` +
+      `<p class="rotulo">Las reglas</p>` +
+      REGLAS.map(([h, t, c], i) => `<div class="regla-fila ${c ?? ""}"><span class="n">${i + 1}</span><div><h3>${h}</h3><p class="chico">${t}</p></div></div>`).join("");
 
-    // 1. Una especie: compra mínima, faltante esperado y costo para cada meta de su banda.
+    // Lo que cuesta una planta más de cada especie, de un extremo al otro de su banda de metas.
     const costo = (e, x, d) => (1 + th) * ESP[e.ab].costo * (x + d);
-    const ej = P.especies.find(e => ESP[e.ab].nombre === D.escenarios.especie);
-    const cu = ej.curva, nA = cu[0][0], nB = cu[cu.length - 1][0];
-    $("fc-texto-curva").innerHTML = `Para <i>${corto(ESP[ej.ab].nombre)}</i>, cada meta posible <i>n</i> da una compra mínima (la que alcanza en el 95 % de los escenarios) y un faltante esperado. Juntos dan su costo <i>C</i>(<i>n</i>).`;
-    const s1 = svgEl("fc-curva"), X0 = 178, X1 = 640, X = n => X0 + (n - nA) / (nB - nA) * (X1 - X0), alto = 30;
-    const SERIES = [
-      ["compra mínima", r => r[1], ej.x, v => fmt(v)],
-      ["faltante esperado", r => r[2], ej.deficit, v => fmt(v, 2)],
-      ["costo C(n)", r => costo(ej, r[1], r[2]), costo(ej, ej.x, ej.deficit), v => dinero(v)],
-    ];
-    const xs = X(ej.n);
-    SERIES.forEach(([nombre, f, elegido, formato], i) => {
-      const y0 = 26 + i * 48, vals = cu.map(f), lo = Math.min(...vals), hi = Math.max(...vals);
-      const Y = v => y0 + alto - (v - lo) / ((hi - lo) || 1) * alto;
-      texto(s1, 0, y0 + alto / 2 + 6, nombre, { class: i === 2 ? "fuerte" : "" });
-      let d = `M${X(cu[0][0])} ${Y(vals[0])}`;
-      cu.forEach((r, j) => { if (j) d += `H${X(r[0]).toFixed(1)}V${Y(vals[j]).toFixed(1)}`; });
-      const linea = el("path", { d, fill: "none", stroke: i === 2 ? COL.tierra : COL.tierraSuave, "stroke-width": i === 2 ? 2 : 1.25, class: "traza" }, s1);
-      linea.style.setProperty("--largo", (linea.getTotalLength() + 1).toFixed(0));
-      el("circle", { cx: xs, cy: Y(f(cu.find(r => r[0] === ej.n))), r: 4, fill: i === 2 ? ESP[ej.ab].c : COL.tierra, stroke: COL.tierra, "stroke-width": 1 }, s1);
-      texto(s1, 764, y0 + alto / 2 + 6, formato(elegido), { "text-anchor": "end", class: "fuerte" });
-    });
-    el("path", { d: `M${xs} 14V${26 + 3 * 48 - 6}`, stroke: COL.ocreHondo, "stroke-width": 1 }, s1);
-    texto(s1, xs, 10, `meta elegida: ${ej.n}`, { "text-anchor": "middle" }).style.fill = COL.ocreHondo;
-    const yb = 26 + 3 * 48;
-    el("path", { d: `M${X0} ${yb}H${X1}`, class: "eje" }, s1);
-    texto(s1, X0, yb + 20, `${nA}`, {});
-    texto(s1, X1, yb + 20, `${nB} plantas`, { "text-anchor": "end" });
-    texto(s1, X(ej.n0A), yb + 20, "referencia", { "text-anchor": "middle" });
-    el("path", { d: `M${X(ej.n0A)} ${yb}v5`, class: "eje" }, s1);
-    const f = texto(s1, 0, 232, "", {});
-    f.style.cssText = `font:400 var(--t-s) var(--f-texto);fill:${COL.tinta}`;
-    f.innerHTML = `<tspan font-style="italic">C</tspan>(${ej.n}) = ${fmt(1 + th, 2)} × ${dinero(ESP[ej.ab].costo)} × (${ej.x} + ${fmt(ej.deficit, 2)}) = ${dinero(costo(ej, ej.x, ej.deficit))}`;
-
-    // 2. Todas las especies: cuánto cuesta una planta más y dónde quedó su meta en la banda.
     const filas = P.especies.map(e => {
       const a = e.curva[0], b = e.curva[e.curva.length - 1];
-      return { e, marg: (costo(e, b[1], b[2]) - costo(e, a[1], a[2])) / (b[0] - a[0]), pos: (e.n - e.n0A) / e.n0A * 100, interior: e.n > a[0] && e.n < b[0] };
+      return { e, marg: (costo(e, b[1], b[2]) - costo(e, a[1], a[2])) / (b[0] - a[0]), pos: (e.n - e.n0A) / e.n0A * 100 };
     }).sort((a, b) => a.marg - b.marg);
-    const medio = filas.filter(r => r.interior).map(r => `<i>${corto(ESP[r.e.ab].nombre)}</i>`).join(" y ");
-    $("fc-texto-eleccion").innerHTML = `Las metas deben sumar ${fmt(P.total)} (${fmt(T.meta_ha)} × ${fmt(P.area, 2)} ha). Conviene subir las especies cuya planta extra cuesta menos y bajar las caras${medio ? `; ${medio} cuadra el total` : ""}. Una programación dinámica revisa todas las combinaciones.`;
-    const s2 = svgEl("fc-eleccion"), B0 = 380, B1 = 740, Bp = p => B0 + (p + 10) / 20 * (B1 - B0);
-    texto(s2, 318, 14, "una planta más cuesta", { "text-anchor": "end" });
-    [[-10, "−10 %"], [0, "referencia"], [10, "+10 %"]].forEach(([p, t]) => texto(s2, Bp(p), 14, t, { "text-anchor": "middle" }));
+    $("fc-texto-eleccion").innerHTML = `Hay que repartir ${fmt(P.total)} plantas entre ${filas.length} especies. Conviene poner más de las especies cuya planta extra sale barata, porque cuesta menos o sobrevive más, y menos de las caras. El modelo revisa todas las combinaciones y se queda con la más barata.`;
+    const s2 = svgEl("fc-eleccion"), B0 = 400, B1 = 740, Bp = p => B0 + (p + 10) / 20 * (B1 - B0), h = 34;
+    texto(s2, 330, 16, "una planta más cuesta", { "text-anchor": "end" });
+    [[-10, "menos"], [0, "referencia"], [10, "más"]].forEach(([p, t]) => texto(s2, Bp(p), 16, t, { "text-anchor": "middle" }));
     filas.forEach(({ e, marg, pos }, i) => {
-      const y = 40 + i * 25.5;
-      texto(s2, 0, y + 6, e.ab, { class: "ab", style: "font-size:17px" });
-      texto(s2, 44, y + 6, corto(ESP[e.ab].nombre), { class: "bin", style: "font-size:17px" });
-      texto(s2, 318, y + 6, dinero(marg), { "text-anchor": "end", class: "fuerte" });
-      el("path", { d: `M${Bp(-10)} ${y}H${Bp(10)}M${Bp(0)} ${y - 5}v10`, stroke: COL.tierraSuave, "stroke-width": 1, fill: "none" }, s2);
+      const y = 50 + i * h;
+      texto(s2, 0, y + 7, e.ab, { class: "ab" });
+      texto(s2, 52, y + 7, corto(ESP[e.ab].nombre), { class: "bin" });
+      texto(s2, 330, y + 7, dinero(marg), { "text-anchor": "end", class: "fuerte" });
+      el("path", { d: `M${Bp(-10)} ${y}H${Bp(10)}M${Bp(0)} ${y - 6}v12`, stroke: COL.tierraSuave, "stroke-width": 1, fill: "none" }, s2);
       const g = el("g", { transform: `translate(${Bp(pos).toFixed(1)} ${y})` }, s2);
-      el("path", { d: hexR(0, 0, 8.5), fill: ESP[e.ab].c, stroke: COL.tierraSuave, "stroke-width": 1, class: "desliza", style: `--i:${i};--dx:${(Bp(0) - Bp(pos)).toFixed(1)}px` }, g);
+      el("path", { d: hexR(0, 0, 10), fill: ESP[e.ab].c, stroke: COL.tierraSuave, "stroke-width": 1, class: "desliza", style: `--i:${i};--dx:${(Bp(0) - Bp(pos)).toFixed(1)}px` }, g);
     });
-        $("fc-fuente").innerHTML = `Polígono 1, ${fmt(P.area, 2)} ha · α = ${P.alfa} · θ = ${th} · δ = ${P.delta}. Curvas: cola binomial exacta (como <code>refor --metodo exacto</code>); metas, compra y faltante: <code>refor plan</code>, semilla 42.`;
+    const yb = 50 + filas.length * h;
+    texto(s2, B1, yb + 8, `cada hexágono: la meta elegida, hasta ±${fmt(P.delta * 100)} %`, { "text-anchor": "end" });
+    $("fc-fuente").innerHTML = `Polígono 1, ${fmt(P.area, 2)} ha · riesgo α = ${P.alfa} · logística θ = ${th}. Costo de una planta más: cola binomial exacta; metas, compra y reposición: <code>refor plan</code>, semilla 42.`;
   }
 
   // ---------- Lámina 9: la compra ----------
@@ -1220,82 +1189,88 @@
   }
 
   // ---------- Lámina 15: cómo funciona el modelo exacto ----------
+  // Tres ideas sin fórmulas: cuántas claves hay, ramificar y podar, y el techo y el piso de la clave 1.
   {
-    const s = svgEl("exacto"), m1 = D.mosaicos[0], plano = m1.clave.flat(), abs = Object.keys(ESP);
-    $("ex-t1").innerHTML = `Cada uno de los ${N} lugares y cada una de las ${abs.length} especies es un interruptor sí/no: ${fmt(N * abs.length)} en total. En cada columna se enciende uno; cada fila, tantos como plantas de esa especie se compraron. Así se ve la clave 1.`;
-    $("ex-b1").style.cssText = "position:absolute;left:96px;top:240px;width:800px;--t:0ms";
-    $("ex-b2").style.cssText = "position:absolute;left:96px;top:600px;width:800px;--t:1300ms";
-    $("ex-b3").style.cssText = "position:absolute;left:980px;top:240px;width:844px;--t:2300ms";
+    const s = svgEl("exacto"), m1 = D.mosaicos[0], plano = m1.clave.flat();
+    $("ex-b1").style.cssText = "position:absolute;left:96px;top:220px;width:800px;--t:0ms";
+    $("ex-b2").style.cssText = "position:absolute;left:96px;top:600px;width:800px;--t:1200ms";
+    $("ex-b3").style.cssText = "position:absolute;left:980px;top:220px;width:844px;--t:2200ms";
 
-    // 1. La matriz lugar × especie de la clave 1, columna por columna.
-    const MX = 152, MY = 392, paso = 13, fila = 16;
-    abs.forEach((ab, i) => {
-      texto(s, MX - 14, MY + i * fila + 5, ab, { class: "rotulo-der", style: "font-size:14px" });
-      tiempo(texto(s, MX + N * paso + 10, MY + i * fila + 5, `${plano.filter(x => x === ab).length}`, { class: "rotulo-izq fuerte aparece", style: "font-size:14px" }), 1150);
+    // 1. Cuántas maneras hay de acomodar las mismas plantas: 52! / (n₁! n₂! …), en base 10.
+    const logFact = n => { let v = 0; for (let i = 2; i <= n; i++) v += Math.log10(i); return v; };
+    const cuenta = {};
+    for (const ab of plano) cuenta[ab] = (cuenta[ab] ?? 0) + 1;
+    const l10 = logFact(N) - Object.values(cuenta).reduce((a, n) => a + logFact(n), 0);
+    const exp = Math.floor(l10), man = 10 ** (l10 - exp);
+    $("ex-t1").innerHTML = `Las ${N} plantas de la clave 1 se pueden acomodar de muchísimas maneras. Revisarlas una por una, aun a mil millones por segundo, no terminaría nunca.`;
+    // La clave 1 y dos reacomodos al azar de las mismas plantas, en fila, y la cuenta.
+    const rnd = mulberry32(15), r = 7.4;
+    const barajar = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+    [plano, barajar(plano), barajar(plano)].forEach((pl, i) => {
+      const g = tiempo(el("g", { class: "aparece" }, s), 250 + i * 200);
+      miniatura(g, pl, 96 + i * 222, 372, r);
     });
-    plano.forEach((sp, v) => {
-      const g = tiempo(el("g", { class: "aparece" }, s), 200 + v * 18);
-      abs.forEach((ab, i) => {
-        const x = MX + v * paso + paso / 2, y = MY + i * fila;
-        if (ab === sp) el("path", { d: hexR(x, y, 6.2), fill: ESP[ab].c, stroke: COL.tierraSuave, "stroke-width": 0.75 }, g);
-        else el("circle", { cx: x, cy: y, r: 1.1, fill: COL.tierraSuave, opacity: 0.45 }, g);
-      });
-    });
-    texto(s, MX, MY + abs.length * fila + 14, "lugar 1", { class: "rotulo-izq", style: "font-size:14px" });
-    texto(s, MX + N * paso, MY + abs.length * fila + 14, `lugar ${N}`, { class: "rotulo-der", style: "font-size:14px" });
+    tiempo(texto(s, 96 + 3 * 222 + 4, 408, "…", { class: "rotulo-izq aparece", style: "font-size:28px" }), 850);
+    const tc = tiempo(texto(s, 96, 520, "", { class: "rotulo-izq aparece" }), 1000);
+    tc.style.cssText = `font:400 var(--t-2xl)/1 var(--f-display);fill:${COL.tierra}`;
+    tc.innerHTML = `≈ ${fmt(man, 1)} × 10<tspan dy="-26" font-size="38">${exp}</tspan>`;
+    tiempo(texto(s, 430, 512, "claves distintas con las mismas plantas", { class: "rotulo-izq aparece" }), 1000);
 
     // 2. Ramificar y podar: esquema sin cifras.
-    const NODOS = { r: [430, 790, "todas las claves"], a: [250, 860, "Pla en el lugar 1"], b: [610, 860, "otra especie en el lugar 1"],
-      aa: [170, 935, "sigue…"], ab: [330, 935, "se poda"], ba: [530, 935, "se poda"], bb: [690, 935, "sigue…"] };
-    const RAMAS = [["r", "a", 1400], ["r", "b", 1400], ["a", "aa", 1750], ["a", "ab", 1750], ["b", "ba", 1750], ["b", "bb", 1750]];
+    const NODOS = { r: [430, 790, "todas las claves"], a: [250, 860, "mezquite en el lugar 1"], b: [610, 860, "otra especie en el lugar 1"],
+      aa: [170, 935, "sigue…"], ab: [330, 935, "se descarta"], ba: [530, 935, "se descarta"], bb: [690, 935, "sigue…"] };
+    const RAMAS = [["r", "a", 1350], ["r", "b", 1350], ["a", "aa", 1700], ["a", "ab", 1700], ["b", "ba", 1700], ["b", "bb", 1700]];
     for (const [de, a, t] of RAMAS) {
       const [x0, y0] = NODOS[de], [x1, y1] = NODOS[a];
       trazo(s, `M${x0} ${y0}C${x0} ${(y0 + y1) / 2} ${x1} ${(y0 + y1) / 2} ${x1} ${y1}`, t, 320, { "stroke-width": 1.5 });
     }
     for (const [id, [x, y, txt]] of Object.entries(NODOS)) {
-      const t = id === "r" ? 1350 : id.length === 1 ? 1720 : 2070, poda = txt === "se poda";
+      const t = id === "r" ? 1300 : id.length === 1 ? 1670 : 2020, poda = txt === "se descarta";
       const g = tiempo(el("g", { class: "aparece" }, s), t);
       if (poda) el("path", { d: `M${x - 6} ${y - 6}l12 12m0 -12l-12 12`, stroke: COL.ocreHondo, "stroke-width": 2.5, "stroke-linecap": "round" }, g);
       else el("circle", { cx: x, cy: y, r: 6, fill: COL.tierra }, g);
       const tx = texto(g, x + 14, y + 5, txt, { class: "rotulo-izq" + (poda ? "" : " fuerte") });
       if (poda) tx.style.fill = COL.ocreHondo;
     }
-    tiempo(texto(s, 780, 965, "su piso ya es peor que el techo", { class: "rotulo-der aparece" }), 2200).style.fill = COL.ocreHondo;
+    tiempo(texto(s, 800, 975, "ni en el mejor caso supera a la mejor conocida", { class: "rotulo-der aparece" }), 2150).style.fill = COL.ocreHondo;
 
-    // 3. Techo y piso de cada clave en el tiempo (traza de HiGHS), en múltiplos pequeños.
-    const hay = D.mosaicos.every(m => m.exacto && m.exacto.traza?.length);
-    if (!hay) {
+    // 3. Techo y piso de la clave 1 sobre una regla de competencia, con el azar como referencia.
+    const ex = m1.exacto;
+    if (!ex) {
       $("ex-conclusion").innerHTML = "Falta correr <code>refor plan --exacto</code> para ver el techo y el piso de cada clave.";
     } else {
-      const pisos = D.mosaicos.map(m => m.exacto.cota), techos = D.mosaicos.map(m => m.mejor);
-      const lo = Math.min(...pisos) - 1, hi = Math.max(...techos) + 1, tmax = Math.max(...D.mosaicos.map(m => m.exacto.segundos));
-      D.mosaicos.forEach((m, i) => {
-        const cx = 980 + (i % 2) * 444, cy = 396 + Math.floor(i / 2) * 170, w = 300, hh = 104, t0 = 2400 + i * 140;
-        const Xt = t => cx + t / tmax * w, Yv = v => cy + 22 + (hi - v) / (hi - lo) * hh;
-        const tr = m.exacto.traza, conPiso = tr.filter(p => p[2] !== null);
-        const escalon = (pts, k) => pts.map((p, j) => (j ? `H${Xt(p[0]).toFixed(1)}V${Yv(p[k]).toFixed(1)}` : `M${Xt(p[0]).toFixed(1)} ${Yv(p[k]).toFixed(1)}`)).join("") + `H${Xt(tmax)}`;
-        const ultimo = tr[tr.length - 1], techo = ultimo[1], piso = conPiso[conPiso.length - 1][2];
-        tiempo(texto(s, cx, cy + 8, `Clave ${m.id} · ${m.poligonos.length} ${m.poligonos.length === 1 ? "polígono" : "polígonos"}`, { class: "rotulo-izq fuerte aparece" }), t0);
-        const banda = `M${Xt(conPiso[0][0])} ${Yv(techo)}H${Xt(tmax)}V${Yv(piso)}H${Xt(conPiso[0][0])}Z`;
-        tiempo(el("path", { d: banda, fill: COL.papelHondo, class: "aparece" }, s), t0 + 500);
-        trazo(s, escalon(tr, 1), t0, 600, { "stroke-width": 2 });
-        tiempo(el("path", { d: escalon(conPiso, 2), fill: "none", stroke: COL.tierra, "stroke-width": 1.25, "stroke-dasharray": "3 3", class: "aparece" }, s), t0 + 300);
-        tiempo(texto(s, Xt(tmax) + 10, Yv(techo) + 5, `techo ${fmt(techo, 2)}`, { class: "rotulo-izq fuerte aparece" }), t0 + 500);
-        tiempo(texto(s, Xt(tmax) + 10, Yv(piso) + 5, `piso ${fmt(piso, 2)}`, { class: "rotulo-izq aparece" }), t0 + 500);
-        tiempo(texto(s, cx + w / 2, (Yv(techo) + Yv(piso)) / 2 + 5, `brecha ${fmt(m.exacto.brecha, 1)} %`, { class: "aparece" }), t0 + 600);
-        tiempo(el("path", { d: `M${cx} ${cy + 22 + hh + 6}H${cx + w}`, class: "eje aparece" }, s), t0);
-        if (i >= 4) {
-          tiempo(texto(s, cx, cy + hh + 46, "0 s", { class: "rotulo-izq aparece" }), t0);
-          tiempo(texto(s, cx + w, cy + hh + 46, `${fmt(tmax)} s`, { class: "rotulo-der aparece" }), t0);
-        }
-      });
-      const br = D.mosaicos.map(m => m.exacto.brecha), mejores = D.mosaicos.filter(m => m.exacto.valor < m.mejor - 1e-6).length;
+      const x0 = 1060, x1 = 1800, v0 = 70, v1 = 95, X = v => x0 + (v - v0) / (v1 - v0) * (x1 - x0), ye = 640, t0 = 2400;
+      const techo = m1.mejor, piso = ex.cota;
+      tiempo(el("rect", { x: X(piso), y: ye - 70, width: X(techo) - X(piso), height: 70, fill: COL.papelHondo, class: "aparece" }, s), t0 + 900);
+      tiempo(el("path", { d: `M${x0} ${ye}H${x1}`, class: "eje aparece" }, s), t0);
+      for (let v = v0; v <= v1; v += 5) {
+        tiempo(el("path", { d: `M${X(v)} ${ye}v6`, class: "eje aparece" }, s), t0);
+        tiempo(texto(s, X(v), ye + 28, fmt(v), { class: "aparece" }), t0);
+      }
+      tiempo(texto(s, x1, ye + 58, "competencia total de la clave 1 (menos es mejor)", { class: "rotulo-der aparece" }), t0);
+      // Azar: la referencia. Techo: la mejor clave, que llega desde el azar. Piso: sube desde la izquierda.
+      tiempo(el("circle", { cx: X(m1.azar), cy: ye - 35, r: 9, fill: COL.papel, stroke: COL.tierraSuave, "stroke-width": 1.5, class: "aparece" }, s), t0 + 150);
+      tiempo(texto(s, X(m1.azar), ye - 58, `al azar ${fmt(m1.azar, 1)}`, { class: "aparece" }), t0 + 150);
+      const gT = tiempo(el("g", { class: "llega", style: `--dx:${(X(m1.azar) - X(techo)).toFixed(1)}px` }, s), t0 + 350);
+      el("circle", { cx: X(techo), cy: ye - 35, r: 9, fill: COL.tierra }, gT);
+      texto(gT, X(techo) + 16, ye - 104, `techo ${fmt(techo, 2)}`, { class: "rotulo-izq fuerte" });
+      texto(gT, X(techo) + 16, ye - 82, "la mejor clave encontrada", { class: "rotulo-izq" });
+      el("path", { d: `M${X(techo)} ${ye - 96}V${ye - 50}`, stroke: COL.tierra, "stroke-width": 1 }, gT);
+      const gP = tiempo(el("g", { class: "llega", style: `--dx:${(X(v0) - X(piso)).toFixed(1)}px` }, s), t0 + 550);
+      el("path", { d: `M${X(piso)} ${ye - 120}V${ye}`, stroke: COL.tierra, "stroke-width": 1.5, "stroke-dasharray": "4 4" }, gP);
+      texto(gP, X(piso) - 12, ye - 104, `piso ${fmt(piso, 2)}`, { class: "rotulo-der fuerte" });
+      texto(gP, X(piso) - 12, ye - 82, "ninguna clave compite menos", { class: "rotulo-der" });
+      tiempo(texto(s, (X(piso) + X(techo)) / 2, ye + 96, `brecha ${fmt(ex.brecha, 1)} %`, { class: "fuerte aparece" }), t0 + 1100).style.fill = COL.ocreHondo;
+      tiempo(el("path", { d: `M${X(piso)} ${ye + 70}H${X(techo)}M${X(piso)} ${ye + 64}v12M${X(techo)} ${ye + 64}v12`, stroke: COL.ocreHondo, "stroke-width": 1.5, fill: "none", class: "aparece" }, s), t0 + 1100);
+
+      const br = D.mosaicos.map(m => m.exacto?.brecha ?? 0), mejores = D.mosaicos.filter(m => m.exacto && m.exacto.valor < m.mejor - 1e-6).length;
+      const seg = Math.round(Math.max(...D.mosaicos.map(m => m.exacto?.segundos ?? 0)));
       $("ex-conclusion").innerHTML = (mejores === 0
-        ? `En ${fmt(tmax)} s por clave, el solver no encontró ninguna clave mejor que la del memético: el techo no se movió.`
-        : `En ${fmt(tmax)} s por clave, el solver mejoró ${mejores} de las ${D.mosaicos.length} claves del memético.`) +
-        ` Y probó que ninguna clave podría competir más de ${fmt(Math.min(...br), 1)} a ${fmt(Math.max(...br), 1)} % menos, según la clave.`;
+        ? `Tras ${fmt(seg / 60)} minutos por clave, el solver no encontró nada mejor que el memético.`
+        : `Tras ${fmt(seg / 60)} minutos por clave, el solver mejoró ${mejores} de las ${D.mosaicos.length} claves del memético.`) +
+        ` En las ${D.mosaicos.length} claves, el memético queda a lo más entre ${fmt(Math.min(...br), 1)} % y ${fmt(Math.max(...br), 1)} % de la mejor posible.`;
     }
-    $("ex-conclusion").style.setProperty("--t", "3400ms");
+    $("ex-conclusion").style.setProperty("--t", "3600ms");
   }
 
   // ---------- Lámina 16: validación ----------
@@ -1590,7 +1565,6 @@
     { cam: "tesela", capas: { tenue: 0 }, datos: true, sinCartela: true },
     { cam: "tesela", capas: { tesela: true }, datos: true },
     { cam: "ventana", capas: { tenue: 0.85 } },
-    { cam: "ventana", capas: { tenue: 0.85 } },
     { cam: "sitio", capas: { tenue: 0.55 } },
     { cam: "portada", inclinado: true, capas: {}, plantar: 0.7, entrar: () => { ondas(0.7); derivar(); }, sinCartela: true },
   ];
@@ -1613,7 +1587,50 @@
       if (j === i) g.setAttribute("aria-current", "step"); else g.removeAttribute("aria-current");
     });
     $("numero").textContent = `${i + 1} / ${LAMINAS.length}`;
+    itemsIndice.forEach((b, j) => { if (j === i) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   }
+
+  // Índice: una entrada por lámina, con el nombre de su aria-label.
+  const indice = $("indice"), btnIndice = $("btn-indice");
+  const itemsIndice = secciones.map((sec, i) => {
+    const li = document.createElement("li"), b = document.createElement("button");
+    b.innerHTML = `<span class="n">${i + 1}</span><span>${sec.getAttribute("aria-label")}</span>`;
+    b.addEventListener("click", ev => { cerrarIndice(ev.detail === 0); ir(i); });
+    li.appendChild(b);
+    $("indice-lista").appendChild(li);
+    return b;
+  });
+  function abrirIndice() {
+    indice.hidden = false;
+    btnIndice.setAttribute("aria-expanded", "true");
+    (itemsIndice[actual] ?? itemsIndice[0]).focus({ preventScroll: true });
+  }
+  // Con teclado el foco vuelve al botón; con el ratón se suelta, para que la barra espaciadora avance.
+  function cerrarIndice(devolverFoco = false) {
+    if (indice.hidden) return;
+    indice.hidden = true;
+    btnIndice.setAttribute("aria-expanded", "false");
+    if (devolverFoco) btnIndice.focus({ preventScroll: true }); else document.activeElement?.blur?.();
+  }
+  btnIndice.addEventListener("click", ev => { if (indice.hidden) abrirIndice(); else cerrarIndice(ev.detail === 0); });
+  addEventListener("pointerdown", ev => { if (!indice.hidden && !ev.target.closest("#indice, #btn-indice")) cerrarIndice(); });
+
+  // Pantalla completa, con el prefijo de Safari.
+  const btnPantalla = $("btn-pantalla");
+  const enPantalla = () => document.fullscreenElement ?? document.webkitFullscreenElement;
+  function pantallaCompleta() {
+    const r = document.documentElement;
+    if (enPantalla()) (document.exitFullscreen ?? document.webkitExitFullscreen)?.call(document);
+    else (r.requestFullscreen ?? r.webkitRequestFullscreen)?.call(r)?.catch?.(() => {});
+  }
+  const marcarPantalla = () => {
+    const si = !!enPantalla();
+    btnPantalla.setAttribute("aria-pressed", si);
+    btnPantalla.textContent = si ? "Salir de pantalla completa" : "Pantalla completa";
+  };
+  btnPantalla.addEventListener("click", ev => { pantallaCompleta(); if (ev.detail) btnPantalla.blur(); });
+  addEventListener("fullscreenchange", marcarPantalla);
+  addEventListener("webkitfullscreenchange", marcarPantalla);
 
   let actual = -1, turno = 0;
   function ir(i, { inmediato = false } = {}) {
@@ -1623,7 +1640,7 @@
     if (previa >= 0) {
       LAMINAS[previa].salir?.();
       const s = secciones[previa];
-      s.classList.remove("activa", "entra", "datos");
+      s.classList.remove("activa", "entra", "datos", "vuelve");
       s.classList.add("sale");
       setTimeout(() => s.classList.remove("sale"), 260);
     }
@@ -1645,31 +1662,36 @@
     $("cartela").style.opacity = L.sinCartela ? 0 : 1;
     const s = secciones[i];
     let mostrado = false;
+    // Hacia adelante el contenido entra con su animación; hacia atrás solo se funde, ya completo.
     const mostrar = () => {
       if (mostrado || t !== turno) return;
       mostrado = true;
       s.classList.add("activa");
-      if (adelante && !inmediato) { s.classList.add("entra"); if (L.datos) s.classList.add("datos"); }
+      if (!inmediato) {
+        if (adelante) { s.classList.add("entra"); if (L.datos) s.classList.add("datos"); }
+        else s.classList.add("vuelve");
+      }
       L.entrar?.(adelante && !inmediato);
     };
+    const dur = inmediato ? 0 : duracionViaje(cam, CAMARAS[L.cam]);
     moverCamara(CAMARAS[L.cam], {
-      dur: inmediato ? 0 : 1600,
-      progreso: u => { if (adelante && u >= 0.7) mostrar(); },
-      fin: () => mostrar(),
+      dur,
+      // El contenido llega cuando la cámara va al 70 %; sin viaje, en cuanto la lámina previa empieza a irse.
+      progreso: u => { if (u >= 0.7 && u < 1) mostrar(); },
+      fin: () => { if (dur || inmediato || previa < 0) mostrar(); else setTimeout(mostrar, 140); },
     });
   }
 
   addEventListener("keydown", e => {
+    if (e.key === "Escape" && !indice.hidden) { e.preventDefault(); cerrarIndice(true); return; }
+    if (e.key === "i" || e.key === "I") { e.preventDefault(); if (indice.hidden) abrirIndice(); else cerrarIndice(true); return; }
     if (e.target.closest?.("button, [role=button]") && (e.key === " " || e.key === "Enter")) return;
     const sig = ["ArrowRight", "ArrowDown", "PageDown", " "], ant = ["ArrowLeft", "ArrowUp", "PageUp"];
     if (sig.includes(e.key)) { e.preventDefault(); ir(actual + 1); }
     else if (ant.includes(e.key)) { e.preventDefault(); ir(actual - 1); }
     else if (e.key === "Home") { e.preventDefault(); ir(0); }
     else if (e.key === "End") { e.preventDefault(); ir(LAMINAS.length - 1); }
-    else if (e.key === "f" || e.key === "F") {
-      if (document.fullscreenElement) document.exitFullscreen?.();
-      else document.documentElement.requestFullscreen?.().catch(() => {});
-    }
+    else if (e.key === "f" || e.key === "F") pantallaCompleta();
   });
   addEventListener("hashchange", () => { const n = parseInt(location.hash.slice(1), 10); if (n >= 1 && n !== actual + 1) ir(n - 1); });
 

@@ -130,17 +130,15 @@
     </div>
   </section>
 
-  <!-- 8 · La formulación de la compra -->
-  <!-- Hoja de método, a la manera de Tufte: el programa con notas al margen y el cálculo con datos del polígono 1. -->
-  <section class="lamina" data-cam="poligono" aria-label="La formulación de la compra">
-    <h2 class="metodo-titulo">Qué se minimiza y cómo se calcula</h2>
-    <p class="metodo-entrada chico">En cada polígono, el modelo elige para cada especie <i>s</i> su meta <i>n<sub>s</sub></i> (cuántas plantas deben quedar) y su compra <i>x<sub>s</sub></i> (cuántas comprar).</p>
-    <div class="programa" id="programa"></div>
+  <!-- 8 · Cómo se decide la compra -->
+  <!-- Hoja de método: el modelo de compra en lenguaje llano (un objetivo y cuatro reglas) y cómo elige, con datos del polígono 1. -->
+  <section class="lamina" data-cam="poligono" aria-label="Cómo se decide la compra">
+    <h2 class="metodo-titulo">La compra más barata que cumple cuatro reglas</h2>
+    <p class="metodo-entrada chico" id="fc-entrada"></p>
+    <div class="reglas" id="reglas"></div>
     <div class="calculo">
-      <div class="bloque"><h3><span class="n">1</span>El costo de cada meta</h3><p class="chico" id="fc-texto-curva"></p></div>
-      <svg class="grafica" id="fc-curva" width="764" height="240"></svg>
-      <div class="bloque"><h3><span class="n">2</span>La mochila elige una meta por especie</h3><p class="chico" id="fc-texto-eleccion"></p></div>
-      <svg class="grafica" id="fc-eleccion" width="764" height="284"></svg>
+      <div class="bloque"><h3>Cómo elige</h3><p class="chico" id="fc-texto-eleccion"></p></div>
+      <svg class="grafica" id="fc-eleccion" width="764" height="430"></svg>
     </div>
     <p class="fuente metodo-fuente" id="fc-fuente"></p>
   </section>
@@ -244,12 +242,13 @@
   </section>
 
   <!-- 15 · Cómo funciona el modelo exacto -->
+  <!-- Hoja de método en tres ideas: demasiadas claves, descartar familias enteras, techo y piso. Lo dibuja deck.js. -->
   <section class="lamina" data-cam="tesela" aria-label="Cómo funciona el modelo exacto">
-    <svg class="dibujo" id="exacto" viewBox="0 0 1920 1080" role="img" aria-label="El modelo exacto: interruptores por lugar y especie, ramificación y poda, y techo y piso de las seis claves"></svg>
-    <h2 class="metodo-titulo">El modelo exacto: un techo, un piso y la brecha entre ambos</h2>
-    <div class="bloque" id="ex-b1"><h3><span class="n">1</span>Todo se vuelve interruptores</h3><p class="chico" id="ex-t1"></p></div>
-    <div class="bloque" id="ex-b2"><h3><span class="n">2</span>Ramificar y podar</h3><p class="chico">El solver (HiGHS) fija una decisión a la vez y, en cada rama, calcula un piso: lo menos que podría competir cualquier clave de esa rama. Si el piso ya es peor que la mejor clave conocida, descarta la rama entera.</p></div>
-    <div class="bloque" id="ex-b3"><h3><span class="n">3</span>Techo y piso, en las seis claves</h3><p class="chico">El techo es la mejor clave encontrada; arranca en la del memético. El piso es lo que el solver prueba que ninguna clave puede mejorar. Entre ambos queda la brecha.</p></div>
+    <svg class="dibujo" id="exacto" viewBox="0 0 1920 1080" role="img" aria-label="El modelo exacto: cuántas claves hay, cómo descarta familias de claves y el techo y el piso de la clave 1"></svg>
+    <h2 class="metodo-titulo">El modelo exacto: buscar con garantía</h2>
+    <div class="bloque" id="ex-b1"><h3><span class="n">1</span>Demasiadas claves para probarlas todas</h3><p class="chico" id="ex-t1"></p></div>
+    <div class="bloque" id="ex-b2"><h3><span class="n">2</span>Descartar familias enteras</h3><p class="chico">El solver decide una planta a la vez, y cada decisión parte las claves en familias. A cada familia le calcula lo menos que podría competir; si aun así es peor que la mejor clave conocida, la descarta completa sin revisarla.</p></div>
+    <div class="bloque" id="ex-b3"><h3><span class="n">3</span>Un techo y un piso</h3><p class="chico">El techo es la mejor clave que se conoce: la del memético. El piso es un límite que el solver demuestra: ninguna clave puede competir menos. La mejor clave posible queda entre los dos.</p></div>
     <p class="chico ex-conclusion" id="ex-conclusion"></p>
   </section>
 
@@ -287,14 +286,7 @@
     </div>
   </section>
 
-  <!-- 18 · El visor -->
-  <!-- El visor de docs/visor/ embebido: solo funciona si el repositorio se sirve desde su raíz (ver docs/visor/README.md). -->
-  <section class="lamina" data-cam="ventana" aria-label="El visor">
-    <h2 style="position: absolute; left: 96px; top: 72px; width: 1500px">El visor: los resultados de <code style="font-family: var(--f-rotulo); font-weight: 500; font-size: .86em">refor</code>, polígono por polígono</h2>
-    <iframe class="visor-embebido interactivo" src="../visor/index.html" title="Visor de resultados de refor"></iframe>
-  </section>
-
-  <!-- 19 · Recomendaciones -->
+  <!-- 18 · Recomendaciones -->
   <section class="lamina" data-cam="sitio" aria-label="Recomendaciones">
     <div class="panel panel-a">
       <h2>Lo que recomendamos</h2>
@@ -308,7 +300,7 @@
     </div>
   </section>
 
-  <!-- 20 · Cierre -->
+  <!-- 19 · Cierre -->
   <section class="lamina" data-cam="portada" aria-label="Cierre">
     <div class="titular centrado sobre-mapa" style="top: 300px; width: 1400px; gap: 20px">
       <h1 style="font-size: 120px; line-height: 1">Gracias</h1>
@@ -336,7 +328,15 @@
     <span class="nota">Curvas de nivel ilustrativas</span>
   </div>
   <svg id="avance" width="430" height="34" aria-label="Avance"></svg>
-  <span id="numero"></span>
+  <div class="navegacion">
+    <button class="suelto" id="btn-indice" aria-expanded="false" aria-controls="indice">Índice</button>
+    <button class="suelto" id="btn-pantalla" aria-pressed="false">Pantalla completa</button>
+    <span id="numero"></span>
+  </div>
+  <nav class="indice" id="indice" aria-label="Índice de láminas" hidden>
+    <p class="rotulo">Índice · <kbd>I</kbd> abre y cierra, <kbd>Esc</kbd> cierra</p>
+    <ol id="indice-lista"></ol>
+  </nav>
   <div class="etiqueta" id="etiqueta" hidden></div>
 
 </div>
