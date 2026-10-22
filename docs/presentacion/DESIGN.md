@@ -251,16 +251,19 @@ no se mueve y la capa del mapa baja a opacidad 0.
 
 ### 4.2 Hojas de método (láminas 8, 13 y 15)
 
-Explican los modelos a quien no es técnico. Van sobre papel, sin mapa ni
-paneles, a la manera de Tufte: poca tinta, rótulos directos, notas al margen
+Explican los modelos a quien no es técnico. Van sobre papel, sin paneles y,
+salvo la 13 y la 15, sin mapa (dejan la franja del polígono 1 para el zoom de entrada
+y salida de la 14), a la manera de Tufte: poca tinta, rótulos directos, notas al margen
 y datos reales en lugar de esquemas cuando los hay.
 
-- **Compra (8).** Sin fórmulas: el objetivo (pagar lo menos posible) y cuatro
-  reglas numeradas en lenguaje llano, cada una con su cifra del polígono 1.
-  La regla de probabilidad, el corazón estocástico, va en `--ocre-hondo`. A la
+- **Compra (8).** El objetivo (pagar lo menos posible) y cuatro reglas
+  numeradas: cada una con su título, su ecuación alineada a la derecha en
+  Caslon Text de 26 px y una frase en lenguaje llano con su cifra del
+  polígono 1. Al pie, un glosario de símbolos. La regla de probabilidad, el
+  corazón estocástico, va en `--ocre-hondo`. A la
   derecha, un diagrama de puntos ordenado por lo que cuesta una planta más,
   donde se ve que el modelo sube las especies baratas al +10 % y baja las
-  caras al −10 %. La formulación completa queda en el reporte.
+  caras al −10 %.
 - **Memético (12).** El ciclo de una generación de izquierda a derecha
   (población → torneo → cruce → búsqueda tabú → reemplazo) y una flecha de
   regreso. Las claves son miniaturas por género con la composición de la
@@ -325,13 +328,13 @@ Región ──► Sitio (30 polígonos) ──► Un polígono ──► La ret�
 | 10 | Presupuesto | Vista del sitio | Coropleta de B\*/ha; resaltan los polígonos 1 y 4, los más caros |
 | 11 | Competencia | Sobre el polígono 1, sin moverse | El mapa se apaga: la fórmula de *W* no compite con la franja del polígono |
 | 12 | Modelos de asignación | Sobre el polígono 1 | La retícula vacía que va a llenarse |
-| 13 | Memético | Sobre el polígono 1, sin moverse | El mapa se apaga: hoja de método |
+| 13 | Memético | Se aleja: el polígono 1 como franja dentro del ciclo del diagrama | Retícula vacía y polígono 1 resaltado; los demás polígonos casi se apagan para no cruzar el texto. Prepara el acercamiento de la 14 |
 | 14 | Mosaico | Zoom profundo a la retícula | La retícula se vuelve el mosaico real y se reordena |
-| 15 | Modelo exacto | Se aleja al encuadre de la 16 | El mapa se apaga: hoja de método |
+| 15 | Modelo exacto | Se aleja del mosaico al polígono 1 entero, en franja abajo a la derecha | El polígono 1 teselado con la clave 1; los demás casi se apagan. La 16 lo sube y lo agranda |
 | 16 | Validación | Se aleja un poco | El mosaico se tesela sobre todo el polígono |
 | 17 | Herramienta | El mapa se encoge a la ventana de la GUI | Liga el mapa con `refor_gui` |
 | 18 | Recomendaciones | Vista del sitio, tenue | Capas futuras punteadas: agua, pendiente, suelo |
-| 19 | Cierre | Lejana e inclinada (perspectiva suave), con deriva lenta | Todos los polígonos plantados |
+| 19 | Cierre | Cenital, el sitio a la derecha del cuadro (como la portada) | Los polígonos se plantan en ondas; tooltip por polígono |
 
 ### Implementación
 
@@ -359,9 +362,8 @@ Región ──► Sitio (30 polígonos) ──► Un polígono ──► La ret�
   - una capa desvanecida sale del render con `display: none`;
   - la teselación de la lámina 16 y los polígonos plantados son un solo trazo
     con `<pattern>`, no un elemento por hexágono;
-  - la inclinación y la deriva del cierre, y el atenuado del mapa, son
-    `transform` y `opacity` de CSS sobre capas compuestas (`#vista`, `#giro`):
-    no repintan el mapa.
+  - el atenuado del mapa es `opacity` de CSS sobre una capa compuesta
+    (`#giro`): no repinta el mapa.
 - Al imprimir, cada lámina lleva su encuadre final, pero sin curvas de nivel.
 
 ### Estilo cartográfico
@@ -392,17 +394,16 @@ composiciones, según dónde deje espacio la cámara; la portada tiene la suya
 │ ░░░░░░░░░░░░ └─────────┘  │  │ ░░└───────────────────┘░░ │  │ ░░░░░░░░░░░░░░░░░░░░░░░░░ │
 │ ∙∙∙∙∙∙∙∙∘∘∘∘∘∘∘           │  │ ∙∙∙∙∙∙∙∙∙∙∘∘∘∘∘           │  │ ∙∙∘∘∘∘∘∘∘∘∘∘∘∘∘           │
 └───────────────────────────┘  └───────────────────────────┘  └───────────────────────────┘
-  láminas 3–5, 7, 12, 18           láminas 9–11, 16, 17            láminas 2, 14, 19
+  láminas 3–5, 7, 12, 18           láminas 9–11, 16, 17            láminas 2, 14    
 ```
 
 - **Lienzo:** 1920 × 1080 escalado a la ventana (16 : 9), con márgenes de
   96 px a los lados y 80 px arriba y abajo.
-- **Alineación a la izquierda**, como notas de campo. Solo el cierre va
-  centrado.
+- **Alineación a la izquierda**, como notas de campo, también en el cierre.
 - **Paneles de papel, no tarjetas:** `--papel` al 92 % sobre el mapa, borde de
   1 px en `--linea`, sombra cálida muy difusa (`0 18px 48px` con `--tierra` al
   8–10 %) y esquinas de 2 px, como hoja recortada.
-- **Sin variante oscura.** Las láminas C (2, 14 y 19) se distinguen por
+- **Sin variante oscura.** Las láminas C (2 y 14) se distinguen por
   composición: titular grande directo sobre el mapa, sin panel.
 - **Portada: hoja de carta.** La lámina 1 es una hoja de carta topográfica, no
   un titular sobre el mapa: el título nunca va encima de los polígonos
@@ -460,7 +461,7 @@ demás la sigue y no compite con ella.
 - **`prefers-reduced-motion`:** la cámara cambia de encuadre con un fundido y
   las gráficas aparecen ya completas.
 - **Prohibido:** entradas «fade y sube» en cada elemento, rebotes, parallax
-  sobre texto, animaciones en bucle salvo la deriva del cierre.
+  sobre texto, animaciones en bucle.
 
 ### Navegación
 
@@ -484,7 +485,7 @@ su encuadre final.
 | 5 | Lo que no sabemos | Mortalidad, plantas existentes, competencia | Supervivencia *q* por especie con banda de incertidumbre | A |
 | 6 | Cómo lo resolvimos | Datos INECOL → 10,000 escenarios → compra por polígono → clave de plantación | La tubería como árbol (sección 4.1); cuatro anotaciones numeradas, porque es secuencia | Hoja |
 | 7 | El modelo de compra | Comprar lo justo para cumplir la meta en el 95 % de los escenarios; una meta por especie | Ejemplo de *A. salmiana* en el polígono 1: lo que falta, histograma de plantas necesarias con su cuantil y la meta elegida por especie | A |
-| 8 | Cómo se decide la compra | La compra más barata que cumple cuatro reglas; cada planta extra cuesta distinto y el modelo sube las baratas | Objetivo y cuatro reglas en lenguaje llano, con las cifras del polígono 1; puntos ordenados por costo de una planta más | Hoja de método |
+| 8 | Cómo se decide la compra | La compra más barata que cumple cuatro reglas; cada planta extra cuesta distinto y el modelo sube las baratas | Objetivo y cuatro reglas con su ecuación y una frase en lenguaje llano, con las cifras del polígono 1; puntos ordenados por costo de una planta más | Hoja de método |
 | 9 | La compra | 594 plantas/ha + 129 existentes = 723/ha (10 % sobre la meta); Opuntia +10 %; Prosopis, Yucca y A. scabra −10 % | Barras divergentes por especie; barra apilada de densidad | B |
 | 10 | El presupuesto | Con $12,500/ha ningún polígono es factible; aceptar 50 veces más riesgo ahorra menos del 4 % | Frontera B\*(α) con la línea del presupuesto debajo de toda la curva | B |
 | 11 | Qué compite con qué | Lo que más compite es una planta junto a otra de su especie; el mezquite compite mucho consigo mismo y poco con las suculentas. Abre la segunda pregunta: la 12 usa *W* y la 14 se apoya en la regla del mezquite | Matriz *W* de 10 × 10 en la rampa secuencial, con el valor en cada celda; fila y columna del mezquite con contorno de resaltado; etiqueta por celda. Debajo, la escala de 0 a 1.5 con una marca por pareja y qué significan 0, 1 y 1.5. A la izquierda, la fórmula *W* = *γ*^[a=b] · *T* · *N* − *φF* del reporte E2 con sus cuatro términos. Panel a todo lo ancho, como la 16 | B |
@@ -495,7 +496,7 @@ su encuadre final.
 | 16 | Qué tan buena es | 14.5–16.3 % menos competencia que al azar; d.e. ≤ 0.006; brecha con el óptimo exacto | Barras azar / memético / exacto por mosaico, con la cota del exacto | B |
 | 17 | La herramienta | `refor_gui`: configurar, ejecutar, exportar; reproducible | Captura de `refor_gui` en un marco de ventana | B |
 | 18 | Recomendaciones | Ajustar presupuesto o meta; validar la matriz W; ampliar el monitoreo | Decisiones numeradas y línea de tiempo de siguientes pasos | A |
-| 19 | Cierre | Gracias y preguntas | El sitio inclinado y todo plantado; QR al repositorio | C |
+| 19 | Cierre | Gracias y preguntas; las tres cifras para llevarse | Cierra como abre: cuadro de papel opaco (texto nunca sobre el mapa) con «Gracias» en Bodoni Moda, las tres cifras del resumen (se cuentan al entrar; cada una es un botón a la lámina que la respalda: 10, 9 y 14) y el pie con QR y autores. A la derecha, el sitio plantado con tooltip | Hoja |
 
 **Anexo** (si preguntan por el método): formulación de la compra con
 restricción probabilística y algoritmo memético con búsqueda tabú. La matriz

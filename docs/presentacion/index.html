@@ -12,7 +12,7 @@
 <div class="marco">
 <div class="lienzo" id="lienzo">
 
-  <!-- #vista lleva la inclinación de la portada; #giro, la deriva y el atenuado. Ambos se componen en la GPU. -->
+  <!-- #giro lleva el atenuado del mapa, que se compone en la GPU. -->
   <div id="vista"><div id="giro">
     <canvas id="terreno" aria-hidden="true"></canvas>
     <svg id="mapa" viewBox="0 0 1920 1080" aria-hidden="true">
@@ -243,13 +243,14 @@
 
   <!-- 15 · Cómo funciona el modelo exacto -->
   <!-- Hoja de método en tres ideas: demasiadas claves, descartar familias enteras, techo y piso. Lo dibuja deck.js. -->
-  <section class="lamina" data-cam="tesela" aria-label="Cómo funciona el modelo exacto">
+  <section class="lamina" data-cam="exacto" aria-label="Cómo funciona el modelo exacto">
     <svg class="dibujo" id="exacto" viewBox="0 0 1920 1080" role="img" aria-label="El modelo exacto: cuántas claves hay, cómo descarta familias de claves y el techo y el piso de la clave 1"></svg>
     <h2 class="metodo-titulo">El modelo exacto: buscar con garantía</h2>
     <div class="bloque" id="ex-b1"><h3><span class="n">1</span>Demasiadas claves para probarlas todas</h3><p class="chico" id="ex-t1"></p></div>
     <div class="bloque" id="ex-b2"><h3><span class="n">2</span>Descartar familias enteras</h3><p class="chico">El solver decide una planta a la vez, y cada decisión parte las claves en familias. A cada familia le calcula lo menos que podría competir; si aun así es peor que la mejor clave conocida, la descarta completa sin revisarla.</p></div>
     <div class="bloque" id="ex-b3"><h3><span class="n">3</span>Un techo y un piso</h3><p class="chico">El techo es la mejor clave que se conoce: la del memético. El piso es un límite que el solver demuestra: ninguna clave puede competir menos. La mejor clave posible queda entre los dos.</p></div>
     <p class="chico ex-conclusion" id="ex-conclusion"></p>
+    <p class="rotulo ex-poligono">Polígono 1 completo: la clave 1 repetida sobre sus 331 m.</p>
   </section>
 
   <!-- 16 · Qué tan buena es -->
@@ -301,21 +302,28 @@
   </section>
 
   <!-- 19 · Cierre -->
-  <section class="lamina" data-cam="portada" aria-label="Cierre">
-    <div class="titular centrado sobre-mapa" style="top: 300px; width: 1400px; gap: 20px">
-      <h1 style="font-size: 120px; line-height: 1">Gracias</h1>
-      <p class="apoyo">Preguntas y comentarios</p>
-    </div>
-    <div class="titular centrado sobre-mapa" style="top: 700px; width: 1400px">
-      <div class="cierre-pie">
+  <!-- Cierra como abre: un cuadro de papel opaco (el texto nunca va sobre el mapa) con las tres cifras
+       para llevarse, cada una con un botón a la lámina que la respalda. El sitio plantado, a la derecha. -->
+  <section class="lamina" data-cam="cierre" aria-label="Cierre">
+    <div class="cuadro-titulo cuadro-cierre">
+      <div class="cuadro-cabeza">
+        <h1 class="titulo-portada titulo-cierre">Gracias</h1>
+        <p class="apoyo-portada">Preguntas y comentarios</p>
+      </div>
+      <div class="cuadro-leyenda">
+        <p class="rotulo">Para llevarse · toque una cifra para volver a su lámina</p>
+        <ul class="llevarse" id="llevarse"></ul>
+      </div>
+      <div class="cuadro-pie cierre-pie">
         <img class="qr" src="qr-repositorio.svg" alt="Código QR al repositorio del proyecto">
-        <div style="display: grid; gap: 8px">
-          <p class="chico">Código, datos y reportes</p>
-          <p class="rotulo" style="font-size: var(--t-s)">github.com/Lunaaaalj/Stochastic_RefInit</p>
-          <p class="rotulo">Angel Eduardo-Luna · Irasema Alvarez · Carolina Sánchez Meneses · Andrea Estefanía de la Peña</p>
+        <div style="display: grid; gap: 6px">
+          <p class="autores">Código, datos y reportes</p>
+          <p class="datos-hoja">github.com/Lunaaaalj/Stochastic_RefInit</p>
+          <p class="institucion">Angel Eduardo-Luna · Irasema Alvarez<br>Carolina Sánchez Meneses · Andrea Estefanía de la Peña</p>
         </div>
       </div>
     </div>
+    <p class="rotulo cierre-mapa">Los 30 polígonos plantados con su clave. Pase el cursor por uno para ver sus datos.</p>
   </section>
 
   <div class="cartela" id="cartela">

@@ -47,21 +47,18 @@ body { background: var(--marco); color: var(--tierra); overflow: hidden; }
   font-kerning: normal; font-variant-numeric: lining-nums;
 }
 
-#vista { position: absolute; inset: 0; transform-origin: 50% 60%; will-change: transform;
-  transition: transform var(--d-camara) var(--ease-camara); }
-#vista.inclinado { transform: perspective(2400px) rotateX(42deg) scale(1.22) translateY(-30px); }
-#giro { position: absolute; inset: 0; will-change: transform, opacity; transition: opacity 900ms var(--ease-salida); }
-/* Deriva lenta de la portada: solo transforma la capa ya compuesta, sin volver a pintar el mapa. */
-#giro.deriva { animation: deriva 16s var(--ease-camara) infinite alternate; }
-@keyframes deriva { from { transform: rotate(-2deg) scale(1.03); } to { transform: rotate(2deg) scale(1.03); } }
+#vista { position: absolute; inset: 0; }
+#giro { position: absolute; inset: 0; will-change: opacity; transition: opacity 900ms var(--ease-salida); }
 #terreno, #mapa { position: absolute; inset: 0; width: 1920px; height: 1080px; }
 .capa-oculta { display: none; }
 .grano { position: absolute; inset: 0; pointer-events: none; opacity: .06; will-change: transform;   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .3  0 0 0 0 .27  0 0 0 0 .25  0 0 0 .55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
 
 /* Capas del mapa */
 .poligono { fill: rgb(252 240 218 / .55); stroke: var(--tierra); stroke-width: 1.25; vector-effect: non-scaling-stroke;
-  transition: fill var(--d-datos) var(--ease-salida), stroke var(--d-respuesta) var(--ease-salida); }
+  transition: fill var(--d-datos) var(--ease-salida), stroke var(--d-respuesta) var(--ease-salida), opacity 600ms var(--ease-salida); }
 .poligono.fuera { fill: none; stroke: var(--tierra-suave); stroke-dasharray: 4 4; }
+/* Fuera de foco: los demás polígonos se atenúan para que sus bordes no crucen el texto (lámina 13). */
+.poligono.lejano { opacity: .1; }
 .poligono.insinuado { fill: var(--papel-hondo); stroke: rgb(76 69 65 / .35); }
 .resalte { fill: none; stroke: var(--ocre-hondo); stroke-width: 2.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; pointer-events: none; }
 .id-poligono { font: 500 var(--t-xs) var(--f-rotulo); fill: var(--tierra-suave); text-anchor: middle; dominant-baseline: central;
@@ -220,7 +217,8 @@ i, em, .binomial { font-style: italic; }
 .metodo-titulo { position: absolute; left: 96px; top: 80px; width: 1500px; }
 .metodo-entrada { position: absolute; left: 96px; top: 160px; width: 880px; color: var(--tierra); }
 .metodo-fuente { position: absolute; left: 96px; bottom: 80px; width: 880px; }
-.ex-conclusion { position: absolute; left: 980px; top: 800px; width: 844px; color: var(--tierra); }
+.ex-conclusion { position: absolute; left: 980px; top: 780px; width: 844px; color: var(--tierra); }
+.ex-poligono { position: absolute; left: 980px; top: 970px; width: 844px; text-align: right; }
 .metodo-pie { position: absolute; left: 96px; top: 870px; width: 1500px; color: var(--tierra); }
 .bloque h3 .n, .estacion h3 .n { font: 400 var(--t-l)/1 var(--f-display); color: var(--ocre-hondo); margin-right: 12px; }
 .bloque { display: grid; gap: 4px; }
@@ -238,7 +236,14 @@ i, em, .binomial { font-style: italic; }
 .regla-fila { display: grid; grid-template-columns: 52px 1fr; gap: 16px; }
 .regla-fila .n { font: 400 var(--t-xl)/1 var(--f-display); color: var(--ocre-hondo); }
 .regla-fila h3 { margin-bottom: 2px; }
-.regla-fila.corazon h3 { color: var(--ocre-hondo); }
+.regla-fila.corazon h3, .regla-fila.corazon .mat { color: var(--ocre-hondo); }
+/* Cada regla lleva su ecuación a la derecha del título, en la voz de las fórmulas de la lámina 11. */
+.regla-cabeza { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; }
+.regla-cabeza .mat { font: 400 26px/1.25 var(--f-texto); color: var(--tinta); white-space: nowrap; font-variant-numeric: lining-nums; }
+.regla-cabeza .mat sub, .regla-cabeza .mat sup, .glosario sub, .glosario sup, .metodo-entrada sub { font-size: .6em; line-height: 0; }
+.regla-cabeza .mat .op { font-family: var(--f-display); font-size: 1.15em; }
+.reglas .glosario { margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--linea); font: 400 var(--t-xs)/1.5 var(--f-rotulo); color: var(--tierra-suave); }
+.reglas .glosario i { font-family: var(--f-texto); font-size: 18px; color: var(--tierra); }
 .calculo { position: absolute; left: 1060px; top: 150px; width: 764px; display: flex; flex-direction: column; gap: 12px; }
 .lamina.datos.entra > :is(.reglas, .calculo) { animation: entra var(--d-contenido) var(--ease-salida) both; }
 .lamina.datos.entra > .calculo { animation-delay: 300ms; }
@@ -324,9 +329,21 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 .capas-futuras span { display: inline-flex; align-items: center; gap: 8px; }
 .capas-futuras i { font-style: normal; display: inline-block; width: 34px; height: 18px; border: 1.5px dashed var(--tierra-suave); }
 
-/* Lámina 19 */
-.qr { width: 150px; height: 150px; display: block; padding: 14px; background: var(--papel); border: 1px solid var(--linea); }
-.cierre-pie { display: flex; align-items: center; gap: 28px; text-align: left; }
+/* Lámina 19: cierre. El mismo cuadro de papel de la portada, con las cifras para llevarse. */
+.cuadro-cierre .cuadro-cabeza { padding-top: 48px; padding-bottom: 30px; gap: 16px; }
+.titulo-cierre { font-size: 120px; line-height: 1; }
+.cuadro-cierre .cuadro-leyenda { padding-bottom: 18px; }
+/* Cada cifra es un botón que lleva a la lámina que la respalda. */
+.llevarse { list-style: none; margin: 0 -14px; padding: 0; display: grid; gap: 4px; }
+.llevarse button { width: 100%; display: grid; grid-template-columns: 220px 1fr; gap: 20px; align-items: center; text-align: left; padding: 12px 14px; }
+.llevarse .cifra { font-size: var(--t-xl); line-height: 1; color: var(--salvia-oscura); }
+.llevarse .chico { display: grid; gap: 4px; color: var(--tinta); }
+.llevarse .rotulo { color: var(--ocre-hondo); font-weight: 500; }
+.llevarse button:hover .rotulo { text-decoration: underline; text-underline-offset: 3px; }
+.cuadro-cierre .cuadro-pie { padding-top: 18px; padding-bottom: 20px; }
+.qr { width: 112px; height: 112px; display: block; padding: 10px; background: var(--papel); border: 1px solid var(--linea); flex: none; }
+.cierre-pie { display: flex; align-items: center; gap: 28px; }
+.cierre-mapa { position: absolute; right: 96px; top: 88px; width: 760px; text-align: right; }
 
 /* Barra de avance: hilera al tresbolillo */
 /* Desplazada a la derecha del centro para no encimarse con la cartela. */
@@ -362,7 +379,6 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 /* Movimiento reducido: la cámara funde y las gráficas aparecen completas */
 @media (prefers-reduced-motion: reduce) {
   #giro { transition: opacity 300ms linear; }
-  #giro.deriva { animation: none; }
   .lamina.entra > *, .lamina.datos .crece, .lamina.datos .traza { animation: none; }
   .lamina.vuelve, .indice { animation: none; }
   .lamina.datos :is(.dibujo *, .elige, .desliza, .cambia, .aparece-tarde), .lamina.datos.entra > :is(.anota, .ficha-arbol, .estacion, .bloque, .metodo-pie, .ex-conclusion, .reglas, .calculo) { animation: none; }
