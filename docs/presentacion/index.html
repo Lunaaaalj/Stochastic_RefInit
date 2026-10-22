@@ -23,14 +23,27 @@
   <div class="grano"></div>
 
   <!-- 1 · Portada -->
-  <section class="lamina" data-cam="portada" aria-label="Portada">
-    <div class="titular centrado sobre-mapa" style="top: 300px; width: 1500px">
-      <h1>Cuántas plantas comprar y dónde sembrar cada una</h1>
-      <p class="apoyo" style="max-width: 1180px">Compra bajo incertidumbre y distribución espacial para reforestar la Línea de Transmisión Dominica–Charcas, San Luis Potosí</p>
-    </div>
-    <div class="titular centrado sobre-mapa" style="top: 820px; width: 1500px; gap: 10px">
-      <p class="chico">Angel Eduardo-Luna · Irasema Alvarez · Carolina Sánchez Meneses · Andrea Estefanía de la Peña</p>
-      <p class="rotulo">Tecnológico de Monterrey · MA2004B, grupo 202, equipo 5 · para CONAFOR · octubre de 2026</p>
+  <!-- La portada es una hoja de carta: margen, marco con coordenadas UTM (lo dibuja deck.js) y cuadro de título. -->
+  <section class="lamina portada" data-cam="hoja" aria-label="Portada">
+    <svg class="hoja" id="hoja" viewBox="0 0 1920 1080" aria-hidden="true"></svg>
+    <div class="cuadro-titulo">
+      <div class="cuadro-cabeza">
+        <h1 class="titulo-portada">Procesos estocásticos y metaheurísticos en la modelación de una iniciativa de reforestación</h1>
+        <p class="apoyo-portada">Compra bajo incertidumbre y distribución espacial para reforestar la Línea de Transmisión Dominica–Charcas, San Luis Potosí</p>
+      </div>
+      <div class="cuadro-leyenda">
+        <p class="rotulo">Clave de plantación de cada polígono, por género</p>
+        <ul class="generos">
+          <li><svg viewBox="-1 -1 2 2" aria-hidden="true"><path d="M1 0L.5 .866H-.5L-1 0L-.5 -.866H.5Z" fill="#AEAC78"/></svg><i>Agave</i></li>
+          <li><svg viewBox="-1 -1 2 2" aria-hidden="true"><path d="M1 0L.5 .866H-.5L-1 0L-.5 -.866H.5Z" fill="#F2C46A"/></svg><i>Opuntia</i></li>
+          <li><svg viewBox="-1 -1 2 2" aria-hidden="true"><path d="M1 0L.5 .866H-.5L-1 0L-.5 -.866H.5Z" fill="#4C4541"/></svg>Otras: mezquite y yuca</li>
+        </ul>
+        <p class="datos-hoja">30 polígonos · 183 ha · 10 especies nativas · meta de 658 plantas/ha</p>
+      </div>
+      <div class="cuadro-pie">
+        <p class="autores">Angel Eduardo-Luna · Irasema Alvarez<br>Carolina Sánchez Meneses · Andrea Estefanía de la Peña</p>
+        <p class="institucion">Tecnológico de Monterrey · MA2004B, grupo 202, equipo 5<br>Para CONAFOR · octubre de 2026</p>
+      </div>
     </div>
   </section>
 
@@ -170,9 +183,9 @@
     <div class="titular" style="width: 1300px">
       <h2><code style="font-family: var(--f-rotulo); font-weight: 500; font-size: .86em">refor_gui</code>: configurar, ejecutar y exportar</h2>
     </div>
-    <div class="ventana" aria-hidden="true">
-      <div class="barra-titulo">refor_gui</div>
-      <span class="pendiente">Captura pendiente</span>
+    <div class="ventana">
+      <div class="barra-titulo" aria-hidden="true">refor_gui</div>
+      <img src="capturas/refor_gui.jpg" alt="refor_gui tras ejecutar el plan con α = 0.05 y B = $12,500/ha: compra por polígono y plantas a comprar por género.">
     </div>
     <div class="panel" style="left: 1010px; right: 96px; top: 300px; gap: 20px">
       <ul class="vistas">
@@ -186,7 +199,14 @@
     </div>
   </section>
 
-  <!-- 12 · Recomendaciones -->
+  <!-- 12 · El visor -->
+  <!-- El visor de docs/visor/ embebido: solo funciona si el repositorio se sirve desde su raíz (ver docs/visor/README.md). -->
+  <section class="lamina" data-cam="ventana" aria-label="El visor">
+    <h2 style="position: absolute; left: 96px; top: 72px; width: 1500px">El visor: los resultados de <code style="font-family: var(--f-rotulo); font-weight: 500; font-size: .86em">refor</code>, polígono por polígono</h2>
+    <iframe class="visor-embebido interactivo" src="../visor/index.html" title="Visor de resultados de refor"></iframe>
+  </section>
+
+  <!-- 13 · Recomendaciones -->
   <section class="lamina" data-cam="sitio" aria-label="Recomendaciones">
     <div class="panel panel-a">
       <h2>Lo que recomendamos</h2>
@@ -200,7 +220,7 @@
     </div>
   </section>
 
-  <!-- 13 · Cierre -->
+  <!-- 14 · Cierre -->
   <section class="lamina" data-cam="portada" aria-label="Cierre">
     <div class="titular centrado sobre-mapa" style="top: 300px; width: 1400px; gap: 20px">
       <h1 style="font-size: 120px; line-height: 1">Gracias</h1>
@@ -227,7 +247,7 @@
     <span id="utm"></span>
     <span class="nota">Curvas de nivel ilustrativas</span>
   </div>
-  <svg id="avance" width="300" height="34" aria-label="Avance"></svg>
+  <svg id="avance" width="330" height="34" aria-label="Avance"></svg>
   <span id="numero"></span>
   <div class="etiqueta" id="etiqueta" hidden></div>
 

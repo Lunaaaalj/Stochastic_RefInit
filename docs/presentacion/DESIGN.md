@@ -57,7 +57,8 @@ especies, planos de plantación).
 
 | Token | Hex | Contraste sobre papel | Uso |
 |---|---|---|---|
-| `--tinta` | `#2E2A27` | 12.6 : 1 | Abreviaturas sobre rellenos claros de especie |
+| `--tinta` | `#2E2A27` | 12.6 : 1 | Abreviaturas sobre rellenos claros de especie; autores en el cuadro de título de la portada |
+| `--salvia-oscura` | `#26331C` | 11.8 : 1 | Título de la portada, sobre el papel opaco del cuadro de título |
 | `--tierra-suave` | `#6E655F` | 5.1 : 1 | Texto secundario, ejes y rotulación del mapa |
 | `--salvia-honda` | `#6F6D43` | 4.7 : 1 | Texto de acento verde |
 | `--ocre-hondo` | `#8C6418` | 4.7 : 1 | Texto de acento dorado, cifras destacadas, contorno de resaltado, línea del presupuesto |
@@ -162,11 +163,12 @@ distinguen además por su rótulo directo.
 
 | Rol | Familia | Pesos | Notas |
 |---|---|---|---|
+| Título de la portada | **Bodoni Moda**, corte de 72 pt | 700 | Solo en la lámina 1, a 60 px; elegido por el equipo |
 | Títulos y cifras grandes (≥ 48 px) | **Libre Caslon Display** | 400 | Contraste alto, pensada para tamaños grandes |
 | Cuerpo, subtítulos y binomiales | **Libre Caslon Text** | 400, *400 itálica*, 700 | Más robusta para leerse proyectada |
 | Rotulación técnica | **Instrument Sans** | 400, 500 | Ejes, etiquetas de gráficas, coordenadas, escala |
 
-Las tres se sirven localmente desde `fuentes/` (woff2, licencia OFL en
+Las cuatro se sirven localmente desde `fuentes/` (woff2, licencia OFL en
 `fuentes/OFL.txt`), así que el deck funciona sin red.
 
 ### Escala (lienzo de 1920 × 1080)
@@ -257,7 +259,7 @@ Región ──► Sitio (30 polígonos) ──► Un polígono ──► La ret�
 
 | # | Lámina | Cámara | Qué cambia en el mapa |
 |---|---|---|---|
-| 1 | Portada | Lejana e inclinada (perspectiva suave), con deriva lenta | Polígonos apenas insinuados en `--papel-hondo` |
+| 1 | Portada | Cenital y fija (`hoja`), el sitio a la derecha de la hoja | Los polígonos se plantan en ondas con su clave; resalta el polígono 29, que se amplía en el detalle |
 | 2 | Resumen | Se aleja; el mapa queda a un lado, más tenue | Pasa a segundo plano |
 | 3 | El reto | Cenital, encuadra los 30 polígonos | Los contornos se trazan y aparecen sus ID del programa |
 | 4 | Dos preguntas | Zoom al polígono 1 | Aparece la retícula vacía |
@@ -268,8 +270,9 @@ Región ──► Sitio (30 polígonos) ──► Un polígono ──► La ret�
 | 9 | Mosaico | Zoom profundo a la retícula | La retícula se vuelve el mosaico real y se reordena |
 | 10 | Validación | Se aleja un poco | El mosaico se tesela sobre todo el polígono |
 | 11 | Herramienta | El mapa se encoge a la ventana de la GUI | Liga el mapa con `refor_gui` |
-| 12 | Recomendaciones | Vista del sitio, tenue | Capas futuras punteadas: agua, pendiente, suelo |
-| 13 | Cierre | El encuadre de la portada | Todos los polígonos plantados |
+| 12 | Visor | Igual que la 11; el mapa queda detrás del visor | El visor de `docs/visor/` embebido y operable |
+| 13 | Recomendaciones | Vista del sitio, tenue | Capas futuras punteadas: agua, pendiente, suelo |
+| 14 | Cierre | Lejana e inclinada (perspectiva suave), con deriva lenta | Todos los polígonos plantados |
 
 ### Implementación
 
@@ -297,7 +300,7 @@ Región ──► Sitio (30 polígonos) ──► Un polígono ──► La ret�
   - una capa desvanecida sale del render con `display: none`;
   - la teselación de la lámina 10 y los polígonos plantados son un solo trazo
     con `<pattern>`, no un elemento por hexágono;
-  - la inclinación y la deriva de la portada, y el atenuado del mapa, son
+  - la inclinación y la deriva del cierre, y el atenuado del mapa, son
     `transform` y `opacity` de CSS sobre capas compuestas (`#vista`, `#giro`):
     no repintan el mapa.
 - Al imprimir, cada lámina lleva su encuadre final, pero sin curvas de nivel.
@@ -317,7 +320,8 @@ Región ──► Sitio (30 polígonos) ──► Un polígono ──► La ret�
 ## 6. Composición
 
 El mapa ocupa siempre toda la pantalla. El contenido entra en una de tres
-composiciones, según dónde deje espacio la cámara:
+composiciones, según dónde deje espacio la cámara; la portada tiene la suya
+(«Hoja de carta», abajo):
 
 ```
   A · Anotación lateral          B · Lámina de datos             C · Titular sobre el terreno
@@ -329,18 +333,34 @@ composiciones, según dónde deje espacio la cámara:
 │ ░░░░░░░░░░░░ └─────────┘  │  │ ░░└───────────────────┘░░ │  │ ░░░░░░░░░░░░░░░░░░░░░░░░░ │
 │ ∙∙∙∙∙∙∙∙∘∘∘∘∘∘∘           │  │ ∙∙∙∙∙∙∙∙∙∙∘∘∘∘∘           │  │ ∙∙∘∘∘∘∘∘∘∘∘∘∘∘∘           │
 └───────────────────────────┘  └───────────────────────────┘  └───────────────────────────┘
-  láminas 3–6, 12                 láminas 7, 8, 10, 11            láminas 1, 2, 9, 13
+  láminas 3–6, 12                 láminas 7, 8, 10, 11            láminas 2, 9, 13
 ```
 
 - **Lienzo:** 1920 × 1080 escalado a la ventana (16 : 9), con márgenes de
   96 px a los lados y 80 px arriba y abajo.
-- **Alineación a la izquierda**, como notas de campo. Solo la portada y el
-  cierre van centrados.
+- **Alineación a la izquierda**, como notas de campo. Solo el cierre va
+  centrado.
 - **Paneles de papel, no tarjetas:** `--papel` al 92 % sobre el mapa, borde de
   1 px en `--linea`, sombra cálida muy difusa (`0 18px 48px` con `--tierra` al
   8–10 %) y esquinas de 2 px, como hoja recortada.
-- **Sin variante oscura.** Las láminas C (1, 2, 9 y 13) se distinguen por
+- **Sin variante oscura.** Las láminas C (2, 9 y 13) se distinguen por
   composición: titular grande directo sobre el mapa, sin panel.
+- **Portada: hoja de carta.** La lámina 1 es una hoja de carta topográfica, no
+  un titular sobre el mapa: el título nunca va encima de los polígonos
+  plantados, porque su textura (un hexágono por planta, de 1 px a esta
+  escala) le quita lectura a cualquier texto.
+  - Margen de papel opaco y marco doble (1.5 px y 0.75 px en `--tierra`). En el
+    margen, la cuadrícula UTM cada 500 m en Instrument Sans 18 px con los
+    dígitos que se repiten a 13 px, como en las cartas INEGI; dentro, cruces de
+    18 px en las intersecciones. Todo sale de `origen_utm` y de la cámara
+    `hoja`, que no gira ni se inclina para que las coordenadas sean exactas.
+  - Cuadro de título a la izquierda: papel opaco, borde de 1 px en `--tierra`,
+    sin sombra, en tres compartimentos separados por `--linea`: título y
+    subtítulo; leyenda por género con los datos del sitio; autores e
+    institución.
+  - Detalle circular del polígono 29 (clave 1) con hexágonos de 15 px por
+    género, unido con una línea a su lugar en el mapa. Hace legible la leyenda,
+    que en la vista del sitio no se distingue.
 - **Controles en C.** La lámina 9 necesita el conmutador género/competencia y
   la réplica 3 × 3. Van en una tira mínima de papel al pie, alineada a la
   izquierda, en Instrument Sans `--t-s`; no se convierte en panel.
@@ -379,7 +399,7 @@ demás la sigue y no compite con ella.
 - **`prefers-reduced-motion`:** la cámara cambia de encuadre con un fundido y
   las gráficas aparecen ya completas.
 - **Prohibido:** entradas «fade y sube» en cada elemento, rebotes, parallax
-  sobre texto, animaciones en bucle salvo la deriva de la portada.
+  sobre texto, animaciones en bucle salvo la deriva del cierre.
 
 ### Navegación
 
@@ -394,7 +414,7 @@ su encuadre final.
 
 | # | Lámina | Mensaje | Visual principal | Composición |
 |---|---|---|---|---|
-| 1 | Portada | Título, equipo, CONAFOR, fecha | Retícula que se planta en ondas desde el centro | C |
+| 1 | Portada | «Procesos estocásticos y metaheurísticos en la modelación de una iniciativa de reforestación», equipo, CONAFOR, fecha | Hoja de carta: el sitio plantado en ondas desde el centro, cuadrícula UTM y detalle del mosaico | Hoja |
 | 2 | Resumen | **$14,496/ha** de presupuesto mínimo · **108,680 plantas** · **−16 % de competencia** | Las cifras frente a la barra de $12,500/ha disponibles | C |
 | 3 | El reto | 183 ha, 30 polígonos (1.28–8 ha), 10 especies, 658 plantas/ha | El mapa se revela; tooltip por polígono | A |
 | 4 | Dos preguntas | ¿Cuántas plantas comprar? ¿Dónde plantar cada una? | Láminas de herbario de las 10 especies, por género | A |
@@ -404,9 +424,10 @@ su encuadre final.
 | 8 | El presupuesto | Con $12,500/ha ningún polígono es factible; aceptar 50 veces más riesgo ahorra menos del 4 % | Frontera B\*(α) con la línea del presupuesto debajo de toda la curva | B |
 | 9 | La clave de plantación | 30 polígonos, 6 claves; el mezquite separa | El mosaico real se reordena del azar al óptimo; conmutador género/competencia y réplica 3 × 3 | C |
 | 10 | Qué tan buena es | 14.5–16.3 % menos competencia que al azar; d.e. ≤ 0.006; brecha con el óptimo exacto | Barras azar / memético / exacto por mosaico, con la cota del exacto | B |
-| 11 | La herramienta | `refor_gui`: configurar, ejecutar, exportar; reproducible | Capturas en un marco de ventana; da paso a la demo en vivo | B |
-| 12 | Recomendaciones | Ajustar presupuesto o meta; validar la matriz W; ampliar el monitoreo | Decisiones numeradas y línea de tiempo de siguientes pasos | A |
-| 13 | Cierre | Gracias y preguntas | El encuadre de la portada, todo plantado; QR al repositorio | C |
+| 11 | La herramienta | `refor_gui`: configurar, ejecutar, exportar; reproducible | Captura de `refor_gui` en un marco de ventana | B |
+| 12 | El visor | Los resultados de `refor`, polígono por polígono | El visor embebido (iframe); se usa en vivo. Requiere servir el repo desde su raíz | C |
+| 13 | Recomendaciones | Ajustar presupuesto o meta; validar la matriz W; ampliar el monitoreo | Decisiones numeradas y línea de tiempo de siguientes pasos | A |
+| 14 | Cierre | Gracias y preguntas | El sitio inclinado y todo plantado; QR al repositorio | C |
 
 **Anexo** (si preguntan por el método): formulación de la compra con
 restricción probabilística, algoritmo memético con búsqueda tabú y matriz de
@@ -474,13 +495,13 @@ como en el reporte E2.
 
 | Archivo | Contenido |
 |---|---|
-| `index.html` | Las 13 láminas |
+| `index.html` | Las 14 láminas |
 | `estilo.css` | Tokens y composición |
 | `deck.js` | Mapa, cámara, navegación, gráficas y el mosaico de la lámina 9 |
 | `herbario.js` | Dibujos provisionales de las 10 especies |
 | `datos/datos.js` | Generado por `scripts/datos_presentacion.py`; no se edita a mano |
 | `fuentes/`, `fuentes.css` | Fuentes locales |
-| `qr-repositorio.svg` | QR de la lámina 13 |
+| `qr-repositorio.svg` | QR de la lámina 14 |
 
 Para regenerar los datos, desde la raíz del repo:
 

@@ -298,6 +298,7 @@
   const TC = (() => { const [lx, ly] = [(-0.866 + R3 * 13.5 + 0.866) / 2, 2.25]; return [O[0] - ly * R, O[1] + lx * R]; })();
   const CAMARAS = {
     portada: encuadre(SITIO, { x: 160, y: 140, w: 1600, h: 800 }),
+    hoja: encuadre(SITIO, { x: 1000, y: 100, w: 820, h: 860 }),
     resumen: encuadre(SITIO, { x: 1220, y: 160, w: 620, h: 760 }),
     sitio: encuadre(SITIO, { x: 60, y: 90, w: 1000, h: 880 }),
     "sitio-datos": encuadre(SITIO, { x: 40, y: 150, w: 680, h: 760 }),
@@ -362,6 +363,68 @@
     const a = c.rot * Math.PI / 180, vx = (0 - c.ax) / c.s, vy = (1080 - c.ay) / c.s;
     const wx = c.cx + vx * Math.cos(a) - vy * Math.sin(a), wy = c.cy + vx * Math.sin(a) + vy * Math.cos(a);
     $("utm").textContent = `E ${fmt(Math.round(E0 + wx))} · N ${fmt(Math.round(N0 - wy))} (UTM)`;
+  }
+
+  // Hoja de la portada: margen de papel, marco doble y cuadrícula UTM cada 500 m con su
+  // rotulación al margen. La cámara "hoja" no gira ni se inclina, así que las coordenadas son exactas.
+  const DETALLE = 29; // 7.56 ha con la clave 1, junto al espacio libre de la hoja
+  {
+    const svg = $("hoja"), c = CAMARAS.hoja, M = { x0: 56, y0: 56, x1: 1864, y1: 1000 }, paso = 500;
+    const X = E => c.ax + c.s * (E - E0 - c.cx), Y = N => c.ay + c.s * (N0 - N - c.cy);
+    const aE = x => E0 + c.cx + (x - c.ax) / c.s, aN = y => N0 - (c.cy + (y - c.ay) / c.s);
+    el("path", { class: "margen", "fill-rule": "evenodd",
+      d: `M0 0H1920V1080H0Z M${M.x0} ${M.y0}V${M.y1}H${M.x1}V${M.y0}Z` }, svg);
+    el("rect", { class: "marco-ext", x: M.x0, y: M.y0, width: M.x1 - M.x0, height: M.y1 - M.y0 }, svg);
+    el("rect", { class: "marco-int", x: M.x0 + 6, y: M.y0 + 6, width: M.x1 - M.x0 - 12, height: M.y1 - M.y0 - 12 }, svg);
+    // Como en las cartas INEGI: los dígitos que cambian van grandes y los que se repiten, chicos.
+    const rotular = (v, attrs) => {
+      const t = el("text", attrs, svg), s = String(Math.round(v)), n = s.length - 3;
+      el("tspan", { class: "menor" }, t).textContent = s.slice(0, n);
+      t.append(s.slice(n));
+      return t;
+    };
+    const Es = [], Ns = [];
+    for (let E = Math.ceil(aE(M.x0 + 40) / paso) * paso; X(E) < M.x1 - 40; E += paso) Es.push(E);
+    for (let N = Math.ceil(aN(M.y1 - 40) / paso) * paso; Y(N) > M.y0 + 40; N += paso) Ns.push(N);
+    let d = "";
+    for (const E of Es) {
+      const x = X(E).toFixed(1);
+      d += `M${x} ${M.y0}v10M${x} ${M.y1}v-10`;
+      rotular(E, { x, y: M.y0 - 16, "text-anchor": "middle" });
+    }
+    for (const N of Ns) {
+      const y = Y(N).toFixed(1);
+      d += `M${M.x0} ${y}h10M${M.x1} ${y}h-10`;
+      rotular(N, { transform: `translate(${M.x0 - 16} ${y}) rotate(-90)`, "text-anchor": "middle" });
+      for (const E of Es) d += `M${(X(E) - 9).toFixed(1)} ${y}h18M${X(E).toFixed(1)} ${(Y(N) - 9).toFixed(1)}v18`;
+    }
+    el("path", { class: "cuadricula", d }, svg);
+
+    // Detalle: a esta escala cada planta mide un píxel y los géneros se funden. Un círculo
+    // amplía el centro del polígono DETALLE hasta que cada hexágono (una planta) se lee por género.
+    const P = pols.find(p => p.p === DETALLE), [wx, wy] = centroide(P.v);
+    const L = { x: 1652, y: 736, r: 146 }, rho = 15, m = rho / R;
+    const sx = c.ax + c.s * (wx - c.cx), sy = c.ay + c.s * (wy - c.cy), rMapa = L.r / m * c.s;
+    const ang = Math.atan2(L.y - sy, L.x - sx);
+    el("circle", { class: "detalle-marca", cx: sx, cy: sy, r: rMapa }, svg);
+    el("path", { class: "detalle-marca", d: `M${sx + rMapa * Math.cos(ang)} ${sy + rMapa * Math.sin(ang)}L${L.x - L.r * Math.cos(ang)} ${L.y - L.r * Math.sin(ang)}` }, svg);
+    el("clipPath", { id: "recorte-detalle" }, svg).appendChild(el("circle", { cx: L.x, cy: L.y, r: L.r }));
+    el("circle", { class: "detalle-fondo", cx: L.x, cy: L.y, r: L.r }, svg);
+    const plano = D.mosaicos.find(k => k.id === P.clave).clave.flat();
+    const hexD = (x, y) => `M${x + rho} ${y}` + [1, 2, 3, 4, 5].map(i => `L${(x + rho * Math.cos(i * Math.PI / 3)).toFixed(1)} ${(y + rho * Math.sin(i * Math.PI / 3)).toFixed(1)}`).join("") + "Z";
+    const caminos = { Agave: "", Opuntia: "", Otras: "" };
+    const f0 = Math.round((O[0] - wx) / (1.5 * R)), c0 = Math.round((wy - O[1]) / (R3 * R) - 0.5 * f0);
+    for (let f = f0 - 12; f <= f0 + 12; f++) for (let cc = c0 - 14; cc <= c0 + 14; cc++) {
+      const [hx, hy] = reticula(f, cc), x = L.x + m * (hx - wx), y = L.y + m * (hy - wy);
+      if (Math.hypot(x - L.x, y - L.y) < L.r + rho && dentro([hx, hy], P.v)) caminos[generoDe(plano[envolver(f, cc)])] += hexD(x, y);
+    }
+    const gDet = el("g", { "clip-path": "url(#recorte-detalle)" }, svg);
+    for (const [g, dd] of Object.entries(caminos)) el("path", { class: "detalle-hex", d: dd, fill: GEN[g].c }, gDet);
+    el("circle", { class: "detalle-borde", cx: L.x, cy: L.y, r: L.r }, svg);
+    const pie = el("text", { class: "detalle-pie", x: L.x, y: L.y + L.r + 34, "text-anchor": "middle" }, svg);
+    pie.textContent = `Detalle del polígono ${DETALLE}, clave ${P.clave}`;
+    const pie2 = el("text", { class: "detalle-pie", x: L.x, y: L.y + L.r + 58, "text-anchor": "middle" }, svg);
+    pie2.textContent = "Un hexágono por planta, a 4.19 m";
   }
 
   // ================= Capas por lámina =================
@@ -902,7 +965,7 @@
   // ================= Láminas =================
   const secciones = [...document.querySelectorAll(".lamina")];
   const LAMINAS = [
-    { cam: "portada", inclinado: true, capas: { insinuado: true }, entrar: () => { ondas(0.5); derivar(); }, sinCartela: true },
+    { cam: "hoja", capas: { resalte: [DETALLE] }, plantar: 0.9, entrar: () => ondas(0.9) },
     { cam: "resumen", capas: { tenue: 0.45 }, datos: true },
     { cam: "sitio", capas: { ids: true, hover: true }, entrar: adelante => { if (adelante) aparecerPoligonos(); } },
     { cam: "poligono", capas: { reticula: true, resalte: [1] } },
@@ -913,11 +976,12 @@
     { cam: "reticula", capas: { reticula: true, tile: true }, antes: () => Mos.preparar(), entrar: adelante => Mos.entrar(adelante), salir: () => Mos.salir() },
     { cam: "tesela", capas: { tesela: true }, datos: true },
     { cam: "ventana", capas: { tenue: 0.85 } },
+    { cam: "ventana", capas: { tenue: 0.85 } },
     { cam: "sitio", capas: { tenue: 0.55 } },
-    { cam: "portada", inclinado: true, capas: {}, entrar: () => { ondas(0.7); derivar(); }, sinCartela: true },
+    { cam: "portada", inclinado: true, capas: {}, plantar: 0.7, entrar: () => { ondas(0.7); derivar(); }, sinCartela: true },
   ];
 
-  // Barra de avance: 13 puntos al tresbolillo.
+  // Barra de avance: 14 puntos al tresbolillo.
   const avance = $("avance");
   const puntos = LAMINAS.map((_, i) => {
     const g = el("g", { class: "punto", tabindex: 0, role: "button", "aria-label": `Ir a la lámina ${i + 1}` }, avance);
@@ -1000,8 +1064,10 @@
   addEventListener("beforeprint", () => {
     LAMINAS.forEach((L, i) => {
       aplicarCapas(L.capas);
-      if (L.cam === "portada") for (const ov of gPlantado.children) ov.style.opacity = i === 0 ? 0.5 : 0.7;
-      if (L.cam === "portada") { gPlantado.classList.remove("capa-oculta"); gPlantado.style.opacity = 1; }
+      if (L.plantar) {
+        for (const ov of gPlantado.children) ov.style.opacity = L.plantar;
+        gPlantado.classList.remove("capa-oculta"); gPlantado.style.opacity = 1;
+      }
       const s = el("svg", { class: "impresion", viewBox: "0 0 1920 1080" });
       el("rect", { width: 1920, height: 1080, fill: COL.papel }, s);
       const g = el("g", { transform: camTransform(CAMARAS[L.cam]) }, s);

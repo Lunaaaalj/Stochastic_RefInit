@@ -10,10 +10,12 @@
   --salvia-honda: #6F6D43;
   --ocre: #F2C46A;
   --ocre-hondo: #8C6418;
+  --salvia-oscura: #26331C;
   --linea: rgb(76 69 65 / .15);
   --marco: #1C1917;
 
   --f-display: "Libre Caslon Display", "Libre Caslon Text", Georgia, serif;
+  --f-portada: "Bodoni Moda", "Libre Caslon Display", Georgia, serif;
   --f-texto: "Libre Caslon Text", Georgia, serif;
   --f-rotulo: "Instrument Sans", system-ui, sans-serif;
 
@@ -101,6 +103,8 @@ h1, h2, h3, p { margin: 0; }
 h1 { font: 400 var(--t-2xl)/1.1 var(--f-display); color: var(--tierra); text-wrap: balance; letter-spacing: -.005em; }
 h2 { font: 400 var(--t-xl)/1.15 var(--f-display); color: var(--tierra); text-wrap: balance; letter-spacing: -.003em; }
 h3 { font: 400 var(--t-m)/1.35 var(--f-texto); color: var(--tierra); }
+/* Solo el título de la portada va en Bodoni Moda Bold (corte de 72 pt, pensado para tamaños grandes). */
+.titulo-portada { font: 700 60px/1.06 var(--f-portada); letter-spacing: -.012em; color: var(--salvia-oscura); }
 .texto { font: 400 var(--t-m)/1.5 var(--f-texto); max-width: 34em; text-wrap: pretty; }
 .apoyo { font: 400 var(--t-l)/1.35 var(--f-texto); text-wrap: pretty; }
 .chico { font: 400 var(--t-s)/1.45 var(--f-texto); text-wrap: pretty; }
@@ -132,6 +136,37 @@ i, em, .binomial { font-style: italic; }
 .grafica .crece.vertical { transform-origin: center bottom; }
 @keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .lamina.datos .traza { stroke-dasharray: var(--largo); animation: trazo var(--d-datos) var(--ease-salida) both 200ms; }
+
+/* Lámina 1: hoja de carta. El cuadro de título es papel opaco: el texto nunca va sobre el mapa. */
+.hoja { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: visible; font-family: var(--f-rotulo); }
+.hoja .margen { fill: var(--papel); }
+.hoja .marco-ext { fill: none; stroke: var(--tierra); stroke-width: 1.5; }
+.hoja .marco-int { fill: none; stroke: var(--tierra); stroke-width: .75; }
+.hoja .cuadricula { stroke: var(--tierra-suave); stroke-width: 1; fill: none; }
+.hoja text { fill: var(--tierra-suave); font-size: 18px; font-variant-numeric: tabular-nums; }
+.hoja text .menor { font-size: 13px; }
+.hoja .detalle-marca { fill: none; stroke: var(--tierra); stroke-width: 1.25; }
+.hoja .detalle-fondo { fill: var(--papel); }
+.hoja .detalle-hex { stroke: var(--tierra-suave); stroke-width: .75; }
+.hoja .detalle-borde { fill: none; stroke: var(--tierra); stroke-width: 1.5; }
+.hoja .detalle-pie { fill: var(--tierra); font-size: var(--t-xs); }
+.cuadro-titulo { position: absolute; left: 96px; top: 88px; bottom: 112px; width: 880px; box-sizing: border-box;
+  display: flex; flex-direction: column; background: var(--papel); border: 1px solid var(--tierra); color: var(--tinta); }
+.cuadro-titulo > div { padding-inline: 52px; }
+.cuadro-cabeza { padding-top: 60px; padding-bottom: 40px; display: grid; gap: 28px; }
+.apoyo-portada { font: 400 var(--t-m)/1.45 var(--f-texto); color: var(--tierra); max-width: 31em; text-wrap: pretty; }
+.cuadro-leyenda { border-top: 1px solid var(--linea); padding-top: 24px; padding-bottom: 26px; display: grid; gap: 12px; }
+.cuadro-leyenda .rotulo { font-size: var(--t-s); }
+.generos { list-style: none; margin: 0; padding: 0; display: flex; gap: 36px; font: 400 var(--t-m)/1 var(--f-texto); color: var(--tinta); }
+.generos li { display: flex; align-items: center; gap: 12px; }
+.generos svg { width: 30px; height: 26px; overflow: visible; }
+.generos path { stroke: var(--tierra-suave); stroke-width: .06; }
+.datos-hoja { font: 500 var(--t-s)/1.3 var(--f-rotulo); color: var(--tierra); font-variant-numeric: tabular-nums; }
+.cuadro-pie { margin-top: auto; border-top: 1px solid var(--linea); padding-top: 22px; padding-bottom: 26px; display: grid; gap: 8px; }
+.autores { font: 400 var(--t-s)/1.45 var(--f-texto); color: var(--tinta); }
+.institucion { font: 400 var(--t-s)/1.45 var(--f-rotulo); color: var(--tierra-suave); }
+/* El contorno de cada polígono plantado queda encima del patrón. */
+.plantado path { stroke: var(--tierra); stroke-width: 1; vector-effect: non-scaling-stroke; }
 
 /* Lámina 4: herbario */
 .herbario { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px 16px; }
@@ -187,17 +222,17 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 .regla span:last-child { transform: translateX(-100%); }
 
 /* Lámina 11: ventana de la herramienta */
-.ventana { position: absolute; left: 96px; top: 300px; width: 860px; height: 560px; border: 1px solid var(--tierra);
-  border-radius: 3px; background: transparent; box-shadow: 0 18px 48px rgb(76 69 65 / .1); }
+.ventana { position: absolute; left: 96px; top: 300px; width: 860px; height: 576px; border: 1px solid var(--tierra);
+  border-radius: 3px; overflow: hidden; background: transparent; box-shadow: 0 18px 48px rgb(76 69 65 / .1); }
 .ventana .barra-titulo { height: 40px; border-bottom: 1px solid var(--tierra); display: flex; align-items: center; padding: 0 16px;
   font: 500 var(--t-xs) var(--f-rotulo); color: var(--tierra); background: rgb(252 240 218 / .95); }
-.ventana .pendiente { position: absolute; left: 24px; bottom: 20px; font: 400 var(--t-xs) var(--f-rotulo); color: var(--tierra-suave);
-  background: rgb(252 240 218 / .9); padding: 6px 10px; border: 1px dashed var(--tierra-suave); }
+/* Captura de refor_gui sin la barra nativa (1720 × 1071, el doble del ancho de la ventana). */
+.ventana img { display: block; width: 860px; height: auto; }
 .vistas { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 .vistas li { display: grid; grid-template-columns: 230px 1fr; gap: 16px; font: 400 var(--t-s)/1.4 var(--f-texto); }
 .vistas b { font: 500 var(--t-s)/1.4 var(--f-rotulo); color: var(--tierra); }
 
-/* Lámina 12: decisiones */
+/* Lámina 13: decisiones */
 .decisiones { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
 .decisiones li { display: grid; grid-template-columns: 52px 1fr; gap: 16px; }
 .decisiones .n { font: 400 var(--t-xl)/1 var(--f-display); color: var(--ocre-hondo); }
@@ -206,7 +241,11 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 .capas-futuras span { display: inline-flex; align-items: center; gap: 8px; }
 .capas-futuras i { font-style: normal; display: inline-block; width: 34px; height: 18px; border: 1.5px dashed var(--tierra-suave); }
 
-/* Lámina 13 */
+/* Lámina 12: visor embebido */
+.visor-embebido { position: absolute; left: 96px; right: 96px; top: 170px; bottom: 80px; width: calc(100% - 192px); height: calc(100% - 250px);
+  border: 1px solid var(--tierra); border-radius: 3px; background: var(--papel); box-shadow: 0 18px 48px rgb(76 69 65 / .1); }
+
+/* Lámina 14 */
 .qr { width: 150px; height: 150px; display: block; padding: 14px; background: var(--papel); border: 1px solid var(--linea); }
 .cierre-pie { display: flex; align-items: center; gap: 28px; text-align: left; }
 
