@@ -1,9 +1,10 @@
 // refor_gui: interfaz gráfica del modelo de compra y del mosaico memético.
 //
-//   ./build/refor_gui [directorio de datos]     (por defecto data/processed)
+//   ./build/refor_gui [directorio de datos]
 //
-// Se corre desde la raíz del repo, igual que la CLI; los resultados se
-// guardan en docs/res/plan/.
+// Desde la raíz del repo usa data/processed y guarda en docs/res/plan/; en
+// una release, los datos que vienen con el programa y <Documentos>/refor
+// (ver rutas.hpp). Soltar una carpeta de datos en la ventana la carga.
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -17,10 +18,13 @@
 
 #include <cstdio>
 #include <filesystem>
+#include <string>
+#include <vector>
 
 #include "app.hpp"
 #include "estilo.hpp"
 #include "fuentes.hpp"
+#include "rutas.hpp"
 
 namespace {
 
@@ -92,7 +96,11 @@ int main(int argc, char** argv) {
   ImGui_ImplOpenGL3_Init(glsl);
 
   {
-    refor::gui::App app(argc > 1 ? argv[1] : "data/processed");
+    refor::gui::App app(argc > 1 ? argv[1] : refor::texto_utf8(refor::datos_por_defecto()));
+    glfwSetWindowUserPointer(ventana, &app);
+    glfwSetDropCallback(ventana, [](GLFWwindow* v, int n, const char** rutas) {
+      static_cast<refor::gui::App*>(glfwGetWindowUserPointer(v))->soltar(std::vector<std::string>(rutas, rutas + n));
+    });
     // En reposo (sin cálculo, sin animación y sin entrada reciente) el bucle
     // duerme hasta el siguiente evento en vez de redibujar a 60 cps. Tras cada
     // evento sigue dibujando un rato: los tooltips de ImGui aparecen con

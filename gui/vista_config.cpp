@@ -7,6 +7,7 @@
 #include <format>
 
 #include "app.hpp"
+#include "rutas.hpp"
 
 namespace refor::gui {
 
@@ -155,9 +156,16 @@ void App::vista_config() {
 
   titulo("Datos");
   ImGui::InputText("Directorio", &cfg_.datos_dir);
+  ayuda("Carpeta con especies.csv, poligonos.csv, existentes.csv y competencia.csv (mapa.csv es opcional). "
+        "También puedes arrastrar la carpeta, o uno de sus CSV, a la ventana.");
   ImGui::BeginDisabled(ocupado());
   if (anim::boton("Recargar datos")) cargar();
+  ImGui::SameLine();
+  if (anim::boton("Datos incluidos")) usar_datos(texto_utf8(datos_por_defecto()));
+  ImGui::SetItemTooltip("Vuelve a los datos de INECOL que vienen con el programa.");
   ImGui::EndDisabled();
+  ImGui::InputText("Resultados", &cfg_.dir_res);
+  ayuda("Carpeta donde «Guardar resultados» escribe plan/ en txt, csv y json.");
 
   if (datos_) {
     titulo("Polígonos");

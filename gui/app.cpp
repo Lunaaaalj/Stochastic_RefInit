@@ -9,8 +9,10 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 
 #include "asignacion_exacta/salida_ple.hpp"
+#include "rutas.hpp"
 #include "salida.hpp"
 
 namespace refor::gui {
@@ -36,7 +38,7 @@ template <class F>
 void escribir_archivo(const fs::path& ruta, F&& escribir) {
   fs::create_directories(ruta.parent_path());
   std::ofstream out(ruta);
-  if (!out) throw std::runtime_error("no se pudo escribir " + ruta.string());
+  if (!out) throw std::runtime_error("no se pudo escribir " + texto_utf8(ruta));
   escribir(out);
 }
 
@@ -44,13 +46,37 @@ void escribir_archivo(const fs::path& ruta, F&& escribir) {
 
 App::App(std::string datos_dir) {
   cfg_.datos_dir = std::move(datos_dir);
+  cfg_.dir_res = texto_utf8(resultados_por_defecto(true));
   cargar();
+}
+
+void App::usar_datos(std::string dir) {
+  std::string antes = std::exchange(cfg_.datos_dir, std::move(dir));
+  cargar();
+  if (mensaje_es_error_ && datos_) {
+    mensaje_ += " Se conservan los datos de " + antes + ".";
+    cfg_.datos_dir = std::move(antes);
+  }
+}
+
+void App::soltar(const std::vector<std::string>& rutas) {
+  if (rutas.empty()) return;
+  if (ocupado()) {
+    mensaje_ = "Espera a que termine el cálculo para cambiar los datos.";
+    mensaje_es_error_ = true;
+    return;
+  }
+  // Vale soltar la carpeta o cualquiera de sus CSV.
+  fs::path dir = ruta_utf8(rutas.front());
+  std::error_code ec;
+  if (!fs::is_directory(dir, ec)) dir = dir.parent_path();
+  usar_datos(texto_utf8(dir));
 }
 
 void App::cargar() {
   try {
-    auto d = std::make_shared<const Datos>(cargar_datos(cfg_.datos_dir));
-    auto w = std::make_shared<const memetico::Competencia>(*d, fs::path(cfg_.datos_dir) / "competencia.csv");
+    auto d = std::make_shared<const Datos>(cargar_datos(ruta_utf8(cfg_.datos_dir)));
+    auto w = std::make_shared<const memetico::Competencia>(*d, ruta_utf8(cfg_.datos_dir) / "competencia.csv");
     datos_ = std::move(d);
     w_ = std::move(w);
     generos_ = estilo::generos(*datos_);
@@ -269,7 +295,7 @@ void App::recoger() {
 void App::guardar_plan() {
   if (!plan_) return;
   const auto& r = *plan_;
-  const fs::path dir = fs::path(cfg_.dir_res) / "plan";
+  const fs::path dir = ruta_utf8(cfg_.dir_res) / "plan";
   try {
     for (Formato f : {Formato::Tabla, Formato::Csv, Formato::Json}) {
       const std::string ext = f == Formato::Tabla ? ".txt" : f == Formato::Csv ? ".csv" : ".json";
@@ -293,7 +319,7 @@ void App::guardar_plan() {
         });
       }
     }
-    mensaje_ = "Resultados guardados en " + dir.string() + "/ (txt, csv y json)";
+    mensaje_ = "Resultados guardados en " + texto_utf8(dir) + " (txt, csv y json)";
     if (exacto_completo)
       mensaje_ += ", con la comparación del modelo entero.";
     else if (resueltos > 0)

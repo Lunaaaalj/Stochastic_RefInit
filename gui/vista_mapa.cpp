@@ -12,6 +12,7 @@
 #include <stdexcept>
 
 #include "app.hpp"
+#include "rutas.hpp"
 #include "salida.hpp"
 
 namespace refor::gui {
@@ -64,7 +65,7 @@ std::pair<ImVec2, float> rotulo(const std::vector<ImVec2>& v) {
 }  // namespace
 
 std::vector<PoligonoMapa> cargar_mapa(const std::string& dir) {
-  const auto ruta = std::filesystem::path(dir) / "mapa.csv";
+  const auto ruta = ruta_utf8(dir) / "mapa.csv";
   std::ifstream in(ruta);
   if (!in) return {};
 

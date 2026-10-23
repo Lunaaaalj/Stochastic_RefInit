@@ -125,9 +125,12 @@ class App {
     return t_plan_.ocupado() || t_frontera_.ocupado() || t_barrido_.ocupado() || t_exacto_.ocupado();
   }
   bool quiere_salir() const { return salir_; }
+  // Archivos o carpetas soltados sobre la ventana: se cargan como datos.
+  void soltar(const std::vector<std::string>& rutas);
 
  private:
   void cargar();
+  void usar_datos(std::string dir);  // carga dir; si falla, conserva los datos anteriores
   std::vector<int> ids_seleccionados() const;
   void cancelar_todo();
   void lanzar_plan();
