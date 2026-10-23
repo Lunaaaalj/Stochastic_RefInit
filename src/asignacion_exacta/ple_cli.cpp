@@ -14,6 +14,7 @@
 #include "memetico/competencia.hpp"
 #include "memetico/individuo.hpp"
 #include "memetico/mosaico.hpp"
+#include "rutas.hpp"
 
 namespace {
 
@@ -39,13 +40,15 @@ std::vector<int> composicion_proporcional(const refor::Datos& d, int n) {
 }  // namespace
 
 int main(int argc, char** argv) {
+  refor::consola_utf8();
   CLI::App app{"Modelo entero (sección 2.2) de asignación espacial de especies"};
-  std::string dir_datos = "data/processed";
-  std::string csv_w = "data/processed/competencia.csv";
+  argv = app.ensure_utf8(argv);
+  std::string dir_datos = refor::texto_utf8(refor::datos_por_defecto());
+  std::string csv_w;
   int filas = 4, columnas = 13;
   refor::asignacion_exacta::ParametrosPLE p;
   app.add_option("--datos", dir_datos, "directorio con especies.csv, etc.");
-  app.add_option("--competencia", csv_w, "csv de la matriz W");
+  app.add_option("--competencia", csv_w, "csv de la matriz W (por defecto, <datos>/competencia.csv)");
   app.add_option("--filas", filas, "filas del mosaico (>= 3)");
   app.add_option("--columnas", columnas, "columnas del mosaico (>= 3)");
   app.add_option("--limite", p.limite_segundos, "límite de tiempo (s)");
@@ -58,8 +61,9 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  const auto datos = refor::cargar_datos(dir_datos);
-  const refor::memetico::Competencia w(datos, csv_w);
+  const auto datos = refor::cargar_datos(refor::ruta_utf8(dir_datos));
+  const refor::memetico::Competencia w(
+      datos, csv_w.empty() ? refor::ruta_utf8(dir_datos) / "competencia.csv" : refor::ruta_utf8(csv_w));
   const refor::memetico::Mosaico m(filas, columnas);
   const auto m_s = composicion_proporcional(datos, m.num_posiciones());
 

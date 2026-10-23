@@ -1,5 +1,6 @@
 // refor: modelo de compra de plantas bajo incertidumbre y su distribución
-// espacial (reporte E2). Los resultados se escriben en docs/res/.
+// espacial (reporte E2). Los resultados se escriben en docs/res/ desde el
+// repo, o en ./resultados fuera de él (ver rutas.hpp).
 //
 //   refor compra   --alpha 0.05 --B 12500      compra por polígono y especie
 //   refor barrido  --alphas ... --B-min ...    factibilidad en la rejilla α × B
@@ -25,6 +26,7 @@
 #include "memetico/mosaico.hpp"
 #include "modelo.hpp"
 #include "plan.hpp"
+#include "rutas.hpp"
 #include "salida.hpp"
 
 namespace {
@@ -33,17 +35,18 @@ using namespace refor;
 namespace fs = std::filesystem;
 
 struct Comunes {
-  std::string datos_dir = "data/processed";
+  std::string datos_dir = texto_utf8(datos_por_defecto());
   std::string poligonos = "todos";
   std::string formato = "tabla";
   std::string metodo = "mc";
   std::string salida;
-  std::string dir_res = "docs/res";
+  std::string dir_res = texto_utf8(resultados_por_defecto(false));
   Parametros p;
 };
 
 void agregar_comunes(CLI::App* cmd, Comunes& c) {
-  cmd->add_option("--datos", c.datos_dir, "Directorio con especies.csv, poligonos.csv y existentes.csv")
+  cmd->add_option("--datos", c.datos_dir,
+                  "Directorio con especies.csv, poligonos.csv, existentes.csv y competencia.csv")
       ->capture_default_str();
   cmd->add_option("--poligonos", c.poligonos, "Polígonos a resolver: 'todos' o lista '1,5,7'")
       ->capture_default_str();
@@ -116,21 +119,23 @@ void emitir(const fs::path& ruta, F&& escribir) {
   if (ruta == "-") return escribir(std::cout);
   if (ruta.has_parent_path()) fs::create_directories(ruta.parent_path());
   std::ofstream out(ruta);
-  if (!out) throw std::runtime_error("no se pudo escribir " + ruta.string());
+  if (!out) throw std::runtime_error("no se pudo escribir " + texto_utf8(ruta));
   escribir(out);
-  std::cerr << "Resultados escritos en " << ruta.string() << '\n';
+  std::cerr << "Resultados escritos en " << texto_utf8(ruta) << '\n';
 }
 
 // La ruta pedida con -o o, por defecto, <dir>/<nombre>.<ext>.
 fs::path ruta_de(const Comunes& c, const std::string& nombre, Formato f) {
-  if (!c.salida.empty()) return c.salida;
-  return fs::path(c.dir_res) / (nombre + extension(f));
+  if (!c.salida.empty()) return ruta_utf8(c.salida);
+  return ruta_utf8(c.dir_res) / (nombre + extension(f));
 }
 
 }  // namespace
 
 int main(int argc, char** argv) {
+  consola_utf8();
   CLI::App app{"Compra de plantas bajo incertidumbre y su distribución espacial (E2)"};
+  argv = app.ensure_utf8(argv);
   app.require_subcommand(1);
 
   Comunes c;
@@ -215,7 +220,7 @@ int main(int argc, char** argv) {
   CLI11_PARSE(app, argc, argv);
 
   try {
-    const Datos datos = cargar_datos(c.datos_dir);
+    const Datos datos = cargar_datos(ruta_utf8(c.datos_dir));
     const std::vector<int> ids = elegir_poligonos(datos, c.poligonos);
     c.p.metodo = c.metodo == "exacto" ? Metodo::Exacto : Metodo::MonteCarlo;
     const Formato fmt = formato_de(c.formato);
@@ -237,7 +242,7 @@ int main(int argc, char** argv) {
       for (const auto& cp : curvas) res.push_back(resolver_poligono(datos, cp, 0, alfa, B, c.p.theta));
       emitir(ruta_de(c, "compra", fmt), [&](std::ostream& o) { escribir_compra(o, datos, res, fmt); });
     } else if (plan->parsed()) {
-      const fs::path w_csv = competencia_csv.empty() ? fs::path(c.datos_dir) / "competencia.csv" : fs::path(competencia_csv);
+      const fs::path w_csv = competencia_csv.empty() ? ruta_utf8(c.datos_dir) / "competencia.csv" : ruta_utf8(competencia_csv);
       const memetico::Competencia w(datos, w_csv);
       const memetico::Mosaico m(pe.filas, pe.columnas);
       pe.semilla = c.p.semilla;
@@ -250,7 +255,7 @@ int main(int argc, char** argv) {
       std::cerr << "Memético: " << espacial.size() << " mosaicos distintos × " << pe.corridas << " corridas en "
                 << seg_esp << " s\n";
 
-      const fs::path dir = fs::path(c.dir_res) / "plan";
+      const fs::path dir = ruta_utf8(c.dir_res) / "plan";
       emitir(dir / ("compra" + extension(fmt)), [&](std::ostream& o) { escribir_compra(o, datos, compras, fmt); });
       emitir(dir / ("espacial" + extension(fmt)),
              [&](std::ostream& o) { escribir_espacial(o, datos, espacial, m, pe.corridas, fmt); });

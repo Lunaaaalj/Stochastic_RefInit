@@ -3,13 +3,15 @@
 #include <algorithm>
 #include <limits>
 
+#include "azar.hpp"
+
 namespace refor::memetico {
 
 Individuo individuo_aleatorio(const std::vector<int>& m_s, int n, std::mt19937_64& rng) {
   Individuo ind;
   ind.reserve(n);
   for (std::size_t s = 0; s < m_s.size(); ++s) ind.insert(ind.end(), m_s[s], static_cast<int>(s));
-  std::shuffle(ind.begin(), ind.end(), rng);
+  barajar(ind.begin(), ind.end(), rng);
   return ind;
 }
 
@@ -131,7 +133,7 @@ Individuo cruzar(const Individuo& padre1, const Individuo& padre2, const std::ve
 ResultadoMemetico ejecutar_memetico(const std::vector<int>& m_s, const Mosaico& m, const Competencia& w,
                            const ParametrosMemetico& p, std::optional<Individuo> linea_base) {
   std::mt19937_64 rng(p.semilla);
-  std::uniform_int_distribution<int> torneo(0, p.poblacion - 1);
+  auto torneo = [&] { return static_cast<int>(entero_uniforme(rng, 0, p.poblacion - 1)); };
   ParametrosTabu pt = p.tabu;
   if (p.cancelar) pt.cancelar = p.cancelar;
   auto cancelado = [&] { return p.cancelar && p.cancelar->load(std::memory_order_relaxed); };
@@ -160,7 +162,7 @@ ResultadoMemetico ejecutar_memetico(const std::vector<int>& m_s, const Mosaico& 
   int gen = 0, sin_mejora = 0;
   for (; gen < p.generaciones_max && sin_mejora < p.generaciones_sin_mejora_max && !cancelado(); ++gen) {
     auto elegir_padre = [&] {
-      const int i = torneo(rng), j = torneo(rng);
+      const int i = torneo(), j = torneo();
       return aptitud[i] <= aptitud[j] ? i : j;
     };
     const int i1 = elegir_padre(), i2 = elegir_padre();

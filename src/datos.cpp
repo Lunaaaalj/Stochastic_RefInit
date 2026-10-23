@@ -7,6 +7,8 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "rutas.hpp"
+
 namespace refor {
 
 namespace {
@@ -16,7 +18,7 @@ using Fila = std::vector<std::string>;
 // CSV simple: sin comillas ni comas dentro de los campos. Omite el encabezado.
 std::vector<Fila> leer_csv(const std::filesystem::path& ruta, std::size_t columnas) {
   std::ifstream in(ruta);
-  if (!in) throw std::runtime_error("no se pudo abrir " + ruta.string());
+  if (!in) throw std::runtime_error("no se pudo abrir " + texto_utf8(ruta));
 
   std::vector<Fila> filas;
   std::string linea;
@@ -28,7 +30,7 @@ std::vector<Fila> leer_csv(const std::filesystem::path& ruta, std::size_t column
     std::stringstream ss(linea);
     for (std::string campo; std::getline(ss, campo, ',');) fila.push_back(campo);
     if (fila.size() != columnas) {
-      throw std::runtime_error(ruta.filename().string() + ": fila con " +
+      throw std::runtime_error(texto_utf8(ruta.filename()) + ": fila con " +
                                std::to_string(fila.size()) + " columnas: " + linea);
     }
     filas.push_back(std::move(fila));

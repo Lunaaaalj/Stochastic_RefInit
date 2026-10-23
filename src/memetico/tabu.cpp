@@ -4,6 +4,8 @@
 #include <utility>
 #include <vector>
 
+#include "azar.hpp"
+
 namespace refor::memetico {
 
 namespace {
@@ -32,7 +34,6 @@ double busqueda_tabu(Individuo& ind, const Mosaico& m, const Competencia& w, con
   // tabu_hasta[u][v] (u < v): iteración hasta la que ese intercambio está
   // prohibido; 0 si nunca se ha hecho.
   std::vector<std::vector<int>> tabu_hasta(n, std::vector<int>(n, 0));
-  std::uniform_int_distribution<int> tenure(p.tenure_min, p.tenure_max);
 
   int sin_mejora = 0;
   for (int it = 1; sin_mejora < p.iteraciones_sin_mejora; ++it) {
@@ -58,7 +59,7 @@ double busqueda_tabu(Individuo& ind, const Mosaico& m, const Competencia& w, con
 
     std::swap(ind[mejor_u], ind[mejor_v]);
     actual += mejor_delta;
-    tabu_hasta[mejor_u][mejor_v] = it + tenure(rng);
+    tabu_hasta[mejor_u][mejor_v] = it + static_cast<int>(entero_uniforme(rng, p.tenure_min, p.tenure_max));
 
     if (actual < mejor_valor - 1e-9) {
       mejor_valor = actual;
