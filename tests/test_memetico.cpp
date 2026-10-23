@@ -3,7 +3,11 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <numeric>
+#include <random>
+#include <vector>
 
+#include "azar.hpp"
 #include "datos.hpp"
 #include "memetico/competencia.hpp"
 #include "memetico/individuo.hpp"
@@ -202,4 +206,35 @@ TEST_CASE("memetico cancelado termina sin generaciones con una solución válida
   for (int s : r.mejor) ++conteo[s];
   CHECK(conteo == m_s);
   CHECK(r.competencia == Catch::Approx(competencia_total(r.mejor, m, w)));
+}
+
+TEST_CASE("el azar del memético es el mismo en todas las plataformas", "[memetico]") {
+  // Secuencias congeladas: si cambian, cambian las claves publicadas.
+  std::mt19937_64 r(42);
+  std::vector<std::int64_t> enteros;
+  for (int k = 0; k < 8; ++k) enteros.push_back(entero_uniforme(r, 5, 19));
+  CHECK(enteros == std::vector<std::int64_t>{11, 13, 15, 19, 10, 17, 5, 5});
+
+  std::vector<int> v(10);
+  std::iota(v.begin(), v.end(), 0);
+  std::mt19937_64 g(7);
+  barajar(v.begin(), v.end(), g);
+  CHECK(v == std::vector<int>{7, 3, 8, 9, 1, 4, 0, 5, 6, 2});
+
+#ifdef _LIBCPP_VERSION
+  // Con libc++ deben coincidir con la biblioteca estándar, que es con la que
+  // se generaron los resultados.
+  for (const auto [a, b] : {std::pair{0, 19}, std::pair{5, 15}, std::pair{0, 1}, std::pair{3, 3}}) {
+    std::mt19937_64 r1(9), r2(9);
+    std::uniform_int_distribution<int> u(a, b);
+    for (int k = 0; k < 200; ++k) CHECK(entero_uniforme(r1, a, b) == u(r2));
+  }
+  std::vector<int> x(52), y(52);
+  std::iota(x.begin(), x.end(), 0);
+  std::iota(y.begin(), y.end(), 0);
+  std::mt19937_64 g1(3), g2(3);
+  barajar(x.begin(), x.end(), g1);
+  std::shuffle(y.begin(), y.end(), g2);
+  CHECK(x == y);
+#endif
 }
