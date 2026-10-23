@@ -330,7 +330,7 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 .capas-futuras i { font-style: normal; display: inline-block; width: 34px; height: 18px; border: 1.5px dashed var(--tierra-suave); }
 
 /* Lámina 19: cierre. El mismo cuadro de papel de la portada, con las cifras para llevarse. */
-.cuadro-cierre .cuadro-cabeza { padding-top: 48px; padding-bottom: 30px; gap: 16px; }
+.cuadro-cierre .cuadro-cabeza { padding-top: 36px; padding-bottom: 22px; gap: 16px; }
 .titulo-cierre { font-size: 120px; line-height: 1; }
 .cuadro-cierre .cuadro-leyenda { padding-bottom: 18px; }
 /* Cada cifra es un botón que lleva a la lámina que la respalda. */
@@ -340,9 +340,12 @@ button:disabled { color: var(--tierra-suave); cursor: default; background: trans
 .llevarse .chico { display: grid; gap: 4px; color: var(--tinta); }
 .llevarse .rotulo { color: var(--ocre-hondo); font-weight: 500; }
 .llevarse button:hover .rotulo { text-decoration: underline; text-underline-offset: 3px; }
-.cuadro-cierre .cuadro-pie { padding-top: 18px; padding-bottom: 20px; }
+.cuadro-cierre .cuadro-pie { padding-top: 18px; padding-bottom: 14px; }
 .qr { width: 112px; height: 112px; display: block; padding: 10px; background: var(--papel); border: 1px solid var(--linea); flex: none; }
+/* Dos QR (repositorio y esta presentación), cada uno con su rótulo debajo; los autores, a la derecha. */
 .cierre-pie { display: flex; align-items: center; gap: 28px; }
+.cierre-qr { margin: 0; display: grid; gap: 6px; justify-items: center; }
+.cierre-qr + .cierre-qr { margin-left: -10px; }
 .cierre-mapa { position: absolute; right: 96px; top: 88px; width: 760px; text-align: right; }
 
 /* Barra de avance: hilera al tresbolillo */
