@@ -21,7 +21,8 @@ y **cómo acomodarlas en el terreno** para que las vecinas compitan lo menos pos
 [Modelos](#-nivel-1-cuánto-comprar) ·
 [Resultados](#-resultados) ·
 [Herramientas](#-herramientas) ·
-[Instalación](#-instalación-y-uso) ·
+[Descargar](#-descargar) ·
+[Compilar](#-instalación-y-uso) ·
 [Arquitectura](#-arquitectura)
 
 </div>
@@ -262,6 +263,23 @@ El proyecto se usa de cuatro formas, todas sobre el mismo núcleo en C++:
 
 ---
 
+## ◆ Descargar
+
+En [**Releases**](https://github.com/Lunaaaalj/Stochastic_RefInit/releases) hay un paquete listo para cada sistema. No
+hay que instalar nada y ya trae los datos de INECOL de los 30 polígonos.
+
+| Sistema | Paquete | Cómo se abre |
+|---|---|---|
+| **Windows** 10/11 (x64) | `refor-<versión>-windows-x64.zip` | Descomprimir y doble clic en `refor_gui.exe` |
+| **macOS** 13.3+ (Apple Silicon e Intel) | `refor-<versión>-macos-universal.zip` | Clic derecho en `Refor.app` → «Abrir» la primera vez (la app no está firmada) |
+| **Linux** x64 (glibc 2.35+) | `refor-<versión>-linux-x64.tar.gz` | `tar xzf …` y `./refor_gui` |
+
+Cada paquete incluye la app de escritorio, la CLI (`refor`, `refor_ple`), los datos en `datos/` y un `LEEME.md`.
+**Para usar datos propios**, arrastra a la ventana una carpeta con los mismos CSV (o pasa `--datos` en la CLI). El
+`LEEME` describe las columnas, y «Datos incluidos» vuelve a los de INECOL.
+
+---
+
 ## ◆ Instalación y uso
 
 **Requisitos:** CMake ≥ 3.24 y un compilador C++20 (clang ≥ 17, gcc ≥ 13). HiGHS y GLFW se toman del sistema o se
@@ -344,7 +362,10 @@ python3 scripts/datos_presentacion.py
 
 **Con la misma `--semilla`, el resultado es idéntico sin importar el número de hilos ni la plataforma.** Cada flujo
 aleatorio se siembra con su identidad lógica —`semilla_derivada(semilla, polígono, especie)`, y para el memético el
-mosaico y el número de corrida—, nunca con el orden de ejecución.
+mosaico y el número de corrida—, nunca con el orden de ejecución. El memético usa un entero uniforme y un barajado
+propios (`src/azar.hpp`) en lugar de `std::uniform_int_distribution` y `std::shuffle`, cuyos algoritmos cambian entre
+libc++ y libstdc++, y la aritmética se compila sin FMA implícito (`-ffp-contract=off`). El workflow de release comprueba
+en cada versión que Windows, macOS y Linux den archivos idénticos.
 
 ---
 

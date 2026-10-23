@@ -110,6 +110,27 @@ git reset --hard origin/main    # tu main queda igual al del remoto
 git switch -c feat/mi-trabajo
 ```
 
+## Sacar una versión
+
+Los binarios de Windows, macOS y Linux los arma `.github/workflows/release.yml`. No se compilan a mano.
+
+1. Con todo en `main`, sube el número en `project(... VERSION x.y.z)` de `CMakeLists.txt` (por PR, como cualquier cambio).
+2. Crea y empuja la etiqueta desde `main` actualizado:
+
+   ```bash
+   git switch main && git pull
+   git tag -a v1.0.0 -m "refor v1.0.0"
+   git push origin v1.0.0
+   ```
+
+3. El workflow compila y prueba en las tres plataformas, comprueba que den resultados idénticos con la misma
+   semilla y crea un **borrador** de release con los tres paquetes. Revísalo en *Releases* (descarga al menos uno y
+   ábrelo) y publícalo con *Publish release*.
+
+Para probar el empaquetado sin publicar nada, corre el workflow desde *Actions → Release → Run workflow*: deja los
+paquetes como artefactos de la corrida. Localmente, `cmake -S . -B build-dist -DREFOR_DISTRIBUIR=ON` y
+`cmake --install build-dist --component refor --prefix dist/refor` arman el mismo paquete para tu sistema.
+
 ## Claude en GitHub
 
 El repo tiene integrado el [Claude Code GitHub Action](https://github.com/anthropics/claude-code-action) oficial, así que puedes pedirle ayuda a Claude sin salir de GitHub.

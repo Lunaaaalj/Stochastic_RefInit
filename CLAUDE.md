@@ -48,6 +48,7 @@ Three executables share one static library, `refor_core` (everything in `src/` e
   - Polygons with the same composition share one mosaic. Each mosaic runs `corridas` independent memético runs in parallel.
   - `memetico/` holds the periodic hex mosaic (6 neighbors), the competition matrix W, tabu search and the memetic GA.
   - `asignacion_exacta/` holds the exact integer model (HiGHS). It is warm-started from the best memético solution, and the gap is reported after aligning both layouts by translation.
+- **Releases:** `.github/workflows/release.yml` builds self-contained binaries (`-DREFOR_DISTRIBUIR=ON`: static HiGHS/GLFW, static libstdc++, `Refor.app` universal on macOS, MinGW-w64 on Windows) on a `v*` tag and drafts a GitHub release. The package is `cmake --install build --component refor`, with `packaging/LEEME.md`.
 - **Output:** `salida.*` and `asignacion_exacta/salida_ple.*` produce table, CSV and JSON. `main.cpp` holds the CLI11 subcommands.
 - **GUI (`gui/`, namespace `refor::gui`):**
   - Dear ImGui + ImPlot over GLFW/OpenGL. `app.*` holds the state, and each `vista_*.cpp` is one tab/view.
@@ -58,8 +59,9 @@ Three executables share one static library, `refor_core` (everything in `src/` e
 
 ## Invariants
 
-- **Reproducibility:** for a given `--semilla`, results must be identical regardless of thread count or platform. Random streams are seeded from their logical identity (`semilla_derivada(semilla, poligono, especie)`; for the memético, from the group and the run number), never from the order of execution. Keep this property in any new parallel or random code.
+- **Reproducibility:** for a given `--semilla`, results must be identical regardless of thread count or platform. Random streams are seeded from their logical identity (`semilla_derivada(semilla, poligono, especie)`; for the memético, from the group and the run number), never from the order of execution. Keep this property in any new parallel or random code. Never use `std::*_distribution` or `std::shuffle` (their algorithms differ between libc++ and libstdc++); use `entero_uniforme`/`barajar` from `src/azar.hpp`, which replicate libc++ so published results stay unchanged. `refor_core` is compiled with `-ffp-contract=off` for the same reason. The release workflow diffs outputs across Windows, macOS and Linux.
 - Every number shown (GUI, deck, reports) must come from `data/processed/` or from `refor` output. Never use illustrative or made-up figures.
+- Default paths come from `src/rutas.hpp`: inside the repo, `data/processed` and `docs/res`; in a release, the bundled `datos/` (or `Refor.app/Contents/Resources/datos`), with results in `./resultados` (CLI) or `<Documentos>/refor` (GUI). Paths from user text go through `ruta_utf8` so accented folders work on Windows.
 - On macOS, `-fexperimental-library` is required for `std::jthread` with Apple libc++. CMake already sets it on `refor_core`.
 
 ## Team workflow (CONTRIBUTING.md)

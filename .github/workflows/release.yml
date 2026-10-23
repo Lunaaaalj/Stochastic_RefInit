@@ -1,0 +1,185 @@
+name: Release
+
+# Compila refor, refor_ple y refor_gui autocontenidos para Windows, macOS y
+# Linux, con los datos de INECOL incluidos; comprueba que con la misma semilla
+# den resultados idénticos en las tres plataformas y, al empujar una etiqueta
+# vX.Y.Z, crea un borrador de release con los tres paquetes para revisarlo y
+# publicarlo a mano. Con «Run workflow» solo compila y deja los paquetes como
+# artefactos.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compilar:
+    name: ${{ matrix.nombre }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nombre: linux-x64
+            os: ubuntu-22.04  # glibc 2.35: el binario corre en distribuciones de 2022 en adelante
+            shell: bash
+          - nombre: macos-universal
+            os: macos-14
+            shell: bash
+          - nombre: windows-x64
+            os: windows-latest
+            shell: msys2 {0}
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+
+    steps:
+      - name: Finales de línea tal cual (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@v4
+
+      - name: Dependencias (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y g++-13 ninja-build libgl-dev \
+            libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev \
+            libwayland-dev libxkbcommon-dev wayland-protocols
+          echo "CC=gcc-13" >> "$GITHUB_ENV"
+          echo "CXX=g++-13" >> "$GITHUB_ENV"
+
+      - name: Dependencias (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ninja
+
+      - name: MinGW-w64 (Windows)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            zip
+
+      - name: Nombre del paquete
+        id: nombre
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then version="$GITHUB_REF_NAME"; else version="dev-${GITHUB_SHA::7}"; fi
+          echo "paquete=refor-$version-${{ matrix.nombre }}" >> "$GITHUB_OUTPUT"
+
+      - name: Configurar
+        run: >
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DREFOR_DISTRIBUIR=ON
+          ${{ runner.os == 'macOS' && '"-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=13.3' || '' }}
+
+      - name: Compilar
+        run: cmake --build build --parallel
+
+      - name: Pruebas
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Resultados para comparar entre plataformas
+        run: |
+          mkdir -p repro
+          ./build/refor plan --alpha 0.05 -B 12500 -f csv --dir repro
+          ./build/refor frontera -f csv -o repro/frontera.csv
+          ./build/refor compra --metodo exacto -B 15000 -f csv -o repro/compra_exacto.csv
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: repro-${{ matrix.nombre }}
+          path: repro/
+
+      - name: Empaquetar
+        env:
+          PAQUETE: ${{ steps.nombre.outputs.paquete }}
+        run: |
+          cmake --install build --component refor --prefix "dist/$PAQUETE" --strip
+          case "$RUNNER_OS" in
+            Linux)   tar -C dist -czf "$PAQUETE.tar.gz" "$PAQUETE" ;;
+            macOS)   ditto -c -k --keepParent "dist/$PAQUETE" "$PAQUETE.zip" ;;  # conserva la .app
+            Windows) (cd dist && zip -qr "../$PAQUETE.zip" "$PAQUETE") ;;
+          esac
+
+      - name: Probar el paquete fuera del repo
+        env:
+          PAQUETE: ${{ steps.nombre.outputs.paquete }}
+        run: |
+          set -x
+          # Solo bibliotecas del sistema: nada de la cadena de compilación.
+          raiz="$PWD/dist/$PAQUETE"
+          ls -R "$raiz" | head -50
+          case "$RUNNER_OS" in
+            Linux)
+              ldd "$raiz/refor" "$raiz/refor_gui"
+              if ldd "$raiz/refor" | grep -e libstdc++ -e libgcc_s; then exit 1; fi ;;
+            macOS)
+              lipo "$raiz/refor" -verify_arch arm64 x86_64
+              lipo "$raiz/Refor.app/Contents/MacOS/Refor" -verify_arch arm64 x86_64
+              test -f "$raiz/Refor.app/Contents/Resources/datos/especies.csv"
+              if otool -L "$raiz/refor" "$raiz/Refor.app/Contents/MacOS/Refor" | grep -e /opt/homebrew -e /usr/local; then exit 1; fi ;;
+            Windows)
+              ldd "$raiz/refor.exe" "$raiz/refor_gui.exe"
+              if ldd "$raiz/refor.exe" "$raiz/refor_gui.exe" | grep -i ucrt64; then exit 1; fi ;;
+          esac
+          # Desde otro directorio: debe encontrar datos/ junto al ejecutable y
+          # escribir en ./resultados.
+          cd "$(mktemp -d)"
+          "$raiz/refor" compra -B 15000 -f csv
+          test -s resultados/compra.csv
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.nombre.outputs.paquete }}
+          path: |
+            ${{ steps.nombre.outputs.paquete }}.zip
+            ${{ steps.nombre.outputs.paquete }}.tar.gz
+          if-no-files-found: error
+
+  reproducibilidad:
+    needs: compilar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: repro-*
+          path: repro
+      - name: Mismos resultados en las tres plataformas
+        run: |
+          cd repro
+          for d in repro-*; do
+            # Windows escribe los archivos de texto con CRLF.
+            diff -r --strip-trailing-cr repro-linux-x64 "$d"
+            echo "$d: idéntico a linux-x64"
+          done
+
+  publicar:
+    if: github.ref_type == 'tag'
+    needs: [compilar, reproducibilidad]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: refor-*
+          path: paquetes
+          merge-multiple: true
+      - name: Borrador de release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -la paquetes
+          gh release create "$GITHUB_REF_NAME" paquetes/* \
+            --repo "$GITHUB_REPOSITORY" --draft --generate-notes \
+            --title "refor $GITHUB_REF_NAME"

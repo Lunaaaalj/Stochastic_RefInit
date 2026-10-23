@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(reforestacion LANGUAGES CXX)
+project(reforestacion VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -12,12 +12,27 @@ endif()
 
 option(REFOR_TESTS "Compilar las pruebas" ON)
 option(REFOR_GUI "Compilar la interfaz gráfica refor_gui (Dear ImGui + GLFW + OpenGL)" ON)
+# Binarios para una release: dependencias compiladas aquí y enlazadas en
+# estático, para que corran sin instalar nada, y `cmake --install` arma el
+# paquete con los datos incluidos (ver .github/workflows/release.yml).
+option(REFOR_DISTRIBUIR "Compilar binarios autocontenidos para una release" OFF)
+
+if(REFOR_DISTRIBUIR)
+  set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+  if(MINGW)
+    add_link_options(-static)
+  elseif(UNIX AND NOT APPLE)
+    add_link_options(-static-libstdc++ -static-libgcc)
+  endif()
+endif()
 
 include(FetchContent)
 
 # HiGHS: se usa la instalación del sistema (brew install highs, apt install
-# libhighs-dev) y, si no existe, se descarga y compila.
-find_package(highs CONFIG QUIET)
+# libhighs-dev) y, si no existe o se distribuye, se descarga y compila.
+if(NOT REFOR_DISTRIBUIR)
+  find_package(highs CONFIG QUIET)
+endif()
 if(NOT highs_FOUND)
   message(STATUS "HiGHS no encontrado; se descarga v1.11.0")
   set(BUILD_SHARED_LIBS OFF)
@@ -44,6 +59,7 @@ add_library(refor_core
   src/modelo.cpp
   src/salida.cpp
   src/plan.cpp
+  src/rutas.cpp
   src/memetico/mosaico.cpp
   src/memetico/competencia.cpp
   src/memetico/individuo.cpp
@@ -54,6 +70,13 @@ add_library(refor_core
 target_include_directories(refor_core PUBLIC src)
 target_link_libraries(refor_core PUBLIC highs::highs)
 target_compile_options(refor_core PRIVATE -Wall -Wextra -Wpedantic)
+# Sin FMA implícito: clang lo usa por defecto en ARM y GCC en x86 no, y un
+# último bit distinto puede cambiar un desempate. Así la aritmética es la
+# misma en todas las plataformas (invariante de reproducibilidad).
+target_compile_options(refor_core PUBLIC -ffp-contract=off)
+if(WIN32)
+  target_link_libraries(refor_core PUBLIC shell32 ole32)  # SHGetKnownFolderPath (rutas.cpp)
+endif()
 
 add_executable(refor src/main.cpp)
 target_link_libraries(refor PRIVATE refor_core CLI11::CLI11)
@@ -69,7 +92,9 @@ target_compile_options(refor_ple PRIVATE -Wall -Wextra -Wpedantic)
 
 if(REFOR_GUI)
   # GLFW del sistema (brew install glfw, apt install libglfw3-dev) o descargado.
-  find_package(glfw3 3.3 CONFIG QUIET)
+  if(NOT REFOR_DISTRIBUIR)
+    find_package(glfw3 3.3 CONFIG QUIET)
+  endif()
   if(NOT glfw3_FOUND)
     message(STATUS "GLFW no encontrado; se descarga 3.4")
     set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -145,27 +170,38 @@ if(REFOR_GUI)
   target_include_directories(refor_gui PRIVATE gui)
   target_link_libraries(refor_gui PRIVATE refor_core imgui_lib)
   target_compile_options(refor_gui PRIVATE -Wall -Wextra -Wpedantic)
+  # En Windows, sin ventana de consola detrás de la app.
+  set_target_properties(refor_gui PROPERTIES WIN32_EXECUTABLE ON)
+  if(APPLE AND REFOR_DISTRIBUIR)
+    # Refor.app, que se abre con doble clic; los datos van en Contents/Resources/datos.
+    set_target_properties(refor_gui PROPERTIES
+      OUTPUT_NAME Refor
+      MACOSX_BUNDLE ON
+      MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/packaging/macos/Info.plist.in
+      MACOSX_BUNDLE_BUNDLE_NAME Refor
+      MACOSX_BUNDLE_GUI_IDENTIFIER mx.tec.refor
+      MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+      MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION})
+  endif()
 endif()
 
-if(REFOR_TESTS)
-  FetchContent_Declare(catch2
-    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG v3.7.1
-    GIT_SHALLOW TRUE)
-  FetchContent_MakeAvailable(catch2)
-  include(CTest)
-  list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
-  include(Catch)
-
-  add_executable(refor_tests
-    tests/test_datos.cpp
-    tests/test_simulacion.cpp
-    tests/test_mochila.cpp
-    tests/test_memetico.cpp
-    tests/test_plan.cpp
-    tests/test_ple.cpp)
-  target_link_libraries(refor_tests PRIVATE refor_core Catch2::Catch2WithMain)
-  target_compile_definitions(refor_tests PRIVATE
-    REFOR_DATOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data/processed")
-  catch_discover_tests(refor_tests)
+# Paquete de la release: los ejecutables, los datos de INECOL en datos/ y el
+# LEEME, en el componente «refor» para no arrastrar lo que instalan HiGHS y
+# GLFW: cmake --install build --component refor --prefix <destino>. Ver
+# rutas.hpp para cómo encuentra los datos cada ejecutable.
+set(refor_datos
+  data/processed/especies.csv
+  data/processed/poligonos.csv
+  data/processed/existentes.csv
+  data/processed/competencia.csv
+  data/processed/mapa.csv)
+install(TARGETS refor refor_ple RUNTIME DESTINATION . COMPONENT refor)
+install(FILES ${refor_datos} DESTINATION datos COMPONENT refor)
+install(FILES packaging/LEEME.md DESTINATION . COMPONENT refor)
+install(FILES gui/fuentes/OFL.txt DESTINATION licencias RENAME Inter-OFL.txt COMPONENT refor)
+if(REFOR_GUI)
+  install(TARGETS refor_gui RUNTIME DESTINATION . BUNDLE DESTINATION . COMPONENT refor)
+  if(APPLE AND REFOR_DISTRIBUIR)
+    install(FILES ${refor_datos} DESTINATION Refor.app/Contents/Resources/datos COMPONENT refor)
+  endif()
 endif()
