@@ -1,0 +1,74 @@
+\subsubsection{Nivel 2: distribución espacial}
+\label{sec:modelo-espacial}
+
+El segundo nivel acomoda en el terreno las plantas adquiridas según la \cref{sec:modelo-compra} de modo que se minimice la competencia entre plantas vecinas. Se adopta la sobreplantación: se plantan todas las plantas compradas, y la mortalidad del primer año reduce la densidad hacia la meta. Siguiendo la \cref{subsec:coloracion}, el terreno es un grafo cuyos vértices son las posiciones de plantación y cuyas aristas unen posiciones vecinas, y el problema consiste en asignar una especie a cada vértice respetando la cantidad de cada especie \autocite{elizalde2025,eisenblatter2002}.
+
+\label{subsec:espacial-mosaico}
+
+\paragraph{Mosaico periódico} Optimizar posición por posición un polígono de varios miles de plantas no es práctico ni se puede llevar a campo. En su lugar se optimiza un mosaico de pocas decenas de posiciones que la cuadrilla repite sobre todo el polígono como una tabla de claves de especie. El mosaico es un fragmento del tresbolillo de $4\times13=52$ posiciones con bordes periódicos: la última fila es vecina de la primera y la última columna de la primera, de modo que el mosaico se repite sin costuras y cada posición tiene exactamente seis vecinas, todas a la misma distancia $d\approx4.19$~m. El grafo tiene $52\cdot6/2=156$ aristas. La composición del mosaico, $m_s$ posiciones de la especie $s$ con $\sum_sm_s=52$, es proporcional a la compra $x_{is}$ del polígono, redondeada por el método del mayor residuo; los polígonos con la misma composición comparten mosaico.
+
+\paragraph{Objetivo} La competencia total de una asignación $\sigma:V\to\mathcal{S}$ es
+\begin{equation}
+  C(\sigma)=\sum_{(u,v)\in\mathcal{E}}W_{\sigma(u)\sigma(v)},
+  \label{eq:competencia}
+\end{equation}
+con $W$ la matriz de competencia de la \cref{subsec:espacial-matriz}. Como todas las aristas del tresbolillo representan la misma distancia, no se ponderan; un arreglo en cuadros, con vecinas diagonales más lejanas que las ortogonales, se trataría con un peso $w_{uv}$ por arista. Para comparar mosaicos de distinta composición se reporta el coeficiente de competencia $C(\sigma)/\mathbb{E}[C]$, donde
+\begin{equation}
+  \mathbb{E}[C]=\frac{|\mathcal{E}|}{n(n-1)}\sum_{a,b\in\mathcal{S}}m_a\bigl(m_b-\mathbf{1}[a=b]\bigr)W_{ab}
+  \label{eq:competencia-azar}
+\end{equation}
+es la competencia esperada de una asignación aleatoria con la misma composición, con $n=52$: cada arista une dos posiciones distintas elegidas al azar, y el par de especies $(a,b)$ aparece con probabilidad $m_a(m_b-\mathbf{1}[a=b])/[n(n-1)]$. Un coeficiente menor que uno indica una reducción respecto al azar. El problema es una coloración de vértices con penalización y conteo fijo por color, NP-difícil \autocite{eisenblatter2002}, y se resuelve con dos métodos que comparten el objetivo \eqref{eq:competencia}: un algoritmo memético y un modelo de programación entera cuya cota inferior mide la brecha del primero (\cref{subsec:algoritmos}).
+
+\paragraph{Matriz de competencia}
+\label{subsec:espacial-matriz}
+
+Una matriz simétrica $W\in\mathbb{R}^{|\mathcal{S}|\times|\mathcal{S}|}$ cuantifica, para cada par de especies, la penalización por ocupar posiciones vecinas; su diagonal representa la competencia intraespecífica. Las funciones de correlación de pares, que miden asociación o segregación entre especies \autocite{wiegand2014}, requieren las coordenadas de cada planta, y los datos disponibles solo registran el número de plantas por especie en cada polígono. Como comprobación, las correlaciones entre los residuales de Pearson de los conteos de cada par de especies a lo largo de los 30 polígonos tienen media $-0.07$ y solo 4 de 45 son significativas al 5\,\%, cerca de lo esperado por azar, por lo que los conteos no contienen información sobre la interacción entre vecinas. La matriz se construye, en cambio, a partir de rasgos de las especies:
+\begin{equation}
+W_{ab}=\gamma^{\,\mathbf{1}[a=b]}\,T_{ab}\,N_{ab}-\phi\,F_{ab}.
+\label{eq:matriz-W}
+\end{equation}
+
+El término de tamaño $T_{ab}=\min\{1,(r_a+r_b)/d\}$ es la fracción de la separación entre posiciones que cubren las copas adultas de las dos plantas, con $r_s$ el radio de copa de la especie $s$; vale 1 cuando las copas se tocan, de modo que dos especies grandes compiten más que dos pequeñas. El término de nicho $N_{ab}$ es el índice de traslape de \textcite{pianka1973} entre los perfiles de raíz por profundidad, $p_s=(p_{s1},p_{s2},p_{s3})$ con estratos de 0--30~cm, 30--100~cm y más de 100~cm,
+\begin{equation}
+N_{ab}=\frac{\sum_k p_{ak}\,p_{bk}}{\sqrt{\sum_k p_{ak}^2\,\sum_k p_{bk}^2}},
+\end{equation}
+que vale 1 cuando dos especies toman el agua del mismo estrato. Agaves y nopales concentran sus raíces en los primeros centímetros del suelo \autocite{snyman2006}, mientras que \textit{P.~laevigata} combina raíces superficiales con una raíz pivotante profunda, por lo que su traslape con las suculentas es menor. El factor $\gamma=1.5$ penaliza adicionalmente la vecindad entre individuos de la misma especie, que usan exactamente los mismos recursos y comparten plagas; que la competencia intraespecífica supere a la interespecífica es la condición para la coexistencia de las especies \autocite{chesson2000}, aunque su magnitud se fija por supuesto. Por último, $F_{ab}=1$ cuando uno de los dos individuos es \textit{P.~laevigata} y el otro una suculenta, y $\phi=0.3$ resta competencia por el efecto nodriza del mezquite, que favorece el establecimiento de otras especies bajo su copa \autocite{flores2003,padilla2006} y eleva la fertilidad del suelo \autocite{garciasanchez2012}.
+
+La \cref{tab:matriz-competencia} presenta la matriz resultante, con valores entre 0.17 y 1.50. Los cinco valores más altos son intraespecíficos y corresponden a las especies de mayor tamaño (\textit{P.~laevigata}, \textit{O.~streptacantha}, \textit{Y.~filifera}, \textit{A.~salmiana} y \textit{O.~engelmannii}), mientras que \textit{P.~laevigata} tiene los valores más bajos con el resto de las especies, por la diferencia de raíces y el efecto nodriza. Así, el modelo prioriza separar a los individuos grandes de la misma especie y colocar las suculentas junto al mezquite. Como cada arista aporta exactamente un término al objetivo y el número de aristas es fijo, la asignación óptima no cambia ante una transformación afín positiva de la matriz, de modo que su escala no importa, aunque sí las diferencias relativas entre sus entradas. Los diámetros de copa y los perfiles de raíz son aproximados, y $\gamma$ y $\phi$ son supuestos; la sensibilidad de las claves a estos valores se mide en la \cref{subsec:res-sensibilidad}.
+
+\begin{table}[t]
+\centering
+\caption{Matriz de competencia $W_{ab}$. ALE: \textit{A.~lechuguilla}; ASA: \textit{A.~salmiana}; ASC: \textit{A.~scabra}; AST: \textit{A.~striata}; OCA: \textit{O.~cantabrigiensis}; OEN: \textit{O.~engelmannii}; ORO: \textit{O.~robusta}; OST: \textit{O.~streptacantha}; PLA: \textit{P.~laevigata}; YFI: \textit{Y.~filifera}. En negritas, los valores mayores que 1.}
+\label{tab:matriz-competencia}
+\scriptsize
+\setlength{\tabcolsep}{2.4pt}
+\begin{tabular}{@{}lrrrrrrrrrr@{}}
+\toprule
+ & ALE & ASA & ASC & AST & OCA & OEN & ORO & OST & PLA & YFI \\
+\midrule
+ALE & 0.20 & 0.50 & 0.30 & 0.21 & 0.30 & 0.42 & 0.24 & 0.54 & 0.20 & 0.49 \\
+ASA & 0.50 & \textbf{1.29} & 0.67 & 0.57 & 0.67 & 0.79 & 0.61 & 0.90 & 0.20 & 0.82 \\
+ASC & 0.30 & 0.67 & 0.72 & 0.38 & 0.48 & 0.60 & 0.42 & 0.71 & 0.20 & 0.65 \\
+AST & 0.21 & 0.57 & 0.38 & 0.43 & 0.38 & 0.50 & 0.32 & 0.62 & 0.20 & 0.56 \\
+OCA & 0.30 & 0.67 & 0.48 & 0.38 & 0.72 & 0.60 & 0.42 & 0.72 & 0.17 & 0.63 \\
+OEN & 0.42 & 0.79 & 0.60 & 0.50 & 0.60 & \textbf{1.07} & 0.54 & 0.84 & 0.17 & 0.74 \\
+ORO & 0.24 & 0.61 & 0.42 & 0.32 & 0.42 & 0.54 & 0.54 & 0.66 & 0.17 & 0.58 \\
+OST & 0.54 & 0.90 & 0.71 & 0.62 & 0.72 & 0.84 & 0.66 & \textbf{1.43} & 0.17 & 0.84 \\
+PLA & 0.20 & 0.20 & 0.20 & 0.20 & 0.17 & 0.17 & 0.17 & 0.17 & \textbf{1.50} & 0.45 \\
+YFI & 0.49 & 0.82 & 0.65 & 0.56 & 0.63 & 0.74 & 0.58 & 0.84 & 0.45 & \textbf{1.43} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Modelo de programación entera}
+\label{subsec:espacial-entera}
+
+Sea $G=(V,\mathcal{E})$ el grafo del mosaico con bordes periódicos. Con $y_{vs}\in\{0,1\}$, igual a 1 si la posición $v$ recibe la especie $s$, y $z_{uvab}\geq0$, que representa el producto $y_{ua}y_{vb}$, se resuelve
+\begin{align}
+\min\quad & \sum_{(u,v)\in\mathcal{E}}\sum_{a,b\in\mathcal{S}}W_{ab}\,z_{uvab} \label{eq:ent-obj}\\
+\text{s.a.}\quad & \textstyle\sum_{s}y_{vs}=1, && v\in V, \label{eq:ent-una}\\
+& \textstyle\sum_{v}y_{vs}=m_s, && s\in\mathcal{S}, \label{eq:ent-conteo}\\
+& \textstyle\sum_{b}z_{uvab}=y_{ua}, && (u,v)\in\mathcal{E},\ a\in\mathcal{S}, \label{eq:ent-lin1}\\
+& \textstyle\sum_{a}z_{uvab}=y_{vb}, && (u,v)\in\mathcal{E},\ b\in\mathcal{S}. \label{eq:ent-lin2}
+\end{align}
+Las restricciones \eqref{eq:ent-una} y \eqref{eq:ent-conteo} imponen una especie por posición y la composición; \eqref{eq:ent-lin1}--\eqref{eq:ent-lin2} linealizan el objetivo cuadrático, pues con $y$ binaria fuerzan $z_{uvab}=y_{ua}y_{vb}$ sin depender del signo de $W$. Como el mosaico es invariante bajo traslaciones, se fija la especie más abundante en una posición, lo que elimina soluciones equivalentes sin pérdida de optimalidad. Con 52 posiciones, el modelo tiene 520 variables binarias y $156\cdot10^{2}=15{,}600$ continuas.

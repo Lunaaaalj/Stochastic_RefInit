@@ -11,7 +11,7 @@ namespace refor::memetico {
 // paridad por fila de una cuadrícula cuadrada forzada a hexagonal; "filas" y
 // "columnas" aquí son el tamaño del mosaico en esas dos direcciones, no
 // filas/columnas de pantalla. filas * columnas debe dar el tamaño total
-// (por ejemplo 7 x 3 = 21, la línea base vigente).
+// (por ejemplo 4 x 13 = 52, el mosaico del reporte).
 class Mosaico {
  public:
   Mosaico(int filas, int columnas);

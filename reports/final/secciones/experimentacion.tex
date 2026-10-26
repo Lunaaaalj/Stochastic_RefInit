@@ -1,0 +1,86 @@
+\section{Experimentación y resultados}
+\label{sec:experimentacion}
+
+Esta sección describe el equipo y el tamaño del problema, reporta la simulación del proceso de siembra en una hectárea, valida los dos métodos aproximados contra los exactos y presenta los resultados de los 30 polígonos. Todos los resultados se reproducen con \texttt{refor} y los scripts del repositorio del proyecto (\cref{sec:implementacion}), con la semilla 42.
+
+\subsection{Características del equipo y del software}
+\label{subsec:equipo}
+
+Todos los experimentos se corrieron en el equipo de la \cref{tab:equipo}. Los programas se compilaron en modo de optimización (\texttt{Release}) y usan todos los núcleos disponibles; los resultados no dependen del número de hilos (\cref{subsec:impl-reproducibilidad}).
+
+\begin{table}[t]
+\centering
+\caption{Equipo y software utilizados.}
+\label{tab:equipo}
+\small
+\begin{tabularx}{\columnwidth}{@{}>{\RaggedRight\arraybackslash}p{2.5cm}>{\RaggedRight\arraybackslash}X@{}}
+\toprule
+Característica & Valor \\
+\midrule
+Modelo & MacBook Pro (Mac16,1) \\
+Sistema operativo & macOS 26.5.2 \\
+Disco duro & 494~GB, de estado sólido \\
+Memoria RAM & 16~GB \\
+Procesador & Apple M4 (ARM64) \\
+Núcleos & 10 (4 de rendimiento y 6 de eficiencia) \\
+\midrule
+Lenguaje y compilador & C++20, Apple clang 17.0.0 \\
+Construcción & CMake 4.3.0 \\
+Solver entero & HiGHS 1.14.0 \\
+Bibliotecas & CLI11 2.4.2, Catch2 3.7.1; Dear ImGui 1.92.8, ImPlot 1.0 y GLFW 3.4 (interfaz) \\
+Análisis & Python 3.14.8 \\
+Reporte & TeX Live 2025, pdf\TeX{} 1.40.27, Biber 2.20 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Tamaño del problema}
+\label{subsec:tamano}
+
+La \cref{tab:tamano} resume el tamaño de la instancia. Hay 10 especies y una meta de 658 plantas por hectárea, que en los 30 polígonos suma 120{,}419 plantas; la composición del plan por especie está en la \cref{tab:compra-parametros} y la que resulta de la compra, en la \cref{tab:siembra}. En el nivel de compra, cada polígono tiene 20 variables enteras (una meta y una compra por especie); al resolverlo como mochila de elección múltiple hay una variable binaria por cada meta posible de cada especie, 24{,}094 en total, y las curvas que alimentan la mochila se estiman con 10{,}000 escenarios para cada uno de los 300 pares de polígono y especie. En el nivel espacial, el memético decide la especie de 52 posiciones por mosaico, y el modelo entero de cada mosaico tiene 520 variables binarias, 15{,}600 continuas y 3{,}182 restricciones.
+
+\begin{table}[t]
+\centering
+\caption{Tamaño del problema. Los parámetros del modelo son datos o supuestos; los de los algoritmos controlan su ejecución.}
+\label{tab:tamano}
+\small
+\begin{tabularx}{\columnwidth}{@{}>{\RaggedRight\arraybackslash}X r@{}}
+\toprule
+Elemento & Cantidad \\
+\midrule
+Especies & 10 \\
+Polígonos (superficie total) & 30 (183.01~ha) \\
+Plantas por hectárea (meta) & 658 \\
+Meta total en los 30 polígonos & 120{,}419 \\
+Plantas existentes registradas & 23{,}569 \\
+\midrule
+\multicolumn{2}{@{}l}{\textit{Variables}} \\
+Compra: metas y compras por polígono & 20 \\
+Compra: total en los 30 polígonos & 600 \\
+Mochila: binarias en los 30 polígonos & 24{,}094 \\
+Escenarios Monte Carlo por curva & 10{,}000 \\
+Espacial: posiciones por mosaico & 52 \\
+Modelo entero: binarias / continuas & 520 / 15{,}600 \\
+Modelo entero: restricciones & 3{,}182 \\
+\midrule
+\multicolumn{2}{@{}l}{\textit{Parámetros del modelo}} \\
+Por especie ($n_s^0$, $c_s$, $q_s$) & 30 \\
+Por polígono ($A_i$) & 30 \\
+Existentes por polígono y especie ($E_{is}$) & 300 \\
+Matriz de competencia (entradas distintas) & 55 \\
+De política ($B$, $\theta$, $\delta$, $\alpha$) & 4 \\
+Total & 419 \\
+\midrule
+\multicolumn{2}{@{}l}{\textit{Parámetros de los algoritmos}} \\
+Escenarios, semilla & 2 \\
+Memético: población, generaciones, paro, corridas & 4 \\
+Tabú: iteraciones sin mejora, permanencia mínima y máxima & 3 \\
+Mosaico: filas y columnas & 2 \\
+Modelo entero: límite de tiempo & 1 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\input{secciones/simulacion-siembra.tex}
+\input{secciones/validacion.tex}
+\input{secciones/resultados.tex}

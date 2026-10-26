@@ -1,0 +1,20 @@
+La Comisión Nacional Forestal planea reforestar 30 polígonos (183.01~ha) del
+matorral desértico de San Luis Potosí con diez especies nativas, al tresbolillo
+y con una meta de 658 plantas por hectárea. Se propone un modelo de dos
+niveles. El primero decide cuántas plantas de cada especie comprar en cada
+polígono para alcanzar la meta con probabilidad de al menos $1-\alpha$, al
+menor costo y dentro del presupuesto: la restricción de probabilidad se reduce
+al cuantil de una binomial negativa, estimado por simulación Monte Carlo, y la
+elección de metas es una mochila de elección múltiple. El segundo acomoda las
+plantas en un mosaico periódico de 52 posiciones para minimizar la competencia
+entre vecinas, con un algoritmo memético validado contra un modelo de
+programación entera. Con $\alpha=0.05$, el presupuesto de \$12{,}500/ha no
+alcanza en ningún polígono: se requieren en promedio \$14{,}496/ha, y aceptar
+más riesgo apenas reduce esa cifra, mientras que el margen de ajuste por
+especie es la principal palanca de costo. Los 30 polígonos se reducen a seis
+claves de plantación que disminuyen la competencia entre 14.5\,\% y 16.3\,\%
+respecto al azar, a no más de 4.5\,\% del óptimo, y que superan a la secuencia
+vigente, la cual, repetida fila tras fila, compite más que una plantación al
+azar. En 1{,}000 siembras simuladas de una hectárea, la clave reduce en 18\,\%
+la competencia esperada al año, y cumplir cada especie con 95\,\% de
+probabilidad deja en 68\,\% la probabilidad de cumplirlas todas a la vez.

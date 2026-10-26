@@ -19,7 +19,7 @@ using namespace refor;
 using namespace refor::memetico;
 
 TEST_CASE("el mosaico tiene 6 vecinas por posición y aristas sin repetir", "[memetico]") {
-  Mosaico m(7, 3);  // 21 posiciones, la línea base vigente
+  Mosaico m(7, 3);  // 21 posiciones
   CHECK(m.num_posiciones() == 21);
   for (int v = 0; v < m.num_posiciones(); ++v) CHECK(m.vecinas(v).size() == 6);
   CHECK(m.aristas().size() == 21 * 6 / 2);

@@ -1,0 +1,35 @@
+% Algoritmos de los dos niveles: curvas de compra, mochila, memético y
+% resolución del modelo entero. La formulación está en modelo-compra.tex y
+% modelo-espacial.tex.
+
+\subsubsection{Curvas de compra por simulación Monte Carlo}
+\label{subsec:compra-solucion}
+
+Las especies solo se acoplan mediante \eqref{eq:total} y \eqref{eq:presupuesto}, lo que permite resolver el problema en dos etapas: primero, para cada especie y cada meta posible, la compra mínima y su costo; después, la combinación de metas de menor costo.
+
+Para una meta $n$, el faltante es $L=n-E_{is}$; si $L\leq0$, las existentes bastan y $x^{*}=0$. En otro caso, por la \cref{eq:dualidad}, la menor compra que satisface \eqref{eq:probabilidad} es el cuantil $1-\alpha$ del número de plantas $X_L$ que hay que plantar hasta lograr $L$ sobrevivientes, con $X_L$ binomial negativa. El cuantil se estima por simulación Monte Carlo \autocite{:ross2013}: en cada escenario $k=1,\dots,K$ se simula la secuencia de supervivencias de las plantas, una tras otra, y se registra $x_k(L)$, la posición de la $L$-ésima sobreviviente, para todas las $L$ a la vez. La compra mínima estimada $\hat{x}^{*}(n)$ es el $r$-ésimo menor de los $x_k(L)$, con $r=\lceil(1-\alpha)K\rceil$: con esa compra, al menos $r$ escenarios alcanzan la meta, y con una planta menos no. Con los mismos escenarios se estima el déficit esperado $\hat{D}(n)$ como el promedio, sobre los $K$ escenarios, del faltante que deja la compra $\hat{x}^{*}(n)$, que es cero en los escenarios que alcanzan la meta. Como una sola secuencia por escenario sirve para todas las metas y todos los valores de $\alpha$, las comparaciones entre metas usan números aleatorios comunes, lo que reduce su varianza. La misma curva puede calcularse de forma exacta con la cola de la distribución binomial, que sirve para validar la simulación.
+
+\paragraph{Convergencia y número de escenarios} El procedimiento es una aproximación por promedio muestral del programa \eqref{eq:obj}--\eqref{eq:probabilidad}, cuya solución converge a la del problema original al crecer $K$ \autocite{kleywegt2002,luedtke2008}. Para que el intervalo de confianza de 95\,\% de una probabilidad estimada $\hat{p}$ cercana a $0.95$ tenga un semiancho de $\varepsilon=0.005$ se requiere $K\geq z_{0.025}^{2}p(1-p)/\varepsilon^{2}\approx7{,}300$ (\cref{eq:intervalo}); se adopta $K=10{,}000$.
+
+\subsubsection{Mochila de elección múltiple}
+\label{subsec:mochila}
+
+Elegir una meta $n_s$ por especie, dentro de su banda \eqref{eq:banda}, que minimice $\sum_sC_s(n_s)$ con $C_s(n)=(1+\theta)c_s\bigl(\hat{x}_s^{*}(n)+\hat{D}_s(n)\bigr)$, sujeto a \eqref{eq:total} y \eqref{eq:presupuesto}, es un problema de mochila de elección múltiple. Sin la restricción de presupuesto se resuelve de forma exacta con programación dinámica, agregando una especie a la vez y llevando como estado la suma acumulada de metas; el costo es $O(|\mathcal{S}|\,H\,w)$, con $H$ la suma de los anchos de las bandas y $w$ el mayor de ellos. La misma recursión, minimizando solo el costo de compra, da el presupuesto mínimo $B_i^{*}$. Si el óptimo sin presupuesto cabe en $BA_i$, es la solución; si $B<B_i^{*}$, el polígono es infactible; solo cuando $B$ queda entre ambos valores se resuelve el problema completo como programa entero mixto.
+
+\subsubsection{Algoritmo memético}
+\label{subsec:espacial-memetico}
+
+El algoritmo combina un algoritmo genético, que explora mediante recombinación, con búsqueda tabú, que intensifica alrededor de cada descendiente; esta hibridación supera a cada componente por separado en coloración de grafos \autocite{galinier1999}.
+
+\paragraph{Representación e inicialización} Un individuo asigna una especie a cada posición del mosaico respetando la composición $m_s$; su aptitud es la competencia total \eqref{eq:competencia}. La población inicial, de $P=20$ individuos, se forma con permutaciones aleatorias de la composición, y cada individuo se mejora con búsqueda tabú.
+
+\paragraph{Selección y cruce} Los padres se eligen por torneo binario. El cruce adapta el operador GPX \autocite{galinier1999}: alternando entre padres, se elige la especie con más posiciones libres en el padre en turno y el hijo las hereda hasta completar su cantidad; las posiciones restantes se asignan de forma voraz a la especie que menos incrementa la competencia. A diferencia de la coloración, las especies no son intercambiables, por lo que el operador procede por especie y conserva la composición por construcción. Como dos mosaicos desplazados son el mismo esquema en el terreno, el segundo padre se traslada antes del cruce a la posición de máxima coincidencia con el primero.
+
+\paragraph{Búsqueda tabú} Cada hijo se mejora con búsqueda tabú \autocite{glover1989,hertz1987} sobre intercambios de especie entre dos posiciones, que conservan la composición y cuyo efecto se evalúa solo en las vecinas de ambas. Se aplica el mejor intercambio no prohibido y se prohíbe revertirlo durante un número aleatorio de 5 a 15 iteraciones, salvo que produzca una nueva mejor solución; la búsqueda termina tras 500 iteraciones sin mejora.
+
+\paragraph{Reemplazo y paro} El hijo sustituye al peor individuo si lo mejora y no es una copia de otro. La distancia entre individuos es el número de posiciones distintas minimizado sobre las traslaciones del mosaico, de modo que un esquema desplazado cuenta como copia; esto preserva la diversidad de la población. El algoritmo termina tras 1{,}000 generaciones o 100 sin mejora. Para cada mosaico se ejecutan 30 corridas independientes y se reportan la mejor competencia, su media y su desviación estándar.
+
+\subsubsection{Resolución del modelo entero}
+\label{subsec:ple-solucion}
+
+El modelo entero del mosaico (\cref{eq:ent-obj,eq:ent-una,eq:ent-conteo,eq:ent-lin1,eq:ent-lin2}) se resuelve con HiGHS. Se resuelve con un solver de programación entera mixta con límite de tiempo, partiendo de la mejor solución del memético: esa solución inicial no cambia el óptimo ni la cota inferior, pero da desde el inicio una cota superior con la cual podar el árbol de búsqueda. La cota inferior que reporta el solver acota la brecha del memético respecto al óptimo, y las dos asignaciones se comparan posición por posición después de alinearlas por traslación.

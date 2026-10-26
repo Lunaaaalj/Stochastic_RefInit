@@ -1,0 +1,102 @@
+\subsection{Simulación del proceso de siembra}
+\label{subsec:simulacion}
+
+Para estimar qué ocurre en una hectárea típica se simuló 1{,}000 veces el proceso de siembra con el script \texttt{simulacion\_siembra.py}, que lee los datos de INECOL y las salidas de \texttt{refor}. La hectárea es representativa del sitio: su meta por especie, $n_s$, es la composición óptima de la compra sumada sobre los 30 polígonos y dividida entre su superficie, redondeada por mayor residuo a 658 plantas. En cada réplica:
+\begin{enumerate}
+  \item las plantas existentes de cada especie se sortean como $E_s\sim\operatorname{Poisson}(\bar{E}_s)$, el modelo de conteo que respalda el análisis de dispersión de la \cref{sec:modelo-compra};
+  \item las plantas a suministrar son las que hay que plantar, una tras otra, hasta que sobrevivan $n_s-E_s$, una variable binomial negativa (\cref{eq:binneg});
+  \item se fija la compra $x_s$ como el cuantil 95\,\% de las plantas a suministrar, la misma regla del modelo de compra con $\alpha=0.05$ pero con las existentes inciertas, y se sortea de nuevo la supervivencia, $S_s\sim\operatorname{Bin}(x_s,q_s)$, de modo que las plantas vivas al año son $E_s+S_s$;
+  \item una hectárea al tresbolillo de $14\times47=658$ posiciones, con 1{,}853 pares de vecinas, se llena con una clave, cada planta sobrevive con probabilidad $q_s$, y la competencia es la suma de $W$ sobre los pares de vecinas que siguen vivas.
+\end{enumerate}
+
+\paragraph{Plantas existentes, a suministrar y vivas} La \cref{tab:siembra} reporta los valores esperados por especie. El valor esperado del total de plantas existentes es de 128.6 por hectárea, con desviación estándar de 11.4, igual al promedio observado (128.8) como se espera del modelo Poisson. Para alcanzar exactamente la meta hay que suministrar en promedio 579.1 plantas por hectárea, pero con ese promedio cada especie cumple cerca de la mitad de las veces; para cumplir con probabilidad de 95\,\% en cada especie hay que suministrar 651, y con ellas la hectárea tiene en promedio 722.4 plantas vivas al año. Cada especie cumple su meta en 95 a 98\,\% de las réplicas, pero las diez a la vez solo en 68.4\,\%: la restricción \eqref{eq:probabilidad} garantiza el cumplimiento de cada especie por separado, no de todas juntas. Las 651 plantas de esta hectárea aislada superan las 594 por hectárea que compra \texttt{refor} en los 30 polígonos porque el margen de seguridad crece con la raíz de la meta y pesa más en una superficie chica, el mismo efecto que encarece los polígonos pequeños (\cref{subsec:res-compra}).
+
+\begin{table*}[t]
+\centering
+\caption{Simulación de 1{,}000 siembras de una hectárea: meta por especie, valores esperados (desviación estándar) de las plantas existentes y de las plantas a suministrar para alcanzar la meta, compra que cumple la meta con probabilidad de 95\,\%, plantas vivas al año con esa compra y fracción de réplicas que cumplen la meta. En la fila total, la última columna es la fracción en que cumplen las diez especies a la vez.}
+\label{tab:siembra}
+\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Especie & Meta & Existentes & A suministrar & Compra al 95\,\% & Vivas al año & Cumple \\
+\midrule
+\textit{Agave lechuguilla}       &  39 &   8.2 (2.9) &  32.6 (3.5) &  38 &  44.1 (3.2) & 0.966 \\
+\textit{Agave salmiana}          & 196 &  38.0 (6.0) & 164.8 (6.7) & 175 & 205.8 (6.4) & 0.949 \\
+\textit{Agave scabra}            &  38 &   8.0 (2.8) &  36.4 (4.3) &  44 &  44.2 (3.7) & 0.962 \\
+\textit{Agave striata}           &  39 &   7.7 (2.8) &  32.9 (3.2) &  38 &  43.9 (3.0) & 0.968 \\
+\textit{Opuntia cantabrigiensis} &  54 &  10.1 (3.3) &  47.4 (4.0) &  54 &  60.2 (3.7) & 0.966 \\
+\textit{Opuntia engelmannii}     &  41 &   8.0 (2.9) &  36.8 (3.9) &  43 &  46.6 (3.6) & 0.955 \\
+\textit{Opuntia robusta}         &  80 &  14.9 (3.8) &  67.9 (4.3) &  75 &  86.6 (4.2) & 0.963 \\
+\textit{Opuntia streptacantha}   &  70 &  12.4 (3.6) &  64.9 (5.0) &  73 &  77.0 (4.4) & 0.962 \\
+\textit{Prosopis laevigata}      &  77 &  16.5 (4.1) &  73.8 (6.4) &  84 &  85.3 (5.3) & 0.952 \\
+\textit{Yucca filifera}          &  24 &   4.9 (2.2) &  21.6 (3.1) &  27 &  28.8 (2.6) & 0.980 \\
+\midrule
+Total                            & 658 & 128.6 (11.4) & 579.1 (14.5) & 651 & 722.4 (13.2) & 0.684 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\paragraph{Competencia en una hectárea} La \cref{tab:siembra-competencia} compara la competencia de la hectárea llena con cuatro arreglos: la clave 1 del memético (\cref{fig:clave1}), la secuencia vigente con las filas alineadas, la vigente con el mejor desfase entre filas (\cref{tab:clave-vigente}) y una asignación al azar con la composición de la clave 1. El valor esperado de la competencia al año con la clave 1 es de 802.7 por hectárea, 18.0\,\% menos que al azar (979.0). La secuencia vigente con filas alineadas llega a 1{,}090.4, 11.4\,\% más que al azar y 35.8\,\% más que la clave 1; con el mejor desfase baja a 842.7, todavía 5.0\,\% por encima de la clave 1. Los intervalos de 90\,\% de la clave 1 y de la vigente alineada no se traslapan, de modo que la diferencia no se debe al azar de la mortalidad. La mortalidad reduce la competencia en alrededor de 15\,\% respecto a la hectárea recién plantada, porque cada planta muerta elimina hasta seis pares de vecinas.
+
+\begin{table}[t]
+\centering
+\caption{Competencia en una hectárea de 658 posiciones: al plantar y valor esperado al año (desviación estándar e intervalo de 90\,\%) en 1{,}000 réplicas de la mortalidad.}
+\label{tab:siembra-competencia}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Arreglo & Al plantar & Al año & Int. 90\,\% \\
+\midrule
+Clave 1              &  945 &  803 (18) &   773--832 \\
+Vigente, mejor desf. &  990 &  843 (20) &   809--874 \\
+Al azar              & 1159 &  979 (25) &   939--1022 \\
+Vigente, alineada    & 1304 & 1090 (27) &  1047--1136 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Probabilidad de transición entre plantas} Si cada planta es un estado, su especie, el orden de plantación define una cadena de Markov (\cref{subsec:markov}): $P_{ij}$ es la probabilidad de que la siguiente planta de la fila sea de la especie $j$ cuando la actual es de la $i$. La \cref{tab:transicion} da la matriz de la clave 1, estimada con las 52 transiciones de sus cuatro filas, que se repiten a lo largo del surco. La diagonal es nula: ninguna planta tiene a una de su especie inmediatamente después. Varias transiciones son casi deterministas y reflejan la estructura de la clave: después de \textit{P.~laevigata} sigue \textit{O.~streptacantha} con probabilidad 0.71, después de \textit{O.~streptacantha} siempre sigue \textit{A.~salmiana}, y \textit{A.~salmiana} va seguida de \textit{P.~laevigata} con probabilidad 0.40. La secuencia vigente también tiene la diagonal nula, lo que muestra que la matriz de transición a lo largo de la fila no basta para juzgar un arreglo: la vigente alineada evita repetir especie dentro de la fila, pero la repite en las filas vecinas, que es donde concentra su competencia.
+
+\begin{table*}[t]
+\centering
+\caption{Matriz de transición entre especies a lo largo del orden de plantación de la clave 1: probabilidad de que la planta siguiente sea de la especie de la columna dado que la actual es de la del renglón. Abreviaturas como en la \cref{tab:matriz-competencia}; los ceros se omiten.}
+\label{tab:transicion}
+\small
+\begin{tabular}{@{}lrrrrrrrrrr@{}}
+\toprule
+ & ALE & ASA & ASC & AST & OCA & OEN & ORO & OST & PLA & YFI \\
+\midrule
+ALE &      &      &      &      &      &      & 1.00 &      &      &      \\
+ASA &      &      & 0.07 & 0.20 & 0.13 &      & 0.07 &      & 0.40 & 0.13 \\
+ASC & 0.67 & 0.33 &      &      &      &      &      &      &      &      \\
+AST &      &      & 0.33 &      &      & 0.33 & 0.33 &      &      &      \\
+OCA & 0.25 & 0.75 &      &      &      &      &      &      &      &      \\
+OEN &      & 0.33 &      &      &      &      & 0.33 &      & 0.33 &      \\
+ORO &      & 0.67 &      &      & 0.17 & 0.17 &      &      &      &      \\
+OST &      & 1.00 &      &      &      &      &      &      &      &      \\
+PLA &      &      &      &      & 0.14 & 0.14 &      & 0.71 &      &      \\
+YFI &      &      & 0.50 &      &      &      &      & 0.50 &      &      \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\paragraph{Orden de plantación} La \cref{tab:orden} da el orden en que se planta la clave 1, el ejemplo para los 18 polígonos que la comparten. Cada fila del terreno sigue la secuencia de 13 posiciones de su renglón, con 4.19~m entre plantas, y vuelve a empezar al terminarla, de modo que un surco de 100~m lleva 24 plantas: las 13 de la secuencia y las 11 primeras otra vez. Las filas se separan 3.63~m y cada una empieza 2.10~m, media separación, más adelante que la anterior, lo que forma el tresbolillo. Después de la fila 4 se repite la fila 1. La cuadrilla solo necesita la tabla de cuatro renglones; las vecinas de cada planta, en la fila y entre filas, quedan fijadas por ella (\cref{fig:clave1}).
+
+\begin{table*}[t]
+\centering
+\caption{Orden de plantación de la clave 1. Cada renglón es una fila del terreno; la secuencia se repite a lo largo de la fila, y después de la fila 4 se repite la fila 1. Separación entre plantas de 4.19~m; entre filas, 3.63~m con un desfase de 2.10~m.}
+\label{tab:orden}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccccccccccc@{}}
+\toprule
+Fila & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 \\
+\midrule
+1 & Asa & Pla & Ost & Asa & Oca & Asa & Pla & Ost & Asa & Oro & Asa & Ast & Oro \\
+2 & Oen & Asa & Asc & Asa & Pla & Ost & Asa & Yfi & Asc & Ale & Oro & Asa & Ast \\
+3 & Oro & Oen & Pla & Ost & Asa & Pla & Oen & Oro & Oca & Asa & Ast & Asc & Ale \\
+4 & Yfi & Ost & Asa & Pla & Ost & Asa & Oca & Asa & Pla & Oca & Ale & Oro & Asa \\
+\bottomrule
+\end{tabular}
+\end{table*}
