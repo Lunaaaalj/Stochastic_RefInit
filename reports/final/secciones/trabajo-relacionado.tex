@@ -1,9 +1,9 @@
-\section{Trabajo relacionado}
+\subsection{Trabajo relacionado}
 \label{sec:trabajo-relacionado}
 
 La distribución de especies pertenece a una familia de problemas que asignan elementos a posiciones de modo que se reduzca la competencia, la interferencia o la incompatibilidad entre vecinos. Esta sección revisa cinco trabajos de esa familia (\cref{subsec:competencia-literatura}) y el marco de coloración de grafos que los unifica (\cref{subsec:coloracion}).
 
-\subsection{Reducción de competencia}
+\subsubsection{Reducción de competencia}
 \label{subsec:competencia-literatura}
 
 El trabajo más cercano al reto es el de \textcite{elizalde2025}, que asignan diez especies a las posiciones de siembra de un polígono siguiendo los lineamientos de CONAFOR (625 plantas por hectárea). El terreno es un grafo cuyos vértices son posiciones y cuyos arcos indican vecindad; una variable binaria indica qué especie ocupa cada posición, y un coeficiente de competencia por par de especies se contabiliza solo cuando ambas quedan en posiciones vecinas. Resuelven un modelo entero con CBC y un algoritmo genético de cromosoma entero. Con un límite de tres horas, el modelo exacto obtuvo soluciones factibles sin garantía de calidad entre 169 y 324 nodos y ninguna con 361, 400 y 625 nodos, mientras que el genético resolvió todos los tamaños (349.44~s en el mayor) con calidad igual o muy cercana a la del exacto donde hubo comparación.
@@ -30,7 +30,7 @@ El trabajo más cercano al reto es el de \textcite{elizalde2025}, que asignan di
 
 La \cref{tab:comparacion-competencia} resume los cinco trabajos. De ellos se desprenden tres lecciones para el reto. Primero, la forma dominante de medir la competencia es un coeficiente por par de elementos vecinos en un grafo \parencite{elizalde2025,eisenblatter2002,liu2026}, y la distancia importa \parencite{kobal2025}, lo que respalda limitar la competencia a los vecinos inmediatos de la retícula. Segundo, los modelos exactos pierden escalabilidad rápidamente \parencite{elizalde2025,akplogan2011}, lo que justifica las metaheurísticas \parencite{elizalde2025,eisenblatter2002}; un modelo exacto sigue siendo útil en instancias pequeñas para medir qué tan lejos queda la heurística del óptimo. Tercero, solo \textcite{liu2026} incorporan incertidumbre, y ninguno estima la cantidad de plantas a adquirir cuando la supervivencia es incierta, que es la primera parte del reto.
 
-\subsection{Coloración de grafos con penalización}
+\subsubsection{Coloración de grafos con penalización}
 \label{subsec:coloracion}
 
 Sea $G=(V,E)$ un grafo no dirigido. Una coloración propia con $k$ colores es una función $c:V\to\{1,\dots,k\}$ tal que $c(u)\neq c(v)$ para toda arista $uv\in E$; el menor $k$ para el que existe es el número cromático $\chi(G)$, y encontrarlo es NP-difícil \parencite{eisenblatter2002}. Como la coloración propia no basta para modelar requisitos prácticos, existen generalizaciones que, en lugar de prohibir los conflictos, minimizan una penalización total sobre las aristas \parencite{eisenblatter2002}, y sus variantes se han extendido a problemas de programación de tareas y horarios \parencite{dewerra2015}.

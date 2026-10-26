@@ -1,9 +1,9 @@
-\section{Validación}
+\subsection{Validación}
 \label{sec:validacion}
 
 Cada nivel se resolvió con un método aproximado (simulación Monte Carlo para la compra y un algoritmo memético para la distribución) y se validó contra un método exacto que comparte el mismo objetivo. Salvo que se indique otra cosa, los resultados usan $\alpha=0.05$, $\theta=0.05$, $\delta=0.10$, $K=10{,}000$ y la semilla 42.
 
-\subsection{Compra: Monte Carlo contra la cola binomial}
+\subsubsection{Compra: Monte Carlo contra la cola binomial}
 \label{subsec:val-compra}
 
 Como la única variable aleatoria es $S_{is}(x)\sim\operatorname{Bin}(x,q_s)$, la restricción \eqref{eq:probabilidad} puede evaluarse de forma exacta con la cola binomial, lo que permite medir el error de la simulación sin depender de otra simulación. Con ambos métodos se resolvió la compra de los 30 polígonos.
@@ -14,7 +14,7 @@ Como la única variable aleatoria es $S_{is}(x)\sim\operatorname{Bin}(x,q_s)$, l
 
 \paragraph{Número de escenarios y semilla} Con $\alpha=0.05$, $\bar{B}^{*}$ vale \$14{,}493.90/ha con $K=1{,}000$, \$14{,}496.10/ha con $K=10{,}000$ y \$14{,}496.31/ha con $K=100{,}000$, frente a \$14{,}496.02/ha con el método exacto. Con $K=10{,}000$ y las semillas 1 a 5, $\bar{B}^{*}$ va de \$14{,}495.82 a \$14{,}496.83/ha. El error de Monte Carlo es, por tanto, del orden de \$1/ha, tres órdenes de magnitud por debajo de la diferencia entre el presupuesto disponible y el mínimo (\cref{subsec:res-compra}), y $K=10{,}000$ es suficiente.
 
-\subsection{Distribución: memético contra el modelo entero}
+\subsubsection{Distribución: memético contra el modelo entero}
 \label{subsec:val-espacial}
 
 Cada uno de los seis mosaicos distintos (\cref{subsec:res-espacial}) se resolvió también con el modelo entero de la \cref{subsec:espacial-entera}, con HiGHS, un límite de 300~s y la mejor clave del memético como solución inicial. La \cref{tab:val-espacial} reporta el resultado.

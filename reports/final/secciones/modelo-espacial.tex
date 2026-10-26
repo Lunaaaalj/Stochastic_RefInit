@@ -1,9 +1,8 @@
-\section{Modelo de distribución espacial}
+\subsubsection{Nivel 2: distribución espacial}
 \label{sec:modelo-espacial}
 
 El segundo nivel acomoda en el terreno las plantas adquiridas según la \cref{sec:modelo-compra} de modo que se minimice la competencia entre plantas vecinas. Se adopta la sobreplantación: se plantan todas las plantas compradas, y la mortalidad del primer año reduce la densidad hacia la meta. Siguiendo la \cref{subsec:coloracion}, el terreno es un grafo cuyos vértices son las posiciones de plantación y cuyas aristas unen posiciones vecinas, y el problema consiste en asignar una especie a cada vértice respetando la cantidad de cada especie \autocite{elizalde2025,eisenblatter2002}.
 
-\subsection{Mosaico y objetivo}
 \label{subsec:espacial-mosaico}
 
 \paragraph{Mosaico periódico} Optimizar posición por posición un polígono de varios miles de plantas no es práctico ni se puede llevar a campo. En su lugar se optimiza un mosaico de pocas decenas de posiciones que la cuadrilla repite sobre todo el polígono como una tabla de claves de especie. El mosaico es un fragmento del tresbolillo de $4\times13=52$ posiciones con bordes periódicos: la última fila es vecina de la primera y la última columna de la primera, de modo que el mosaico se repite sin costuras y cada posición tiene exactamente seis vecinas, todas a la misma distancia $d\approx4.19$~m. El grafo tiene $52\cdot6/2=156$ aristas. La composición del mosaico, $m_s$ posiciones de la especie $s$ con $\sum_sm_s=52$, es proporcional a la compra $x_{is}$ del polígono, redondeada por el método del mayor residuo; los polígonos con la misma composición comparten mosaico.
@@ -18,9 +17,9 @@ con $W$ la matriz de competencia de la \cref{subsec:espacial-matriz}. Como todas
   \mathbb{E}[C]=\frac{|\mathcal{E}|}{n(n-1)}\sum_{a,b\in\mathcal{S}}m_a\bigl(m_b-\mathbf{1}[a=b]\bigr)W_{ab}
   \label{eq:competencia-azar}
 \end{equation}
-es la competencia esperada de una asignación aleatoria con la misma composición, con $n=52$: cada arista une dos posiciones distintas elegidas al azar, y el par de especies $(a,b)$ aparece con probabilidad $m_a(m_b-\mathbf{1}[a=b])/[n(n-1)]$. Un coeficiente menor que uno indica una reducción respecto al azar. El problema es una coloración de vértices con penalización y conteo fijo por color, NP-difícil \autocite{eisenblatter2002}, y se resuelve con dos métodos que comparten el objetivo \eqref{eq:competencia}: un algoritmo memético (\cref{subsec:espacial-memetico}) y un modelo de programación entera (\cref{subsec:espacial-entera}) cuya cota inferior mide la brecha del primero.
+es la competencia esperada de una asignación aleatoria con la misma composición, con $n=52$: cada arista une dos posiciones distintas elegidas al azar, y el par de especies $(a,b)$ aparece con probabilidad $m_a(m_b-\mathbf{1}[a=b])/[n(n-1)]$. Un coeficiente menor que uno indica una reducción respecto al azar. El problema es una coloración de vértices con penalización y conteo fijo por color, NP-difícil \autocite{eisenblatter2002}, y se resuelve con dos métodos que comparten el objetivo \eqref{eq:competencia}: un algoritmo memético y un modelo de programación entera cuya cota inferior mide la brecha del primero (\cref{subsec:algoritmos}).
 
-\subsection{Matriz de competencia}
+\paragraph{Matriz de competencia}
 \label{subsec:espacial-matriz}
 
 Una matriz simétrica $W\in\mathbb{R}^{|\mathcal{S}|\times|\mathcal{S}|}$ cuantifica, para cada par de especies, la penalización por ocupar posiciones vecinas; su diagonal representa la competencia intraespecífica. Las funciones de correlación de pares, que miden asociación o segregación entre especies \autocite{wiegand2014}, requieren las coordenadas de cada planta, y los datos disponibles solo registran el número de plantas por especie en cada polígono. Como comprobación, las correlaciones entre los residuales de Pearson de los conteos de cada par de especies a lo largo de los 30 polígonos tienen media $-0.07$ y solo 4 de 45 son significativas al 5\,\%, cerca de lo esperado por azar, por lo que los conteos no contienen información sobre la interacción entre vecinas. La matriz se construye, en cambio, a partir de rasgos de las especies:
@@ -61,20 +60,7 @@ YFI & 0.49 & 0.82 & 0.65 & 0.56 & 0.63 & 0.74 & 0.58 & 0.84 & 0.45 & \textbf{1.4
 \end{tabular}
 \end{table}
 
-\subsection{Algoritmo memético}
-\label{subsec:espacial-memetico}
-
-El algoritmo combina un algoritmo genético, que explora mediante recombinación, con búsqueda tabú, que intensifica alrededor de cada descendiente; esta hibridación supera a cada componente por separado en coloración de grafos \autocite{galinier1999}.
-
-\paragraph{Representación e inicialización} Un individuo asigna una especie a cada posición del mosaico respetando la composición $m_s$; su aptitud es la competencia total \eqref{eq:competencia}. La población inicial, de $P=20$ individuos, se forma con permutaciones aleatorias de la composición, y cada individuo se mejora con búsqueda tabú.
-
-\paragraph{Selección y cruce} Los padres se eligen por torneo binario. El cruce adapta el operador GPX \autocite{galinier1999}: alternando entre padres, se elige la especie con más posiciones libres en el padre en turno y el hijo las hereda hasta completar su cantidad; las posiciones restantes se asignan de forma voraz a la especie que menos incrementa la competencia. A diferencia de la coloración, las especies no son intercambiables, por lo que el operador procede por especie y conserva la composición por construcción. Como dos mosaicos desplazados son el mismo esquema en el terreno, el segundo padre se traslada antes del cruce a la posición de máxima coincidencia con el primero.
-
-\paragraph{Búsqueda tabú} Cada hijo se mejora con búsqueda tabú \autocite{glover1989,hertz1987} sobre intercambios de especie entre dos posiciones, que conservan la composición y cuyo efecto se evalúa solo en las vecinas de ambas. Se aplica el mejor intercambio no prohibido y se prohíbe revertirlo durante un número aleatorio de 5 a 15 iteraciones, salvo que produzca una nueva mejor solución; la búsqueda termina tras 500 iteraciones sin mejora.
-
-\paragraph{Reemplazo y paro} El hijo sustituye al peor individuo si lo mejora y no es una copia de otro. La distancia entre individuos es el número de posiciones distintas minimizado sobre las traslaciones del mosaico, de modo que un esquema desplazado cuenta como copia; esto preserva la diversidad de la población. El algoritmo termina tras 1{,}000 generaciones o 100 sin mejora. Para cada mosaico se ejecutan 30 corridas independientes y se reportan la mejor competencia, su media y su desviación estándar.
-
-\subsection{Modelo de programación entera}
+\paragraph{Modelo de programación entera}
 \label{subsec:espacial-entera}
 
 Sea $G=(V,\mathcal{E})$ el grafo del mosaico con bordes periódicos. Con $y_{vs}\in\{0,1\}$, igual a 1 si la posición $v$ recibe la especie $s$, y $z_{uvab}\geq0$, que representa el producto $y_{ua}y_{vb}$, se resuelve
@@ -85,4 +71,4 @@ Sea $G=(V,\mathcal{E})$ el grafo del mosaico con bordes periódicos. Con $y_{vs}
 & \textstyle\sum_{b}z_{uvab}=y_{ua}, && (u,v)\in\mathcal{E},\ a\in\mathcal{S}, \label{eq:ent-lin1}\\
 & \textstyle\sum_{a}z_{uvab}=y_{vb}, && (u,v)\in\mathcal{E},\ b\in\mathcal{S}. \label{eq:ent-lin2}
 \end{align}
-Las restricciones \eqref{eq:ent-una} y \eqref{eq:ent-conteo} imponen una especie por posición y la composición; \eqref{eq:ent-lin1}--\eqref{eq:ent-lin2} linealizan el objetivo cuadrático, pues con $y$ binaria fuerzan $z_{uvab}=y_{ua}y_{vb}$ sin depender del signo de $W$. Como el mosaico es invariante bajo traslaciones, se fija la especie más abundante en una posición, lo que elimina soluciones equivalentes sin pérdida de optimalidad. Con 52 posiciones, el modelo tiene 520 variables binarias y $156\cdot10^{2}=15{,}600$ continuas. Se resuelve con un solver de programación entera mixta con límite de tiempo, partiendo de la mejor solución del memético: esa solución inicial no cambia el óptimo ni la cota inferior, pero da desde el inicio una cota superior con la cual podar el árbol de búsqueda. La cota inferior que reporta el solver acota la brecha del memético respecto al óptimo, y las dos asignaciones se comparan posición por posición después de alinearlas por traslación.
+Las restricciones \eqref{eq:ent-una} y \eqref{eq:ent-conteo} imponen una especie por posición y la composición; \eqref{eq:ent-lin1}--\eqref{eq:ent-lin2} linealizan el objetivo cuadrático, pues con $y$ binaria fuerzan $z_{uvab}=y_{ua}y_{vb}$ sin depender del signo de $W$. Como el mosaico es invariante bajo traslaciones, se fija la especie más abundante en una posición, lo que elimina soluciones equivalentes sin pérdida de optimalidad. Con 52 posiciones, el modelo tiene 520 variables binarias y $156\cdot10^{2}=15{,}600$ continuas.

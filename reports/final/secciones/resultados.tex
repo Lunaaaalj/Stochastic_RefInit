@@ -1,9 +1,9 @@
-\section{Resultados y discusión}
+\subsection{Resultados en los 30 polígonos}
 \label{sec:resultados}
 
 Ambos niveles se resolvieron para los 30 polígonos (183.01~ha) con los parámetros de la \cref{sec:validacion}, el mosaico de $4\times13=52$ posiciones y la matriz de la \cref{tab:matriz-competencia}. Todos los resultados se reproducen con \texttt{refor} y la semilla 42.
 
-\subsection{Compra}
+\subsubsection{Compra}
 \label{subsec:res-compra}
 
 \paragraph{El presupuesto no alcanza} Con $B=\$12{,}500$/ha ningún polígono es factible. El presupuesto mínimo es, en promedio ponderado por superficie, $\bar{B}^{*}=\$14{,}496$/ha, 16\,\% más que el disponible: va de \$14{,}361/ha en el polígono 8 a \$14{,}934/ha en el polígono 1. Cumplir la meta en los 30 polígonos con $\alpha=0.05$ requiere \$365~mil adicionales. La infactibilidad es estructural, como anticipaba la estimación de la \cref{subsec:compra-formulacion}: el costo de cubrir el faltante corregido por mortalidad ya excedía el presupuesto antes de agregar margen de seguridad y logística. Aceptar más riesgo apenas ayuda (\cref{tab:frontera}): pasar de $\alpha=0.01$ a $\alpha=0.50$ ahorra 3.7\,\% del presupuesto a cambio de multiplicar por cincuenta la probabilidad de incumplir la meta de cada especie, y aun con $\alpha=0.50$ faltan \$296~mil. Lo que excede el presupuesto es el faltante mismo, no el margen de seguridad. El sobrecosto logístico pesa más que el riesgo: con $\theta=0.10$ en lugar de $0.05$, $\bar{B}^{*}$ sube a \$15{,}186/ha.
@@ -34,7 +34,7 @@ $\alpha$ & Monte Carlo & Exacto & Faltante (miles de \$) \\
 
 \paragraph{Tamaño del polígono} Los dos polígonos más chicos son los más caros por hectárea (\$14{,}934 en el polígono 1, de 1.28~ha, y \$14{,}819 en el 4, de 1.38~ha), y la correlación entre superficie y $B_i^{*}$ es de $-0.63$. El margen necesario para cumplir con probabilidad $1-\alpha$ crece aproximadamente con la raíz de la meta, más lento que la meta misma, de modo que pesa más por hectárea cuando la meta es chica. La relación no es estricta porque $B_i^{*}$ también depende de cuántas plantas existentes tiene cada polígono.
 
-\subsection{Distribución espacial}
+\subsubsection{Distribución espacial}
 \label{subsec:res-espacial}
 
 \paragraph{Seis claves para 30 polígonos} Al repartir la compra sin presupuesto de cada polígono en 52 posiciones, los 30 polígonos se reducen a seis composiciones distintas y, por tanto, a seis claves de plantación (\cref{tab:res-mosaicos}). La primera la comparten 18 polígonos y la segunda, 5. En la práctica, la cuadrilla necesita solo seis tablas de claves para todo el sitio.
@@ -88,7 +88,7 @@ Memético, clave 1 & 0.838 & 0.501 & 0.08 \\
 \label{fig:clave1}
 \end{figure}
 
-\subsection{Sensibilidad a la matriz de competencia}
+\subsubsection{Sensibilidad a la matriz de competencia}
 \label{subsec:res-sensibilidad}
 
 La matriz $W$ depende de rasgos aproximados y de dos parámetros fijados por supuesto. Para medir cuánto dependen las claves de esos valores, se despejó el producto $T_{ab}N_{ab}$ de cada par a partir de la matriz base y de \eqref{eq:matriz-W}, con $\gamma=1.5$, $\phi=0.3$ y el efecto nodriza aplicado a los pares de \textit{P.~laevigata} con agaves y nopales\footnote{Con esa convención la reconstrucción devuelve exactamente la matriz base. Aplicarlo también a \textit{Y.~filifera} implicaría un traslape de raíces con el mezquite de 0.75, mayor que el de cualquier suculenta, lo que no corresponde a una roseta de raíz somera.}. Con ello se construyeron 45 matrices alternativas: 25 en la rejilla $\gamma\in\{1,1.25,1.5,1.75,2\}$, $\phi\in\{0,0.15,0.3,0.45,0.6\}$, y 20 en las que el producto $T_{ab}N_{ab}$ de cada par se multiplica por un factor uniforme e independiente en $[0.7,1.3]$, una perturbación más severa que variar el diámetro de copa de cada especie, porque afecta a cada par por separado. Con cada matriz se reoptimizaron los seis mosaicos (10 corridas del memético) y se comparó la competencia de la clave base, evaluada con la matriz alternativa, con la de la clave reoptimizada.

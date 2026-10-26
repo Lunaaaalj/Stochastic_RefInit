@@ -1,9 +1,9 @@
-\section{Herramientas para modelar la incertidumbre}
+\subsection{Herramientas para modelar la incertidumbre}
 \label{sec:marco-estocastico}
 
 La compra se decide antes de saber cuántas plantas nuevas sobrevivirán. Esta sección reúne las distribuciones con que se modelan los conteos del problema y el método de Monte Carlo con el que se evalúan las decisiones bajo incertidumbre.
 
-\subsection{Distribuciones de conteo}
+\subsubsection{Distribuciones de conteo}
 \label{subsec:distribuciones}
 
 \paragraph{Binomial} Si se plantan $x$ plantas de una especie y cada una sobrevive, de forma independiente, con probabilidad $q$, el número de sobrevivientes es $S(x)\sim\operatorname{Bin}(x,q)$, con
@@ -27,7 +27,7 @@ porque al menos $r$ de las primeras $x$ plantas sobreviven si y solo si la $r$-�
 
 \paragraph{Poisson} El número de ocurrencias de un evento en una región, cuando estas ocurren al azar con intensidad constante $\lambda$ por unidad de área, sigue una distribución de Poisson, $\mathbb{P}(E=k)=e^{-\lambda A}(\lambda A)^{k}/k!$ para una región de área $A$ \autocite{:berger2002}. Es el modelo natural para el número de plantas existentes por polígono si estas se dispersaron al azar. Su media y su varianza son iguales; cuando los conteos muestran una varianza mayor que la media (sobredispersión), la alternativa habitual es una binomial negativa vista como mezcla de Poisson.
 
-\subsection{Método de Monte Carlo}
+\subsubsection{Método de Monte Carlo}
 \label{subsec:montecarlo}
 
 El método de Monte Carlo estima una cantidad $\theta=\mathbb{E}[g(\mathbf{X})]$ promediando evaluaciones del modelo sobre $K$ realizaciones independientes de la entrada aleatoria \autocite{:robert2004}:
@@ -44,4 +44,14 @@ Si $\sigma^{2}=\operatorname{Var}[g(\mathbf{X})]<\infty$, el teorema central del
 \end{equation}
 con $S_K$ la desviación estándar muestral; para que el semiancho no exceda un error $\varepsilon$ se requieren $K\geq(z_{\alpha/2}S_K/\varepsilon)^{2}$ escenarios \autocite{:ross2013}. El error decrece como $K^{-1/2}$ sin importar la dimensión del problema: reducirlo a la mitad cuesta cuatro veces más escenarios. El método admite modelos no lineales arbitrarios y entrega la distribución completa de la salida, no solo su media, pero sus resultados no son mejores que las distribuciones supuestas para las entradas \autocite{:robert2004}.
 
-\paragraph{Extensión a varios años} La supervivencia de cada posición de la retícula puede verse como una cadena de Markov con estados vacía, plántula y establecida, en la que una plántula muere o se establece y una posición vacía solo cambia si se replanta \autocite{:ross2014,:norris1997}. Con la distribución inicial dada por el conteo, la cadena estimaría cuántas posiciones quedarán vacías en cada campaña de reposición. Este trabajo se limita al horizonte de un año, con la supervivencia binomial de la \cref{eq:binomial}; la cadena queda como extensión natural.
+\subsubsection{Cadenas de Markov}
+\label{subsec:markov}
+
+Un proceso $\{X_t\}_{t\geq0}$ con espacio de estados finito $\mathcal{X}$ es una cadena de Markov homogénea si la probabilidad de pasar al estado $j$ depende solo del estado actual \autocite{:ross2014}:
+\begin{equation}
+  \mathbb{P}(X_{t+1}=j\mid X_t=i,X_{t-1},\dots,X_0)=\mathbb{P}(X_{t+1}=j\mid X_t=i)=P_{ij}.
+  \label{eq:markov}
+\end{equation}
+Las probabilidades de transición forman una matriz estocástica $\mathbf{P}$, con $P_{ij}\geq0$ y $\sum_jP_{ij}=1$, y si $\boldsymbol{\pi}_0$ es la distribución inicial, la distribución tras $t$ pasos es $\boldsymbol{\pi}_0\mathbf{P}^{t}$ \autocite{:norris1997}. Una distribución $\boldsymbol{\pi}$ con $\boldsymbol{\pi}\mathbf{P}=\boldsymbol{\pi}$ es estacionaria: describe la fracción de tiempo que la cadena pasa en cada estado.
+
+En el problema hay dos cadenas naturales. La primera describe el orden de plantación: si cada planta es un estado, su especie, $P_{ij}$ es la probabilidad de que la siguiente planta del recorrido sea de la especie $j$ cuando la actual es de la $i$. Un arreglo que reduce la competencia tiene $P_{ii}=0$, porque nunca planta dos individuos de la misma especie seguidos, y su distribución estacionaria es la composición del arreglo. La segunda describe la vida de cada posición de la retícula, con estados vacía, plántula y establecida: una plántula muere o se establece, y una posición vacía solo cambia si se replanta. Con la distribución inicial dada por el conteo, esta cadena estimaría cuántas posiciones quedarán vacías en cada campaña de reposición. Este trabajo usa la primera para describir las claves (\cref{subsec:simulacion}) y se limita al horizonte de un año en la segunda, con la supervivencia binomial de la \cref{eq:binomial}.
