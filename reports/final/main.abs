@@ -15,4 +15,6 @@ especie es la principal palanca de costo. Los 30 polígonos se reducen a seis
 claves de plantación que disminuyen la competencia entre 14.5\,\% y 16.3\,\%
 respecto al azar, a no más de 4.5\,\% del óptimo, y que superan a la secuencia
 vigente, la cual, repetida fila tras fila, compite más que una plantación al
-azar.
+azar. En 1{,}000 siembras simuladas de una hectárea, la clave reduce en 18\,\%
+la competencia esperada al año, y cumplir cada especie con 95\,\% de
+probabilidad deja en 68\,\% la probabilidad de cumplirlas todas a la vez.

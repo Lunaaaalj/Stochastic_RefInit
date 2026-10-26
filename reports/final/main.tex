@@ -127,6 +127,9 @@
 % --- Referencias cruzadas (despues de hyperref, que ya cargo la clase) -------
 \hypersetup{linkcolor=blue,citecolor=blue,urlcolor=blue}
 \usepackage[spanish]{cleveref}
+% Secciones en romanos, como en la rubrica (I a V); las subsecciones quedan
+% como IV.1, IV.1.1, etc.
+\renewcommand{\thesection}{\Roman{section}}
 \crefname{section}{sección}{secciones}
 \Crefname{section}{Sección}{Secciones}
 \crefname{table}{tabla}{tablas}
@@ -150,6 +153,9 @@
 \author[tec]{Carolina Sánchez Meneses}
 \author[tec]{Andrea Estefanía de la Peña}
 
+% Nota al pie sin marca en la portada con el enlace al codigo.
+\nonumnote{Código y datos: \url{https://github.com/Lunaaaalj/Stochastic_RefInit}}
+
 \affiliation[tec]{organization={Instituto Tecnológico y de Estudios Superiores
   de Monterrey, MA2004B, grupo 202, equipo 5},
   country={México}}
@@ -172,7 +178,9 @@ especie es la principal palanca de costo. Los 30 polígonos se reducen a seis
 claves de plantación que disminuyen la competencia entre 14.5\,\% y 16.3\,\%
 respecto al azar, a no más de 4.5\,\% del óptimo, y que superan a la secuencia
 vigente, la cual, repetida fila tras fila, compite más que una plantación al
-azar.
+azar. En 1{,}000 siembras simuladas de una hectárea, la clave reduce en 18\,\%
+la competencia esperada al año, y cumplir cada especie con 95\,\% de
+probabilidad deja en 68\,\% la probabilidad de cumplirlas todas a la vez.
 \end{abstract}
 
 \begin{keywords}
@@ -187,22 +195,15 @@ simulación Monte Carlo \sep coloración de grafos \sep algoritmo memético
 % justificacion, problematica y objetivo, modelacion y validacion,
 % resultados, discusion y conclusiones.
 
-% Etapa 1: contexto, problema, antecedentes y herramientas
+% Orden de la rubrica: I Introduccion, II Marco teorico, III Descripcion del
+% problema, IV Metodologia de solucion, V Experimentacion y resultados, y
+% conclusiones. marco-teorico, metodologia y experimentacion solo abren su
+% seccion e incluyen las subsecciones de los demas archivos.
 \input{secciones/introduccion.tex}
+\input{secciones/marco-teorico.tex}
 \input{secciones/problema.tex}
-\input{secciones/trabajo-relacionado.tex}
-\input{secciones/marco-estocastico.tex}
-
-% Etapa 2: formulacion de los dos modelos
-\input{secciones/modelo-compra.tex}
-\input{secciones/modelo-espacial.tex}
-
-% Etapa 3: implementacion, validacion y resultados
-\input{secciones/implementacion.tex}
-\input{secciones/validacion.tex}
-\input{secciones/resultados.tex}
-
-% Cierre
+\input{secciones/metodologia.tex}
+\input{secciones/experimentacion.tex}
 \input{secciones/conclusiones.tex}
 
 \printbibliography
