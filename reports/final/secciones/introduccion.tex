@@ -1,0 +1,36 @@
+\section{Introducción}
+\label{sec:introduccion}
+
+\subsection{Reforestación en zonas áridas}
+\label{subsec:reforestacion}
+
+La deforestación por cambio de uso de suelo es una de las principales causas de pérdida de biodiversidad y de servicios ecosistémicos \autocite{geist2002}. La restauración ecológica responde a este problema asistiendo la recuperación de un ecosistema degradado, dañado o destruido \autocite{ser2004}, y la reforestación es una de sus herramientas: establecer vegetación, mediante siembra o plantación, en terrenos que la tenían y la perdieron \autocite{conafor2010}. Su objetivo no es solo recuperar la cobertura vegetal, sino también la retención de suelo, la infiltración de agua, el hábitat para la fauna y la captura de carbono \autocite{chazdon2008}. Cuando la regeneración natural no basta, se recurre a la restauración activa, que planta especies seleccionadas \autocite{holl2011}.
+
+Una reforestación se planea en tres etapas: el diagnóstico del sitio y la selección de especies, densidad y diseño de plantación; la ejecución, que incluye la obtención de la planta en vivero y su plantación en la temporada de lluvias; y el mantenimiento, que abarca la reposición de plantas muertas y la medición de la supervivencia \autocite{conafor2010}. Se da prioridad a especies nativas adaptadas al clima y al suelo local, en proporción a su frecuencia en la vegetación de la región. De los diseños de plantación, el tresbolillo desfasa las filas para formar triángulos equiláteros, lo que aprovecha mejor el espacio que el marco real y protege mejor contra el viento y la erosión.
+
+\subsection{Competencia y facilitación entre plantas}
+\label{subsec:competencia}
+
+La competencia ocurre cuando plantas vecinas usan los mismos recursos limitados (agua, luz y nutrientes del suelo) y el consumo de una reduce lo disponible para la otra \autocite{craine2013}. Es más intensa entre plantas cercanas, de tamaño parecido y que toman los recursos de la misma forma, a la misma profundidad de raíz y en la misma época. En zonas áridas el agua es el recurso más limitante, por lo que plantar juntas especies con alta demanda de agua aumenta la competencia \autocite{padilla2006}.
+
+Las interacciones no son solo negativas. Las plantas nodriza crean bajo su copa un microambiente con más sombra, humedad y nutrientes que favorece el establecimiento de otras especies \autocite{flores2003}. El mezquite (\textit{Prosopis}) es una nodriza común en el norte de México, y colocar especies sensibles bajo nodrizas es una estrategia reconocida para restaurar ambientes degradados \autocite{padilla2006}. En consecuencia, el acomodo de las especies, y no solo su número, influye en la supervivencia de la plantación.
+
+Una reforestación mal planeada puede acomodar las plantas de forma que compitan entre sí, lo que reduce la supervivencia y deja sin cumplir la meta \autocite{conafor2010,holl2011}; reducirla a pocas especies tampoco es una salida, porque una plantación casi monoespecífica es más vulnerable a plagas, enfermedades y eventos climáticos extremos \autocite{liu2018}. A esto se suma un problema logístico: si se compran plantas de más se gasta dinero de forma innecesaria, y si se compran de menos no se alcanza la meta.
+
+\subsection{El reto}
+\label{subsec:reto}
+
+El reto se ubica en la zona de la Línea de Transmisión Eléctrica Dominica--Charcas, en San Luis Potosí, dentro de la subprovincia Llanos y Sierras Potosino--Zacatecanos. La vegetación es principalmente matorral desértico rosetófilo y micrófilo, con un deterioro notable por sobrepastoreo. El socio formador, la Comisión Nacional Forestal (CONAFOR), planea reforestar 30 polígonos de entre 1.28 y 8~ha (183.01~ha en total) con diez especies nativas de agaves, nopales, mezquite y yuca, en un diseño al tresbolillo elegido por los fuertes vientos de la zona y con una meta de 658 plantas por hectárea.
+
+El problema tiene dos partes. La primera es estimar cuántas plantas de cada especie comprar, sabiendo que en cada polígono ya existen plantas de regeneración natural y que no todas las plantas nuevas sobreviven. La segunda es decidir cómo distribuir las especies dentro de cada polígono para reducir la competencia entre plantas vecinas, respetando la cantidad comprada de cada especie.
+
+\subsection{Justificación y objetivo}
+\label{subsec:objetivo}
+
+Una buena distribución reduce la competencia y aprovecha la facilitación, lo que aumenta la supervivencia; en una zona árida, cada planta perdida es difícil de reponer. Por su parte, estimar bien la cantidad a comprar evita tanto el gasto innecesario como el incumplimiento de la meta. Un método sistemático para ambas decisiones permite a CONAFOR planear con datos en lugar de depender de un orden de plantación fijo.
+
+El objetivo general es proponer un modelo matemático y computacional que permita a CONAFOR:
+\begin{enumerate}
+  \item determinar, para cada polígono, cuántas plantas de cada especie adquirir para alcanzar la meta de plantación con una probabilidad prefijada, al menor costo y dentro del presupuesto, considerando la incertidumbre en la supervivencia de las plantas nuevas; y
+  \item distribuir esas plantas en la retícula al tresbolillo de modo que se minimice la competencia entre especies vecinas, con un arreglo que pueda llevarse a campo.
+\end{enumerate}

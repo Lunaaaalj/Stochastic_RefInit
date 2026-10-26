@@ -1,0 +1,94 @@
+\section{Modelo de compra bajo incertidumbre}
+\label{sec:modelo-compra}
+
+El problema se descompone en dos niveles: la cantidad de plantas de cada especie que se adquiere en cada polígono y su acomodo en la retícula de plantación. Esta sección formula el primero, cuyo resultado es el dato de entrada del segundo (\cref{sec:modelo-espacial}). La compra se decide sin saber cuántas plantas nuevas sobrevivirán, por lo que se plantea como un programa estocástico con restricciones de probabilidad.
+
+\subsection{Datos y parámetros}
+\label{subsec:compra-parametros}
+
+Sea $\mathcal{S}$ el conjunto de las diez especies e $i$ un polígono de superficie $A_i$ (ha). Para cada $s\in\mathcal{S}$, $n_s^0$ es la densidad del plan de reforestación ($\sum_sn_s^0=658$ plantas/ha), $c_s$ el costo unitario de la planta sin logística y $q_s$ la supervivencia del primer año, observada en el monitoreo. $E_{is}$ es el número de plantas existentes de la especie $s$ en el polígono $i$ según los conteos de INECOL; en conjunto equivalen a 128.8 plantas/ha, 19.6\,\% de la meta, sobre los 183.01~ha de los 30 polígonos. La \cref{tab:compra-parametros} reporta estos valores. Se consideran además cuatro parámetros de política: el presupuesto por hectárea $B$, fijado por el socio formador en \$12{,}500; el sobrecosto logístico $\theta\in[0.05,0.10]$, como fracción del costo de la planta; la desviación máxima por especie respecto al plan, $\delta=0.10$; y el riesgo admisible de incumplimiento, $\alpha=0.05$.
+
+\begin{table*}[t]
+\centering
+\caption{Parámetros por especie. $\bar{E}_s=\sum_iE_{is}/\sum_iA_i$: densidad media de plantas existentes; $c_s/q_s$: costo por planta sobreviviente.}
+\label{tab:compra-parametros}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Especie & $n_s^0$ (plantas/ha) & $c_s$ (\$) & $q_s$ & $\bar{E}_s$ (plantas/ha) & $c_s/q_s$ (\$) \\
+\midrule
+\textit{Agave lechuguilla}        &  42 & 26.0 & 0.943 &  8.1 & 27.6 \\
+\textit{Agave salmiana}           & 196 & 26.0 & 0.959 & 38.0 & 27.1 \\
+\textit{Agave scabra}             &  42 & 26.0 & 0.825 &  8.0 & 31.5 \\
+\textit{Agave striata}            &  42 & 26.0 & 0.952 &  7.7 & 27.3 \\
+\textit{Opuntia cantabrigiensis}  &  49 & 18.0 & 0.927 & 10.0 & 19.4 \\
+\textit{Opuntia engelmannii}      &  38 & 21.0 & 0.899 &  8.0 & 23.4 \\
+\textit{Opuntia robusta}          &  73 & 18.0 & 0.958 & 15.0 & 18.8 \\
+\textit{Opuntia streptacantha}    &  64 & 18.0 & 0.886 & 12.5 & 20.3 \\
+\textit{Prosopis laevigata}       &  86 & 26.5 & 0.821 & 16.5 & 32.3 \\
+\textit{Yucca filifera}           &  26 & 26.0 & 0.884 &  5.0 & 29.4 \\
+\midrule
+Total                             & 658 &      &       & 128.8 &     \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Formulación}
+\label{subsec:compra-formulacion}
+
+Sean $n_{is}\in\mathbb{Z}_{\geq0}$ la meta de plantas de la especie $s$ en el polígono $i$ y $x_{is}\in\mathbb{Z}_{\geq0}$ la cantidad a adquirir. La única variable aleatoria es el número de sobrevivientes de lo plantado, $S_{is}(x)\sim\operatorname{Bin}(x,q_s)$ (\cref{eq:binomial}), bajo independencia entre individuos. La \cref{tab:compra-notacion} resume la notación. Para cada polígono se resuelve
+\begin{align}
+\min_{n,\,x}\quad & (1+\theta)\sum_{s}c_s\Bigl(x_{is}+\mathbb{E}\!\left[D_{is}\right]\Bigr) \label{eq:obj}\\
+\text{s.a.}\quad & \sum_{s}n_{is}=N_i, \label{eq:total}\\
+& \left|n_{is}-n_s^0A_i\right|\leq\delta\,n_s^0A_i, && s\in\mathcal{S}, \label{eq:banda}\\
+& (1+\theta)\sum_{s}c_sx_{is}\leq B\,A_i, \label{eq:presupuesto}\\
+& \mathbb{P}\!\left(E_{is}+S_{is}(x_{is})\geq n_{is}\right)\geq1-\alpha, && s\in\mathcal{S}, \label{eq:probabilidad}
+\end{align}
+donde $N_i$ es $658A_i$ redondeado al entero más cercano y $D_{is}=\left(n_{is}-E_{is}-S_{is}(x_{is})\right)^{+}$ es el déficit al término del primer año. El objetivo \eqref{eq:obj} suma el costo de adquisición y el costo esperado de reponer el déficit, que representa la obligación contractual de reponer la planta muerta; la reposición se valora al mismo costo que la compra, logística incluida. La restricción \eqref{eq:total} fija la densidad total; \eqref{eq:banda} acota la composición por especie; \eqref{eq:presupuesto} limita el gasto, y \eqref{eq:probabilidad} exige que la meta de cada especie se alcance con probabilidad de al menos $1-\alpha$ \autocite{charnes1959}.
+
+\begin{table*}[t]
+\centering
+\caption{Notación del modelo de compra.}
+\label{tab:compra-notacion}
+\small
+\begin{tabularx}{\textwidth}{@{}l>{\RaggedRight\arraybackslash}p{0.17\textwidth}>{\RaggedRight\arraybackslash}X>{\RaggedRight\arraybackslash}p{0.2\textwidth}@{}}
+\toprule
+Símbolo & Tipo & Descripción & Unidad o valor \\
+\midrule
+$\mathcal{S}$, $s$ & Conjunto e índice & Especies a plantar & 10 especies \\
+$i$ & Índice & Polígono de reforestación & 30 polígonos \\
+$A_i$ & Dato & Superficie del polígono $i$ & ha \\
+$N_i$ & Dato & Meta total del polígono, $658A_i$ redondeado & plantas \\
+$n_s^0$ & Dato & Plantas de la especie $s$ por hectárea según el plan & plantas/ha \\
+$c_s$ & Dato & Costo unitario de la planta, sin logística & \$/planta \\
+$E_{is}$ & Dato & Plantas existentes de la especie $s$ en el polígono $i$ & plantas \\
+$q_s$ & Parámetro estimado & Probabilidad de que una planta nueva sobreviva el primer año & $[0,1]$ \\
+$B$ & Parámetro de política & Presupuesto por hectárea & \$12{,}500 \\
+$\theta$ & Parámetro de política & Sobrecosto logístico como fracción del costo de la planta & $[0.05,\,0.10]$ \\
+$\delta$ & Parámetro de política & Desviación relativa máxima de la meta de cada especie & 0.10 \\
+$\alpha$ & Parámetro de política & Probabilidad admisible de no alcanzar la meta de una especie & 0.05 \\
+$S_{is}(x)$ & Variable aleatoria & Sobrevivientes al primer año de $x$ plantas nuevas; $\operatorname{Bin}(x,q_s)$ & plantas \\
+$D_{is}$ & Variable aleatoria & Déficit al término del primer año, $(n_{is}-E_{is}-S_{is})^{+}$ & plantas \\
+$n_{is}$ & Variable de decisión & Meta de plantas de la especie $s$ en el polígono $i$ & plantas; entera \\
+$x_{is}$ & Variable de decisión & Plantas de la especie $s$ a adquirir y plantar en el polígono $i$ & plantas; entera \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+Antes de resolver conviene estimar el orden de magnitud. Con la composición del plan, el costo de cubrir el faltante, $\sum_sc_s(n_s^0-\bar{E}_s)$, asciende a \$12{,}456/ha, y a \$13{,}683/ha al corregirlo por la mortalidad del primer año, $\sum_sc_s(n_s^0-\bar{E}_s)/q_s$, aun sin margen de seguridad ni logística. Con $B=\$12{,}500$, la restricción \eqref{eq:presupuesto} es por tanto prácticamente activa, y la factibilidad depende de la banda \eqref{eq:banda}, que permite desplazar la composición hacia especies con menor costo por planta sobreviviente (\$18.8 para \textit{O.~robusta} frente a \$32.3 para \textit{P.~laevigata}). Cuando el problema es infactible, el modelo entrega el presupuesto mínimo $B_i^{*}$ con el que dejaría de serlo.
+
+\subsection{Método de solución}
+\label{subsec:compra-solucion}
+
+Las especies solo se acoplan mediante \eqref{eq:total} y \eqref{eq:presupuesto}, lo que permite resolver el problema en dos etapas: primero, para cada especie y cada meta posible, la compra mínima y su costo; después, la combinación de metas de menor costo.
+
+\paragraph{Curvas por especie} Para una meta $n$, el faltante es $L=n-E_{is}$; si $L\leq0$, las existentes bastan y $x^{*}=0$. En otro caso, por la \cref{eq:dualidad}, la menor compra que satisface \eqref{eq:probabilidad} es el cuantil $1-\alpha$ del número de plantas $X_L$ que hay que plantar hasta lograr $L$ sobrevivientes, con $X_L$ binomial negativa. El cuantil se estima por simulación Monte Carlo \autocite{:ross2013}: en cada escenario $k=1,\dots,K$ se simula la secuencia de supervivencias de las plantas, una tras otra, y se registra $x_k(L)$, la posición de la $L$-ésima sobreviviente, para todas las $L$ a la vez. La compra mínima estimada $\hat{x}^{*}(n)$ es el $r$-ésimo menor de los $x_k(L)$, con $r=\lceil(1-\alpha)K\rceil$: con esa compra, al menos $r$ escenarios alcanzan la meta, y con una planta menos no. Con los mismos escenarios se estima el déficit esperado $\hat{D}(n)$ como el promedio, sobre los $K$ escenarios, del faltante que deja la compra $\hat{x}^{*}(n)$, que es cero en los escenarios que alcanzan la meta. Como una sola secuencia por escenario sirve para todas las metas y todos los valores de $\alpha$, las comparaciones entre metas usan números aleatorios comunes, lo que reduce su varianza. La misma curva puede calcularse de forma exacta con la cola de la distribución binomial, que sirve para validar la simulación.
+
+\paragraph{Mochila de elección múltiple} Elegir una meta $n_s$ por especie, dentro de su banda \eqref{eq:banda}, que minimice $\sum_sC_s(n_s)$ con $C_s(n)=(1+\theta)c_s\bigl(\hat{x}_s^{*}(n)+\hat{D}_s(n)\bigr)$, sujeto a \eqref{eq:total} y \eqref{eq:presupuesto}, es un problema de mochila de elección múltiple. Sin la restricción de presupuesto se resuelve de forma exacta con programación dinámica, agregando una especie a la vez y llevando como estado la suma acumulada de metas; el costo es $O(|\mathcal{S}|\,H\,w)$, con $H$ la suma de los anchos de las bandas y $w$ el mayor de ellos. La misma recursión, minimizando solo el costo de compra, da el presupuesto mínimo $B_i^{*}$. Si el óptimo sin presupuesto cabe en $BA_i$, es la solución; si $B<B_i^{*}$, el polígono es infactible; solo cuando $B$ queda entre ambos valores se resuelve el problema completo como programa entero mixto.
+
+\paragraph{Convergencia y número de escenarios} El procedimiento es una aproximación por promedio muestral del programa \eqref{eq:obj}--\eqref{eq:probabilidad}, cuya solución converge a la del problema original al crecer $K$ \autocite{kleywegt2002,luedtke2008}. Para que el intervalo de confianza de 95\,\% de una probabilidad estimada $\hat{p}$ cercana a $0.95$ tenga un semiancho de $\varepsilon=0.005$ se requiere $K\geq z_{0.025}^{2}p(1-p)/\varepsilon^{2}\approx7{,}300$ (\cref{eq:intervalo}); se adopta $K=10{,}000$.
+
+\subsection{Supuestos y extensiones}
+\label{subsec:compra-supuestos}
+
+El modelo descansa en cuatro supuestos. (i) La supervivencia es independiente entre individuos; los eventos que afectan a toda la plantación, como la sequía, aumentan la varianza de $S_{is}$ y pueden incorporarse sorteando por escenario una tasa común $q_s^{(k)}$, aunque un solo año de monitoreo no permite estimar su dispersión. (ii) Los conteos de plantas existentes son exactos y esas plantas no mueren en el horizonte. Si el conteo fuera incierto, $E_{is}$ puede sortearse en cada escenario como $\operatorname{Poisson}(\bar{E}_sA_i)$: el estadístico de dispersión de Pearson de los conteos respecto a $\bar{E}_sA_i$ está entre 0.58 y 1.45 para todas las especies, sin evidencia de la sobredispersión que justificaría una binomial negativa \autocite{cameron2013}. (iii) El horizonte es de un año, aunque el monitoreo muestra que la mortalidad continúa el segundo; para obligaciones de reposición multianuales, el término de reposición se extiende con la cadena de Markov por posición descrita en la \cref{subsec:montecarlo}. (iv) El costo logístico es proporcional al costo de la planta; los costos fijos por viaje o por vivero se incorporan con variables binarias de activación sin alterar la estructura del modelo.

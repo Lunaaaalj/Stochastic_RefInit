@@ -1,0 +1,40 @@
+\section{Trabajo relacionado}
+\label{sec:trabajo-relacionado}
+
+La distribución de especies pertenece a una familia de problemas que asignan elementos a posiciones de modo que se reduzca la competencia, la interferencia o la incompatibilidad entre vecinos. Esta sección revisa cinco trabajos de esa familia (\cref{subsec:competencia-literatura}) y el marco de coloración de grafos que los unifica (\cref{subsec:coloracion}).
+
+\subsection{Reducción de competencia}
+\label{subsec:competencia-literatura}
+
+El trabajo más cercano al reto es el de \textcite{elizalde2025}, que asignan diez especies a las posiciones de siembra de un polígono siguiendo los lineamientos de CONAFOR (625 plantas por hectárea). El terreno es un grafo cuyos vértices son posiciones y cuyos arcos indican vecindad; una variable binaria indica qué especie ocupa cada posición, y un coeficiente de competencia por par de especies se contabiliza solo cuando ambas quedan en posiciones vecinas. Resuelven un modelo entero con CBC y un algoritmo genético de cromosoma entero. Con un límite de tres horas, el modelo exacto obtuvo soluciones factibles sin garantía de calidad entre 169 y 324 nodos y ninguna con 361, 400 y 625 nodos, mientras que el genético resolvió todos los tamaños (349.44~s en el mayor) con calidad igual o muy cercana a la del exacto donde hubo comparación.
+
+\textcite{eisenblatter2002} estudian la asignación de frecuencias en redes celulares, donde la interferencia entre transmisores cumple el papel de la competencia entre plantas: cada transmisor es un vértice, los canales son colores y una penalización por par de transmisores mide la interferencia. Formulan el problema de mínima interferencia como un programa entero, muestran que es fuertemente NP-difícil y reportan que las relajaciones lineales dan cotas débiles, mientras que heurísticas como DSATUR seguidas de búsqueda local mejoran mucho los planes reales. \textcite{akplogan2011} asignan cultivos a unidades de terreno a lo largo de varios años como un problema de satisfacción de restricciones ponderadas; con bloques interdependientes, la instancia de 120 unidades no se cerró en 48 horas. \textcite{liu2026} planean cultivos con una matriz de adyacencia $W$ entre unidades vecinas y una matriz de interacción $M$ entre cultivos, positiva para pares complementarios y negativa para pares competitivos, e incorporan incertidumbre en rendimientos y precios con escenarios Monte Carlo y optimización robusta. Por último, \textcite{kobal2025} muestran en bosques mixtos que los índices de competencia que consideran la distancia a los vecinos explican mejor el crecimiento que los que la ignoran (el $R^{2}$ ajustado pasa de 0.325 sin competencia a 0.647 con el índice de Hegyi).
+
+\begin{table*}[t]
+  \centering
+  \caption{Comparación de los trabajos sobre reducción de competencia.}
+  \label{tab:comparacion-competencia}
+  \small
+  \begin{tabularx}{\textwidth}{@{}>{\RaggedRight\arraybackslash}p{2.7cm}>{\RaggedRight\arraybackslash}p{3.1cm}*{2}{>{\RaggedRight\arraybackslash}X}@{}}
+    \toprule
+    Referencia & Dominio & Criterio de competencia o incompatibilidad & Método \\
+    \midrule
+    \parencite{elizalde2025} & Reforestación & Coeficiente por par de especies en posiciones vecinas & Programación entera y algoritmo genético \\
+    \parencite{eisenblatter2002} & Telecomunicaciones & Interferencia por par de transmisores (0 a 1) & Programación entera, heurísticas y cotas \\
+    \parencite{akplogan2011} & Agricultura & Efecto del cultivo previo, compatibilidad con el suelo y agrupación espacial & Restricciones ponderadas con ramificación y acotamiento \\
+    \parencite{liu2026} & Agricultura bajo incertidumbre & Matriz de interacción entre cultivos vecinos & Optimización robusta con escenarios Monte Carlo \\
+    \parencite{kobal2025} & Manejo forestal & Índices según tamaño y distancia de los vecinos & Regresión con optimización de umbrales \\
+    \bottomrule
+  \end{tabularx}
+\end{table*}
+
+La \cref{tab:comparacion-competencia} resume los cinco trabajos. De ellos se desprenden tres lecciones para el reto. Primero, la forma dominante de medir la competencia es un coeficiente por par de elementos vecinos en un grafo \parencite{elizalde2025,eisenblatter2002,liu2026}, y la distancia importa \parencite{kobal2025}, lo que respalda limitar la competencia a los vecinos inmediatos de la retícula. Segundo, los modelos exactos pierden escalabilidad rápidamente \parencite{elizalde2025,akplogan2011}, lo que justifica las metaheurísticas \parencite{elizalde2025,eisenblatter2002}; un modelo exacto sigue siendo útil en instancias pequeñas para medir qué tan lejos queda la heurística del óptimo. Tercero, solo \textcite{liu2026} incorporan incertidumbre, y ninguno estima la cantidad de plantas a adquirir cuando la supervivencia es incierta, que es la primera parte del reto.
+
+\subsection{Coloración de grafos con penalización}
+\label{subsec:coloracion}
+
+Sea $G=(V,E)$ un grafo no dirigido. Una coloración propia con $k$ colores es una función $c:V\to\{1,\dots,k\}$ tal que $c(u)\neq c(v)$ para toda arista $uv\in E$; el menor $k$ para el que existe es el número cromático $\chi(G)$, y encontrarlo es NP-difícil \parencite{eisenblatter2002}. Como la coloración propia no basta para modelar requisitos prácticos, existen generalizaciones que, en lugar de prohibir los conflictos, minimizan una penalización total sobre las aristas \parencite{eisenblatter2002}, y sus variantes se han extendido a problemas de programación de tareas y horarios \parencite{dewerra2015}.
+
+La distribución de especies se representa con un grafo cuyos vértices son las posiciones de siembra, cuyas aristas unen posiciones vecinas, cuyos colores son las especies y en el que cada arista pesa la competencia entre las especies asignadas a sus extremos. Esta representación coincide con la de \textcite{elizalde2025} y con la matriz de adyacencia de \textcite{liu2026}. En el tresbolillo, cada posición interior tiene seis vecinas equidistantes, de modo que el grafo es una retícula triangular y todas las aristas representan la misma distancia.
+
+Una coloración propia no sirve directamente, por dos razones: no respeta la cantidad de plantas de cada especie, y trata la competencia como todo o nada, cuando en realidad es parcial y distinta para cada par de especies (incluido el par de una especie consigo misma). El modelo de mínima interferencia de \textcite{eisenblatter2002} y el de \textcite{elizalde2025} comparten, en cambio, la misma estructura: variables binarias de asignación, una restricción que asigna exactamente un color a cada vértice y una penalización por arista que se activa según los colores de sus extremos, cuya suma se minimiza. Esta coloración con penalización y conteo fijo por color es el marco que adopta la distribución espacial de este trabajo.

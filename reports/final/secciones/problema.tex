@@ -1,0 +1,70 @@
+\section{Definición del problema}
+\label{sec:problema}
+
+\subsection{Decisiones, información y resultados esperados}
+\label{subsec:decisiones}
+
+El reto pide dos decisiones relacionadas pero distintas.
+\begin{enumerate}
+  \item \textbf{Cantidad a adquirir.} Cuántas plantas de cada una de las diez especies comprar en cada polígono, dado que ya existen plantas de regeneración natural y que una fracción de las plantas nuevas morirá.
+  \item \textbf{Distribución de especies.} Qué especie ocupa cada posición de la retícula al tresbolillo, buscando reducir la competencia entre vecinos.
+\end{enumerate}
+La primera alimenta a la segunda: la compra fija cuántas plantas de cada especie hay que acomodar.
+
+La información disponible es el plan de siembra (plantas por hectárea de cada especie, que suman 658); la superficie de cada uno de los 30 polígonos; los conteos de plantas existentes por especie en cada polígono; la supervivencia por especie medida de 2021 a 2023 en una muestra del 5\,\% de la superficie; el costo unitario de la planta de cada especie; y la secuencia de 22 posiciones (la clave de plantación) con la que actualmente se ordena la plantación en cada 100~m lineales. El plan admite que la cantidad de cada especie se desvíe de la proporción nominal dentro de un margen de entre $\pm$5\,\% y $\pm$10\,\%.
+
+Los resultados esperados son una compra por especie y polígono que cumpla la meta del plan pese a la mortalidad, y un arreglo espacial de fácil implementación en campo que reduzca la competencia frente al arreglo actual.
+
+\subsection{Variables, parámetros e información faltante}
+\label{subsec:variables}
+
+La \cref{tab:variables} resume los elementos que intervienen en el problema y cómo se tratan. Las variables de decisión son el núcleo de las dos preguntas del reto. La supervivencia de las plantas nuevas es la fuente de incertidumbre que justifica un enfoque estocástico en lugar de una regla determinista. La competencia entre especies no viene en los datos, pero es indispensable porque es justamente lo que la distribución espacial busca reducir. El agua, la disponibilidad en vivero y el terreno no son indispensables para una primera versión, pero condicionan qué tan realista es la solución y son los primeros candidatos para refinarla.
+
+\begin{table*}[t]
+\centering
+\caption{Elementos del problema de reforestación y su tratamiento.}
+\label{tab:variables}
+\small
+\begin{tabularx}{\textwidth}{@{}>{\RaggedRight\arraybackslash}p{0.25\textwidth}>{\RaggedRight\arraybackslash}p{0.16\textwidth}>{\RaggedRight\arraybackslash}X@{}}
+\toprule
+Elemento & Tipo & Descripción y tratamiento \\
+\midrule
+Cantidad a comprar por especie y polígono & Variable de decisión & Número de plantas nuevas a adquirir \\
+Especie en cada posición de la retícula & Variable de decisión & Cuál de las diez especies ocupa cada sitio del tresbolillo \\
+Plantas requeridas por especie & Parámetro conocido & 658 plantas/ha repartidas entre las diez especies según el plan, con un margen de ajuste por especie \\
+Superficie de cada polígono & Parámetro conocido & De 1.28 a 8~ha; fija el número de plantas de la meta \\
+Separación entre plantas & Parámetro conocido & Fijada por el tresbolillo y la densidad del plan, $\approx$4.19~m \\
+Costo unitario por especie & Parámetro conocido & De \$18 a \$26.5 por planta, sin incluir la logística \\
+Presupuesto & Parámetro conocido & \$12{,}500 por hectárea, fijado por el socio formador \\
+Plantas existentes por especie y polígono & Conteo con incertidumbre & Se conoce un conteo por polígono, pero no la posición de cada planta \\
+Supervivencia por especie & Variable aleatoria & Estimada con el monitoreo de 2021 a 2023; el número de sobrevivientes de una compra es incierto \\
+Competencia entre pares de especies & Información a estimar & No viene en los datos del reto; se construye con literatura y criterio ecológico \\
+Requerimientos de agua, disponibilidad en vivero y terreno por polígono & Información no disponible & Quedan fuera del modelo; se discuten como limitaciones \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{Requisitos del modelo}
+\label{subsec:requisitos}
+
+Hay dos criterios de optimización naturales: minimizar el costo de la compra, que responde a la primera decisión, y minimizar la competencia entre especies vecinas, sumada sobre todos los pares de posiciones adyacentes, que responde a la segunda. Ambos se conectan porque el margen de ajuste por especie permite cambiar la composición de cada polígono, y con ella tanto el costo como los pares de vecinos posibles. La \cref{tab:requisitos} enumera las condiciones que el modelo debe respetar.
+
+\begin{table*}[t]
+\centering
+\caption{Condiciones que debe respetar el modelo.}
+\label{tab:requisitos}
+\small
+\begin{tabularx}{\textwidth}{@{}>{\RaggedRight\arraybackslash}p{0.22\textwidth}>{\RaggedRight\arraybackslash}X>{\RaggedRight\arraybackslash}p{0.3\textwidth}@{}}
+\toprule
+Condición & Qué representa & Por qué se incluye \\
+\midrule
+Meta de plantación & El polígono debe alcanzar 658 plantas/ha contando existentes y sobrevivientes & Es la meta explícita del reto \\
+Cantidad por especie & Cada especie debe quedar cerca de su proporción del plan, dentro del margen de ajuste & Sin ella el modelo podría vaciar una especie completa \\
+Confiabilidad & Como la supervivencia es incierta, la meta solo puede garantizarse con cierta probabilidad & Comprar para el caso promedio incumpliría la meta con frecuencia \\
+Presupuesto & El costo de la compra no debe superar el presupuesto del polígono & Límite económico explícito del reto \\
+Existencia previa & Las plantas existentes cuentan hacia la meta & Evita comprar de más donde la meta ya se cumple en parte \\
+Capacidad de la retícula & El número de posiciones del polígono es fijo, según su superficie y la densidad & No caben más plantas de las que admite el área \\
+Compatibilidad entre especies & Ciertos pares de especies no deberían quedar como vecinos inmediatos & Es el criterio ecológico de la distribución espacial \\
+\bottomrule
+\end{tabularx}
+\end{table*}

@@ -1,0 +1,41 @@
+\section{Implementación}
+\label{sec:implementacion}
+
+Los dos modelos se implementaron en C++20 como una biblioteca, \texttt{refor\_core}, sobre la que se construyen tres programas: \texttt{refor}, una herramienta de línea de comandos para análisis y reportes; \texttt{refor\_ple}, que resuelve por separado el modelo entero de la \cref{subsec:espacial-entera}; y \texttt{refor\_gui}, una aplicación de escritorio para los técnicos de planeación. Los programas enteros se resuelven con HiGHS. El código, los datos procesados y las instrucciones para reproducir cada resultado de este trabajo están en el repositorio del proyecto.
+
+\subsection{Organización}
+\label{subsec:impl-organizacion}
+
+La \cref{tab:modulos} relaciona cada módulo de la biblioteca con la parte del modelo que implementa. El flujo sigue la descomposición de las \cref{sec:modelo-compra,sec:modelo-espacial}: se leen los datos de INECOL, se calculan las curvas $\hat{x}_s^{*}(n)$ y $\hat{D}_s(n)$ de cada especie y polígono, se resuelve la mochila de cada polígono, se reparte su compra en un mosaico de 52 posiciones y se agrupan los polígonos con la misma composición, de modo que cada mosaico distinto se optimiza una sola vez.
+
+\begin{table}[t]
+\centering
+\caption{Módulos de \texttt{refor\_core} y la parte del modelo que implementan.}
+\label{tab:modulos}
+\small
+\begin{tabularx}{\columnwidth}{@{}>{\RaggedRight\arraybackslash}p{2.6cm}>{\RaggedRight\arraybackslash}X@{}}
+\toprule
+Módulo & Contenido \\
+\midrule
+\texttt{simulacion} & Escenarios Monte Carlo y curvas $\hat{x}^{*}(n)$, $\hat{D}(n)$ \\
+\texttt{exacto} & Las mismas curvas con la cola binomial exacta \\
+\texttt{mochila} & Programación dinámica y programa entero de la mochila de elección múltiple \\
+\texttt{modelo} & Curvas en paralelo y solución de cada polígono \\
+\texttt{plan} & Composición por mayor residuo, agrupación de polígonos y corridas del memético \\
+\texttt{memetico/} & Mosaico toroidal, matriz $W$, búsqueda tabú y algoritmo memético \\
+\texttt{asignacion\_exacta/} & Modelo entero del mosaico y comparación con el memético \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Reproducibilidad}
+\label{subsec:impl-reproducibilidad}
+
+Todo resultado depende de una sola semilla (42 por defecto) y debe ser idéntico sin importar el número de hilos ni la plataforma. Para lograrlo, cada flujo aleatorio se inicializa a partir de su identidad lógica y no del orden en que se ejecuta: los escenarios de la especie $s$ en el polígono $i$ usan una semilla derivada de $(42,i,s)$, y cada corrida del memético, una derivada del mosaico y del número de corrida. El generador es \texttt{mt19937\_64}, cuya secuencia fija el estándar de C++. En cambio, los algoritmos de las distribuciones de la biblioteca estándar difieren entre implementaciones, por lo que los enteros uniformes y las permutaciones se generan con funciones propias, y la supervivencia de cada planta se decide comparando la salida del generador con $q_s\cdot2^{64}$. La biblioteca se compila sin contracción de operaciones de punto flotante, que podría cambiar el redondeo entre compiladores. Como comprobación, la compra de los 30 polígonos calculada con un hilo y con diez da archivos idénticos byte por byte. El flujo de publicación compila los programas en Linux, macOS y Windows y compara sus resultados.
+
+\subsection{Pruebas y desempeño}
+\label{subsec:impl-pruebas}
+
+La biblioteca tiene 30 casos de prueba automatizados. Los más importantes comparan cada método con una referencia independiente: la cola binomial con valores conocidos; las curvas de Monte Carlo con las exactas; la programación dinámica y el programa entero de la mochila con la enumeración exhaustiva de metas, con y sin presupuesto; y el modelo entero del mosaico con la enumeración exhaustiva en un mosaico de $3\times3$. Otras pruebas verifican invariantes: la monotonía de $\hat{x}^{*}(n)$ en $n$ y en $\alpha$, que la búsqueda tabú nunca empeora su solución inicial, que el cruce conserva la composición, que la distancia entre mosaicos reconoce un mismo esquema desplazado y que la secuencia aleatoria del memético es la misma en todas las plataformas.
+
+En una computadora con un procesador Apple M4 de diez núcleos, las curvas de los 30 polígonos con $K=10{,}000$ escenarios se calculan en 1.8~s, y en 0.15~s con la cola binomial exacta. Las 30 corridas del memético para cada uno de los seis mosaicos distintos toman en conjunto unos 30~s. El modelo entero es el único paso costoso: se le dan 300~s por mosaico.

@@ -1,0 +1,41 @@
+\section{Validación}
+\label{sec:validacion}
+
+Cada nivel se resolvió con un método aproximado (simulación Monte Carlo para la compra y un algoritmo memético para la distribución) y se validó contra un método exacto que comparte el mismo objetivo. Salvo que se indique otra cosa, los resultados usan $\alpha=0.05$, $\theta=0.05$, $\delta=0.10$, $K=10{,}000$ y la semilla 42.
+
+\subsection{Compra: Monte Carlo contra la cola binomial}
+\label{subsec:val-compra}
+
+Como la única variable aleatoria es $S_{is}(x)\sim\operatorname{Bin}(x,q_s)$, la restricción \eqref{eq:probabilidad} puede evaluarse de forma exacta con la cola binomial, lo que permite medir el error de la simulación sin depender de otra simulación. Con ambos métodos se resolvió la compra de los 30 polígonos.
+
+\paragraph{Curvas} De los 300 pares de polígono y especie, en 181 ambos métodos eligen la misma meta $n_{is}$, y en ellos la compra difiere a lo más en una planta (en 12 pares), lo esperado al estimar un cuantil con $10{,}000$ escenarios. En los 119 pares restantes, la mochila elige metas distintas entre soluciones de costo casi idéntico: la compra total es de $108{,}680$ plantas con Monte Carlo y de $108{,}679$ con el método exacto, y su costo difiere en \$13 sobre \$2.65~millones.
+
+\paragraph{Presupuesto mínimo} El presupuesto mínimo ponderado por superficie, $\bar{B}^{*}=\sum_iA_iB_i^{*}/\sum_iA_i$, difiere entre ambos métodos a lo más en \$1.6/ha para los siete valores de $\alpha$ entre 0.01 y 0.50 (\cref{tab:frontera}), y en \$0.08/ha con $\alpha=0.05$ (\$14{,}496.10 frente a \$14{,}496.02).
+
+\paragraph{Número de escenarios y semilla} Con $\alpha=0.05$, $\bar{B}^{*}$ vale \$14{,}493.90/ha con $K=1{,}000$, \$14{,}496.10/ha con $K=10{,}000$ y \$14{,}496.31/ha con $K=100{,}000$, frente a \$14{,}496.02/ha con el método exacto. Con $K=10{,}000$ y las semillas 1 a 5, $\bar{B}^{*}$ va de \$14{,}495.82 a \$14{,}496.83/ha. El error de Monte Carlo es, por tanto, del orden de \$1/ha, tres órdenes de magnitud por debajo de la diferencia entre el presupuesto disponible y el mínimo (\cref{subsec:res-compra}), y $K=10{,}000$ es suficiente.
+
+\subsection{Distribución: memético contra el modelo entero}
+\label{subsec:val-espacial}
+
+Cada uno de los seis mosaicos distintos (\cref{subsec:res-espacial}) se resolvió también con el modelo entero de la \cref{subsec:espacial-entera}, con HiGHS, un límite de 300~s y la mejor clave del memético como solución inicial. La \cref{tab:val-espacial} reporta el resultado.
+
+\begin{table}[t]
+\centering
+\caption{Memético contra el modelo entero en los seis mosaicos. Memético: mejor competencia de 30 corridas y su desviación estándar; cota: cota inferior del modelo entero a los 300~s; brecha: distancia máxima del memético al óptimo, $(C-\text{cota})/C$.}
+\label{tab:val-espacial}
+\small
+\begin{tabular}{@{}crrrr@{}}
+\toprule
+Mosaico & Memético & d.e. & Cota & Brecha (\%) \\
+\midrule
+1 & 78.18 & 0.005 & 74.70 & 4.5 \\
+2 & 77.37 & 0.006 & 74.27 & 4.0 \\
+3 & 81.29 & 0.000 & 78.25 & 3.7 \\
+4 & 76.77 & 0.005 & 73.55 & 4.2 \\
+5 & 76.80 & 0.005 & 73.71 & 4.0 \\
+6 & 81.85 & 0.000 & 78.82 & 3.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+En ningún mosaico el solver encontró una asignación mejor que la del memético, y en ninguno logró probar la optimalidad: la competencia del memético está a lo más entre 3.7\,\% y 4.5\,\% del óptimo. Esa brecha es una cota superior del error, y lo más probable es que el error real sea mucho menor. La cota inferior llega en los primeros 4~s a menos de 0.2 de su valor final y después casi no se mueve (en el mosaico 1 pasa de 74.69 a 74.70 en el resto de los 300~s), lo que indica que la brecha refleja la debilidad de la relajación lineal del modelo, no una mala solución. Es lo mismo que \textcite{eisenblatter2002} reportan para la asignación de frecuencias, donde las relajaciones lineales dan cotas débiles. Además, el memético es muy estable: en los seis mosaicos la desviación estándar de las 30 corridas no excede 0.006, y en los mosaicos 3 y 6 todas las corridas terminan en la misma competencia. Las corridas terminan, en promedio, entre la generación 100 y la 124, de modo que la última mejora ocurre antes de la generación 24 y el criterio de 100 generaciones sin mejora es holgado; en el mosaico 3, la búsqueda tabú sobre la población inicial ya encuentra la mejor clave en todas las corridas.
