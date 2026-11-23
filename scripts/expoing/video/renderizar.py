@@ -26,6 +26,10 @@ Uso, desde la raíz del repositorio (uv instala Playwright solo):
 sintética (say de macOS, voz Paulina) que lee el texto hablado de cada subtítulo en su tiempo. Solo sirve para revisar el ritmo del animatic
 (PLAN §8.3); nunca entra a la mezcla final, que lleva la voz de Andrea.
 
+Audio: si existe la mezcla final (mezclar.py → salida/mezcla.wav) y es de la línea de tiempo
+vigente, el video la lleva; si no, lleva la música provisional sola. --musica-provisional fuerza
+la provisional. El render completo exporta además los subtítulos (refor_expoing_2026.srt).
+
 --desde y --hasta aceptan segundos o el id de una escena (--desde toma su inicio;
 --hasta, su fin). Si Chromium no está instalado:
     uv run --with playwright==1.64.1 playwright install chromium-headless-shell
@@ -48,6 +52,8 @@ VIDEO = RAIZ / "scripts" / "expoing" / "video"
 PAGINA = VIDEO / "previsualizar.html"
 DATOS_VIDEO = VIDEO / "datos_video.js"
 SALIDA = RAIZ / "docs" / "expoing" / "video" / "salida"
+LINEA = RAIZ / "docs" / "expoing" / "video" / "linea_de_tiempo.json"
+GUION_SRT = RAIZ / "docs" / "expoing" / "video" / "guion.srt"
 ANCHO, ALTO = 1920, 1080
 ARGS_CHROMIUM = ["--force-color-profile=srgb", "--font-render-hinting=none", "--disable-lcd-text",
                  "--hide-scrollbars", "--allow-file-access-from-files", "--disable-gpu"]
@@ -56,6 +62,18 @@ ARGS_CHROMIUM = ["--force-color-profile=srgb", "--font-render-hinting=none", "--
 def leer_datos_video():
     s = DATOS_VIDEO.read_text(encoding="utf-8")
     return json.loads(s[s.index("{"):s.rindex("}") + 1])
+
+
+def mezcla_vigente(dv):
+    """La mezcla de mezclar.py si es de la línea de tiempo vigente; None si no hay mezcla."""
+    wav, info = SALIDA / "mezcla.wav", SALIDA / "mezcla.json"
+    if json.loads(LINEA.read_text(encoding="utf-8")) != dv["linea"]:
+        sys.exit("datos_video.js no tiene la línea de tiempo vigente: corre datos_video.py.")
+    if not (wav.exists() and info.exists()):
+        return None
+    if json.loads(info.read_text(encoding="utf-8"))["linea_sha1"] != hashlib.sha1(LINEA.read_bytes()).hexdigest():
+        sys.exit("La mezcla es de otra línea de tiempo: corre mezclar.py (o usa --musica-provisional).")
+    return wav
 
 
 def instante(valor, escenas, fin):
@@ -182,7 +200,7 @@ def voz_provisional(escenas, desde, dur, tmp):
     return salida
 
 
-def exportar(tramos, salida, desde, dur, fps, musica, grano, tmp, borrador=False, voz=None):
+def exportar(tramos, salida, desde, dur, fps, musica, grano, tmp, borrador=False, voz=None, mezcla=None):
     lista = tmp / "tramos.txt"
     lista.write_text("".join(f"file '{t}'\n" for t in tramos), encoding="utf-8")
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lista),
@@ -194,7 +212,11 @@ def exportar(tramos, salida, desde, dur, fps, musica, grano, tmp, borrador=False
                f"[base][ruido]blend=all_expr='A*{1 - o:.4f}+B*{o:.4f}':shortest=1,"
                f"scale=out_color_matrix=bt709:out_range=tv,format=yuv420p[v]"]
     mapas = ["-map", "[v]"]
-    if musica:
+    if mezcla:
+        # La mezcla final ya viene a −16 LUFS y −1 dBTP (mezclar.py): solo se recorta y se codifica.
+        cmd += ["-ss", f"{desde:.3f}", "-t", f"{dur:.3f}", "-i", str(mezcla)]
+        mapas += ["-map", "2:a", "-c:a", "aac", "-b:a", "192k", "-ar", "48000"]
+    elif musica:
         archivo = RAIZ / musica["archivo"]
         if not archivo.exists():
             sys.exit(f"No encuentro la música {archivo}; usa --sin-audio o descárgala (ver CREDITOS.md).")
@@ -349,6 +371,8 @@ def main():
     ap.add_argument("--trabajadores", type=int, default=max(1, min(8, (os.cpu_count() or 4) - 2)))
     ap.add_argument("--salida", type=Path, default=None, help="MP4 de salida")
     ap.add_argument("--sin-audio", action="store_true", help="sin audio")
+    ap.add_argument("--musica-provisional", action="store_true",
+                    help="la música provisional aunque haya mezcla final (para el animatic)")
     ap.add_argument("--borrador", action="store_true", help="exporta con -preset veryfast (para revisiones)")
     ap.add_argument("--sin-subtitulos", action="store_true", help="oculta los subtítulos (QA de la franja)")
     ap.add_argument("--voz-provisional", action="store_true",
@@ -385,6 +409,9 @@ def main():
 
     if a.voz_provisional and a.sin_audio:
         sys.exit("--voz-provisional va con la música; quita --sin-audio.")
+    mezcla = None if a.sin_audio or a.musica_provisional else mezcla_vigente(dv)
+    print("Audio: " + ("ninguno" if a.sin_audio else f"mezcla final ({mezcla.relative_to(RAIZ)})" if mezcla
+                       else "música provisional (no hay mezcla final; ver mezclar.py)"))
     nombre = "refor_expoing_2026.mp4" if (desde, hasta) == (0.0, total) else f"tramo_{desde:06.2f}-{hasta:06.2f}.mp4"
     salida = a.salida or SALIDA / nombre
     salida = salida if salida.is_absolute() else RAIZ / salida
@@ -399,13 +426,17 @@ def main():
         tramos = renderizar_tramos(k0, k1, a.fps, a.trabajadores, tmp, a.sin_subtitulos)
         print("Exportando…")
         musica = None if a.sin_audio else dv["musica"]
-        exportar(tramos, salida, desde, dur, a.fps, musica, grano, tmp, a.borrador)
+        exportar(tramos, salida, desde, dur, a.fps, musica, grano, tmp, a.borrador, mezcla=mezcla)
         listas = [salida]
         if a.voz_provisional:
             # De los mismos cuadros, una segunda copia con la voz sintética (solo revisión interna).
             con_voz = salida.with_name(salida.stem + "_voz_provisional.mp4")
             exportar(tramos, con_voz, desde, dur, a.fps, musica, grano, tmp, a.borrador, voz_provisional(escenas, desde, dur, tmp))
             listas.append(con_voz)
+    if (desde, hasta) == (0.0, total):
+        srt = salida.with_suffix(".srt")
+        shutil.copyfile(GUION_SRT, srt)
+        listas.append(srt)
     for f in listas:
         print(f"Listo: {f.relative_to(RAIZ) if f.is_relative_to(RAIZ) else f} ({f.stat().st_size / 1e6:.1f} MB, {dur:.2f} s)")
 
