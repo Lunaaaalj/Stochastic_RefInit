@@ -209,3 +209,8 @@ __marimo__/
 # Resultados generados por la CLI refor (se regeneran con refor <subcomando>)
 docs/res/*
 !docs/res/.gitkeep
+
+# Video de Expo Ingenierías: salidas del render y la música descargada
+# (se regeneran; ver docs/expoing/video/CREDITOS.md)
+docs/expoing/video/salida/
+docs/expoing/video/musica/*.ogg

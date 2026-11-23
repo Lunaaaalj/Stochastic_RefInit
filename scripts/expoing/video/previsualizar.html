@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Expo Ingenierías · previsualización</title>
+<link rel="stylesheet" href="../../../docs/presentacion/fuentes.css">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<link rel="stylesheet" href="video.css">
+</head>
+<!-- Escenario del video. Abierto tal cual, es la previsualización (barra de tiempo,
+     música y saltos por escena). Con ?render lo usa renderizar.py: 1920 × 1080 a 1:1,
+     sin controles, y cada cuadro se pide con window.__video.tick(t). Con ?guia=E3 se
+     pinta encima el teleprompter del video guía de esa escena (video_guia.py). -->
+<body>
+<div id="marco">
+  <div id="escenario">
+    <canvas id="carta" width="1920" height="1080"></canvas>
+    <div id="capas"></div>
+    <svg id="objetos" viewBox="0 0 1920 1080" width="1920" height="1080"></svg>
+    <div id="subtitulos"><div class="caja"></div></div>
+    <div id="vineta"></div>
+    <canvas id="grano" width="1920" height="1080"></canvas>
+  </div>
+</div>
+<script src="../../../docs/presentacion/datos/datos.js"></script>
+<script src="datos_video.js"></script>
+<script src="vendor/katex/katex.min.js"></script>
+<script src="../comun.js"></script>
+<script src="motor.js"></script>
+<script src="carta.js"></script>
+<script src="escenas/e01_gancho.js"></script>
+<script src="escenas/e02_equipo.js"></script>
+<script src="escenas/e03_problema.js"></script>
+<script src="escenas/e04_proyecto.js"></script>
+<script src="escenas/e05_temporadas.js"></script>
+<script src="escenas/e06_modelo_compra.js"></script>
+<script src="escenas/e07_resultado.js"></script>
+<script src="escenas/e08_modelo_siembra.js"></script>
+<script src="escenas/e09_memetico.js"></script>
+<script src="escenas/e10_herramienta.js"></script>
+<script src="escenas/e11_cierre.js"></script>
+<script src="guia.js"></script>
+<script src="previa.js"></script>
+<script>REFOR_VIDEO.iniciar();</script>
+</body>
+</html>

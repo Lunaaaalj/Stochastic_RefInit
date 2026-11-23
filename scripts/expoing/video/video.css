@@ -1,0 +1,87 @@
+/* Escenario del video de Expo Ingenierías: 1920 × 1080, paleta de DESIGN.md §2. */
+:root {
+  --papel: #FCF0DA; --papel-hondo: #F3E2C2; --tierra: #4C4541; --tierra-suave: #6E655F; --tinta: #2E2A27;
+  --salvia: #AEAC78; --salvia-honda: #6F6D43; --salvia-oscura: #26331C; --ocre: #F2C46A; --ocre-hondo: #8C6418;
+  --display: 'Libre Caslon Display', Georgia, serif;
+  --texto: 'Libre Caslon Text', Georgia, serif;
+  --ui: 'Instrument Sans', system-ui, sans-serif;
+  --bodoni: 'Bodoni Moda', 'Libre Caslon Display', serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: #1d1a18; color: var(--tierra); font-family: var(--texto); }
+body.render { background: var(--papel); overflow: hidden; }
+
+/* ---------- Escenario ---------- */
+#marco { position: relative; overflow: hidden; }
+body.render #marco { width: 1920px; height: 1080px; }
+#escenario { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden;
+  background: var(--papel); transform-origin: 0 0; contain: strict; }
+#escenario > * { position: absolute; left: 0; top: 0; }
+#carta { width: 1920px; height: 1080px; }
+#capas { width: 1920px; height: 1080px; }
+.escena { position: absolute; inset: 0; }
+#objetos { width: 1920px; height: 1080px; overflow: visible; pointer-events: none; }
+#vineta { width: 1920px; height: 1080px; pointer-events: none; mix-blend-mode: multiply;
+  background: radial-gradient(ellipse 72% 72% at 50% 50%, rgba(76, 69, 65, 0) 58%, rgba(76, 69, 65, .06) 100%); }
+#grano { width: 1920px; height: 1080px; pointer-events: none; opacity: .03; }
+/* En el render del video el grano se compone en ffmpeg (es estático): así cada PNG
+   pesa la tercera parte y el render va unas cuatro veces más rápido. */
+body.sin-grano #grano { display: none; }
+
+/* ---------- Subtítulos: franja reservada de y = 912 a 1080 ---------- */
+#subtitulos { top: 912px; width: 1920px; height: 168px; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+#subtitulos .caja { font: 600 40px/1.25 var(--ui); color: var(--tinta); text-align: center;
+  background: rgba(252, 240, 218, .88); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  padding: 8px 32px 10px; border-radius: 6px; max-width: 1728px; }
+#subtitulos.invertido .caja { background: rgba(46, 42, 39, .88); color: var(--papel); }
+#subtitulos em { font-style: italic; }
+
+/* ---------- Piezas comunes ---------- */
+.hoja { position: absolute; background: var(--papel); box-shadow: 0 12px 40px rgba(76, 69, 65, .18); }
+.abs { position: absolute; }
+.cifra { font-variant-numeric: tabular-nums; }
+.binomial { font-style: italic; }
+
+.lienzo { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.italica { font-style: italic; }
+.guia { stroke: rgba(76, 69, 65, .4); stroke-width: 1.5; fill: none; }
+
+/* Tarjeta de capítulo: tinta a todo el cuadro, con el texto en papel. */
+.capitulo { position: absolute; inset: 0; background: var(--tinta); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 22px; z-index: 5; }
+.cap-pregunta { font: 500 28px var(--ui); color: rgba(252, 240, 218, .7); }
+.cap-titulo { font: 96px/1.05 var(--display); color: var(--papel); }
+
+/* Fórmulas: tierra sobre papel; cada término lleva su subrayado ocre (PLAN §3.6). */
+.formula { color: var(--tierra); }
+.formula .katex-display { margin: 0; text-align: left; }
+.formula .katex-display > .katex { text-align: left; }
+.formula .enclosing { position: relative; }
+.formula .enclosing::after { content: ''; position: absolute; left: 0; right: 0; bottom: -.16em; height: 3px;
+  background: var(--ocre-hondo); transform-origin: 0 50%; transform: scaleX(var(--sub, 0)); opacity: var(--suba, 1); }
+.anotacion { position: absolute; font: italic 26px/1.3 var(--texto); color: var(--tierra-suave); }
+.rotulo-tecnico { position: absolute; font: 20px/1.35 var(--ui); color: var(--tierra-suave); }
+
+/* Hoja provisional de las escenas que todavía no se implementan. */
+.pendiente { left: 360px; top: 300px; width: 1200px; height: 360px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 18px; text-align: center; }
+.pendiente .id { font: 500 26px var(--ui); color: var(--tierra-suave); }
+.pendiente .titulo { font: 64px/1.1 var(--display); color: var(--tinta); }
+.pendiente .nota { font: italic 26px var(--texto); color: var(--tierra-suave); }
+
+/* ---------- Previsualización ---------- */
+body.previa { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+body.previa #marco { flex: 1 1 auto; margin: 0 auto; }
+#controles { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; padding: 10px 16px 14px;
+  background: #24201d; color: #e9dcc4; font: 14px var(--ui); }
+#controles .fila { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+#controles button { font: 600 13px var(--ui); color: #e9dcc4; background: #3a342f; border: 1px solid #514942;
+  border-radius: 5px; padding: 5px 10px; cursor: pointer; }
+#controles button:hover { background: #4a423b; }
+#controles button.activa { background: #8C6418; border-color: #a77a25; color: #fff6e6; }
+#controles button.vacia { opacity: .55; }
+#controles input[type=range] { flex: 1 1 auto; accent-color: #8C6418; }
+#controles .tiempo { font-variant-numeric: tabular-nums; min-width: 150px; }
+#controles label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+#controles .ayuda { opacity: .6; font-size: 12px; }
