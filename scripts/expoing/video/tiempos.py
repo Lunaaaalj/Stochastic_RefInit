@@ -9,6 +9,9 @@ empieza y termina cada subtítulo y cada escena. Escribe:
 Para cambiar el guion se edita la lista E y se vuelve a correr; nunca se editan
 a mano los archivos generados. Uso, desde la raíz del repositorio:
     python scripts/expoing/video/tiempos.py
+
+Si existe docs/expoing/video/alineacion.json (alinear.py), aplica los tiempos reales de
+la voz: guion.srt y la línea de tiempo pasan a tener los de las tomas grabadas.
 """
 import json
 from pathlib import Path
@@ -95,6 +98,11 @@ E = [
  ]),
 ]
 
+TOLERANCIA = 0.08   # una toma más larga que lo planeado se acelera hasta 8 %; más, se regraba (PLAN §4.1)
+SUB_MIN = 1.2       # duración mínima de un subtítulo en pantalla (PLAN §3.4)
+FUNDIDO = 0.12      # el fundido de los subtítulos (motor.js); separa uno del siguiente
+COLA_MIN = 0.6      # una toma larga puede entrar en el colchón final mientras deje al menos esto
+
 
 def ts(s):
     m, x = divmod(s, 60); return f"{int(m)}:{x:05.2f}"
@@ -117,18 +125,62 @@ def planear():
     return escenas
 
 
+def aplicar_voz(escenas, alineacion):
+    """Tiempos reales de las tomas alineadas (alinear.py). La escena conserva su inicio y su fin:
+    la toma se coloca donde empezaba su primer subtítulo planeado y, de ahí, cada subtítulo y cada
+    palabra toman su tiempo real. Si Andrea habla más rápido, sobra silencio en el colchón final
+    (es lo preferible, PLAN §4.1). Si habla más lento, la toma puede entrar en el colchón mientras
+    deje COLA_MIN; si ni así cabe, se acelera (atempo en mezclar.py) hasta TOLERANCIA."""
+    avisos = []
+    for e in escenas:
+        r = alineacion["escenas"].get(e["id"])
+        if r is None:
+            continue
+        if r["guion"] != [c["voz"] for c in e["cues"]]:
+            avisos.append(f"{e['id']}: el guion cambió después de alinear; vuelve a correr alinear.py (se usan los tiempos planeados)")
+            continue
+        t0, plan = e["cues"][0]["inicio"], e["cues"][-1]["fin"] - e["cues"][0]["inicio"]
+        cabe = max(plan, e["fin"] - COLA_MIN - t0)
+        a0, real = r["cues"][0]["a"], r["cues"][-1]["b"] - r["cues"][0]["a"]
+        tempo = max(1.0, real / cabe)
+        if tempo > 1 + TOLERANCIA:
+            raise SystemExit(f"{e['id']}: la toma dura {real:.1f} s y caben {cabe:.1f} s (+{tempo - 1:.0%}, más del "
+                             f"{TOLERANCIA:.0%}): hay que volver a grabarla.")
+        T = lambda x: round(t0 + (x - a0) / tempo, 3)
+        for c, rc in zip(e["cues"], r["cues"]):
+            c["inicio"], c["fin"] = T(rc["a"]), T(rc["b"])
+            c["palabras"] = [{"p": w["p"], "t": T(w["a"])} for w in rc["palabras"]]
+        # Ningún subtítulo dura menos de SUB_MIN: se alarga dentro del silencio que le sigue.
+        for k, c in enumerate(e["cues"]):
+            if c["fin"] - c["inicio"] < SUB_MIN - 1e-6:
+                tope = e["cues"][k + 1]["inicio"] - FUNDIDO if k + 1 < len(e["cues"]) else e["fin"]
+                c["fin"] = round(min(c["inicio"] + SUB_MIN, tope), 3)
+                if c["fin"] - c["inicio"] < SUB_MIN - 1e-6:
+                    avisos.append(f"{e['id']}: el subtítulo {k + 1} dura {c['fin'] - c['inicio']:.2f} s (< {SUB_MIN} s)")
+        # Dónde va la toma en el video: el instante x de la toma (ya acelerada por tempo) suena en
+        # desplazamiento + x / tempo. «habla» es el tramo con sonido de la toma, para recortarla.
+        e["voz"] = {"archivo": r["archivo"], "sha1": r["sha1"], "tempo": round(tempo, 4),
+                    "desplazamiento": round(t0 - a0 / tempo, 3), "habla": r["habla"]}
+    return avisos
+
+
 def main():
     escenas = planear()
+    ruta = SALIDA / "alineacion.json"
+    avisos = aplicar_voz(escenas, json.loads(ruta.read_text(encoding="utf-8"))) if ruta.exists() else []
     palabras = sum(len(c["voz"].split()) for e in escenas for c in e["cues"])
     total = escenas[-1]["fin"]
     for e in escenas:
-        print(f"{e['id']} {ts(e['inicio'])}–{ts(e['fin'])} ({e['fin'] - e['inicio']:.1f}s) {e['titulo']}")
+        voz = f"  · voz real ({e['voz']['archivo'].rsplit('/', 1)[-1]})" if "voz" in e else ""
+        print(f"{e['id']} {ts(e['inicio'])}–{ts(e['fin'])} ({e['fin'] - e['inicio']:.1f}s) {e['titulo']}{voz}")
         for c in e["cues"]:
             print(f"   {ts(c['inicio'])}–{ts(c['fin'])}  {c['sub'].replace(chr(10), ' / ')}")
     print("TOTAL", ts(total), "palabras", palabras, f"({palabras / (total / 60):.0f} ppm global)")
     for c in (c for e in escenas for c in e["cues"]):
         for l in c["sub"].split("\n"):
             if len(l) > 50: print("LARGA:", l, len(l))
+    for a in avisos:
+        print("AVISO:", a)
     json.dump({"escenas": escenas}, open(SALIDA / "linea_de_tiempo.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     with open(SALIDA / "guion.srt", "w", encoding="utf-8") as fh:
         for i, c in enumerate((c for e in escenas for c in e["cues"]), 1):

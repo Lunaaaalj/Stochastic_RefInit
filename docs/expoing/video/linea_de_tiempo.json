@@ -1,0 +1,2830 @@
+{
+ "escenas": [
+  {
+   "id": "E1",
+   "titulo": "Gancho: de la región a la planta",
+   "inicio": 0.0,
+   "fin": 19.65,
+   "cues": [
+    {
+     "inicio": 2.5,
+     "fin": 5.672,
+     "voz": "Ciento ochenta y tres hectáreas del semidesierto potosino.",
+     "sub": "183 hectáreas del semidesierto potosino.",
+     "palabras": [
+      {
+       "p": "Ciento",
+       "t": 2.643
+      },
+      {
+       "p": "ochenta",
+       "t": 2.833
+      },
+      {
+       "p": "y",
+       "t": 3.023
+      },
+      {
+       "p": "tres",
+       "t": 3.213
+      },
+      {
+       "p": "hectáreas",
+       "t": 3.403
+      },
+      {
+       "p": "del",
+       "t": 4.083
+      },
+      {
+       "p": "semidesierto",
+       "t": 4.283
+      },
+      {
+       "p": "potosino.",
+       "t": 5.023
+      }
+     ]
+    },
+    {
+     "inicio": 6.848,
+     "fin": 10.765,
+     "voz": "Treinta terrenos junto a una línea de transmisión, que hay que reforestar.",
+     "sub": "30 terrenos junto a una línea de transmisión\nque hay que reforestar.",
+     "palabras": [
+      {
+       "p": "Treinta",
+       "t": 6.848
+      },
+      {
+       "p": "terrenos",
+       "t": 7.023
+      },
+      {
+       "p": "junto",
+       "t": 7.603
+      },
+      {
+       "p": "a",
+       "t": 7.863
+      },
+      {
+       "p": "una",
+       "t": 7.983
+      },
+      {
+       "p": "línea",
+       "t": 8.123
+      },
+      {
+       "p": "de",
+       "t": 8.383
+      },
+      {
+       "p": "transmisión,",
+       "t": 8.523
+      },
+      {
+       "p": "que",
+       "t": 9.163
+      },
+      {
+       "p": "hay",
+       "t": 9.903
+      },
+      {
+       "p": "que",
+       "t": 10.043
+      },
+      {
+       "p": "reforestar.",
+       "t": 10.163
+      }
+     ]
+    },
+    {
+     "inicio": 12.263,
+     "fin": 13.845,
+     "voz": "Y una pregunta que parece sencilla:",
+     "sub": "Y una pregunta que parece sencilla:",
+     "palabras": [
+      {
+       "p": "Y",
+       "t": 12.263
+      },
+      {
+       "p": "una",
+       "t": 12.303
+      },
+      {
+       "p": "pregunta",
+       "t": 12.483
+      },
+      {
+       "p": "que",
+       "t": 12.863
+      },
+      {
+       "p": "parece",
+       "t": 13.043
+      },
+      {
+       "p": "sencilla:",
+       "t": 13.343
+      }
+     ]
+    },
+    {
+     "inicio": 14.946,
+     "fin": 17.662,
+     "voz": "¿cuántas plantas comprar, y dónde poner cada una?",
+     "sub": "¿cuántas plantas comprar,\ny dónde poner cada una?",
+     "palabras": [
+      {
+       "p": "¿cuántas",
+       "t": 14.946
+      },
+      {
+       "p": "plantas",
+       "t": 15.283
+      },
+      {
+       "p": "comprar,",
+       "t": 15.663
+      },
+      {
+       "p": "y",
+       "t": 16.043
+      },
+      {
+       "p": "dónde",
+       "t": 16.543
+      },
+      {
+       "p": "poner",
+       "t": 16.743
+      },
+      {
+       "p": "cada",
+       "t": 17.063
+      },
+      {
+       "p": "una?",
+       "t": 17.283
+      }
+     ]
+    }
+   ],
+   "voz": {
+    "archivo": "docs/expoing/video/voz/E01.wav",
+    "sha1": "a9357a7e2bc3fc66d7212ae476345d2446d00f2c",
+    "tempo": 1.0,
+    "desplazamiento": -1.557,
+    "habla": [
+     4.057,
+     19.219
+    ]
+   }
+  },
+  {
+   "id": "E2",
+   "titulo": "Presentación del equipo",
+   "inicio": 19.65,
+   "fin": 51.97,
+   "cues": [
+    {
+     "inicio": 20.25,
+     "fin": 22.859,
+     "voz": "Somos el equipo cinco de Optimización Estocástica,",
+     "sub": "Somos el equipo 5 de Optimización Estocástica,",
+     "palabras": [
+      {
+       "p": "Somos",
+       "t": 20.25
+      },
+      {
+       "p": "el",
+       "t": 20.495
+      },
+      {
+       "p": "equipo",
+       "t": 20.635
+      },
+      {
+       "p": "cinco",
+       "t": 20.935
+      },
+      {
+       "p": "de",
+       "t": 21.355
+      },
+      {
+       "p": "Optimización",
+       "t": 21.575
+      },
+      {
+       "p": "Estocástica,",
+       "t": 21.975
+      }
+     ]
+    },
+    {
+     "inicio": 23.813,
+     "fin": 27.894,
+     "voz": "modelo educativo profesional, modalidad presencial, del Tec de Monterrey:",
+     "sub": "modelo educativo profesional,\nmodalidad presencial, del Tec de Monterrey:",
+     "palabras": [
+      {
+       "p": "modelo",
+       "t": 23.815
+      },
+      {
+       "p": "educativo",
+       "t": 24.035
+      },
+      {
+       "p": "profesional,",
+       "t": 24.495
+      },
+      {
+       "p": "modalidad",
+       "t": 25.855
+      },
+      {
+       "p": "presencial,",
+       "t": 26.235
+      },
+      {
+       "p": "del",
+       "t": 26.875
+      },
+      {
+       "p": "Tec",
+       "t": 27.215
+      },
+      {
+       "p": "de",
+       "t": 27.355
+      },
+      {
+       "p": "Monterrey:",
+       "t": 27.495
+      }
+     ]
+    },
+    {
+     "inicio": 29.225,
+     "fin": 33.282,
+     "voz": "Angel Eduardo Luna, Irasema Álvarez, Carolina Sánchez Meneses",
+     "sub": "Angel Eduardo Luna, Irasema Álvarez,\nCarolina Sánchez Meneses",
+     "palabras": [
+      {
+       "p": "Angel",
+       "t": 29.225
+      },
+      {
+       "p": "Eduardo",
+       "t": 29.515
+      },
+      {
+       "p": "Luna,",
+       "t": 29.795
+      },
+      {
+       "p": "Irasema",
+       "t": 30.635
+      },
+      {
+       "p": "Álvarez,",
+       "t": 31.055
+      },
+      {
+       "p": "Carolina",
+       "t": 31.835
+      },
+      {
+       "p": "Sánchez",
+       "t": 32.195
+      },
+      {
+       "p": "Meneses",
+       "t": 32.655
+      }
+     ]
+    },
+    {
+     "inicio": 33.712,
+     "fin": 34.912,
+     "voz": "y yo, Andrea de la Peña,",
+     "sub": "y yo, Andrea de la Peña,",
+     "palabras": [
+      {
+       "p": "y",
+       "t": 33.712
+      },
+      {
+       "p": "yo,",
+       "t": 33.775
+      },
+      {
+       "p": "Andrea",
+       "t": 34.175
+      },
+      {
+       "p": "de",
+       "t": 34.415
+      },
+      {
+       "p": "la",
+       "t": 34.515
+      },
+      {
+       "p": "Peña,",
+       "t": 34.595
+      }
+     ]
+    },
+    {
+     "inicio": 35.913,
+     "fin": 40.031,
+     "voz": "con la tutoría de Yadira Isabel Silva Soto y Rafael Muñoz Sánchez.",
+     "sub": "con la tutoría de Yadira Isabel Silva Soto\ny Rafael Muñoz Sánchez.",
+     "palabras": [
+      {
+       "p": "con",
+       "t": 35.913
+      },
+      {
+       "p": "la",
+       "t": 35.955
+      },
+      {
+       "p": "tutoría",
+       "t": 36.075
+      },
+      {
+       "p": "de",
+       "t": 36.495
+      },
+      {
+       "p": "Yadira",
+       "t": 36.635
+      },
+      {
+       "p": "Isabel",
+       "t": 37.075
+      },
+      {
+       "p": "Silva",
+       "t": 37.515
+      },
+      {
+       "p": "Soto",
+       "t": 37.915
+      },
+      {
+       "p": "y",
+       "t": 38.315
+      },
+      {
+       "p": "Rafael",
+       "t": 38.875
+      },
+      {
+       "p": "Muñoz",
+       "t": 39.215
+      },
+      {
+       "p": "Sánchez.",
+       "t": 39.675
+      }
+     ]
+    },
+    {
+     "inicio": 40.758,
+     "fin": 45.202,
+     "voz": "Nuestro proyecto: compra bajo incertidumbre y distribución espacial de especies",
+     "sub": "Nuestro proyecto: compra bajo incertidumbre\ny distribución espacial de especies",
+     "palabras": [
+      {
+       "p": "Nuestro",
+       "t": 40.758
+      },
+      {
+       "p": "proyecto:",
+       "t": 41.015
+      },
+      {
+       "p": "compra",
+       "t": 41.535
+      },
+      {
+       "p": "bajo",
+       "t": 42.095
+      },
+      {
+       "p": "incertidumbre",
+       "t": 42.335
+      },
+      {
+       "p": "y",
+       "t": 43.075
+      },
+      {
+       "p": "distribución",
+       "t": 43.215
+      },
+      {
+       "p": "espacial",
+       "t": 43.915
+      },
+      {
+       "p": "de",
+       "t": 44.455
+      },
+      {
+       "p": "especies",
+       "t": 44.615
+      }
+     ]
+    },
+    {
+     "inicio": 45.961,
+     "fin": 49.326,
+     "voz": "para la reforestación de treinta polígonos en San Luis Potosí.",
+     "sub": "para la reforestación de 30 polígonos\nen San Luis Potosí.",
+     "palabras": [
+      {
+       "p": "para",
+       "t": 45.961
+      },
+      {
+       "p": "la",
+       "t": 46.115
+      },
+      {
+       "p": "reforestación",
+       "t": 46.375
+      },
+      {
+       "p": "de",
+       "t": 47.135
+      },
+      {
+       "p": "treinta",
+       "t": 47.315
+      },
+      {
+       "p": "polígonos",
+       "t": 47.635
+      },
+      {
+       "p": "en",
+       "t": 48.375
+      },
+      {
+       "p": "San",
+       "t": 48.515
+      },
+      {
+       "p": "Luis",
+       "t": 48.635
+      },
+      {
+       "p": "Potosí.",
+       "t": 48.915
+      }
+     ]
+    }
+   ],
+   "voz": {
+    "archivo": "docs/expoing/video/voz/E02.wav",
+    "sha1": "d0b2c7b080508a06ee83518523cc0c94917d395b",
+    "tempo": 1.0,
+    "desplazamiento": 16.175,
+    "habla": [
+     4.075,
+     33.151
+    ]
+   }
+  },
+  {
+   "id": "E3",
+   "titulo": "El problema: plantar no es reforestar",
+   "inicio": 51.97,
+   "fin": 80.91,
+   "cues": [
+    {
+     "inicio": 52.57,
+     "fin": 57.057,
+     "voz": "El socioformador busca que cada hectárea tenga seiscientas cincuenta y ocho plantas",
+     "sub": "El socioformador busca que cada hectárea\ntenga 658 plantas",
+     "palabras": [
+      {
+       "p": "El",
+       "t": 52.57
+      },
+      {
+       "p": "socioformador",
+       "t": 52.648
+      },
+      {
+       "p": "busca",
+       "t": 53.428
+      },
+      {
+       "p": "que",
+       "t": 53.828
+      },
+      {
+       "p": "cada",
+       "t": 54.008
+      },
+      {
+       "p": "hectárea",
+       "t": 54.288
+      },
+      {
+       "p": "tenga",
+       "t": 54.708
+      },
+      {
+       "p": "seiscientas",
+       "t": 55.088
+      },
+      {
+       "p": "cincuenta",
+       "t": 55.443
+      },
+      {
+       "p": "y",
+       "t": 55.798
+      },
+      {
+       "p": "ocho",
+       "t": 56.153
+      },
+      {
+       "p": "plantas",
+       "t": 56.508
+      }
+     ]
+    },
+    {
+     "inicio": 58.437,
+     "fin": 62.392,
+     "voz": "de diez especies nativas: agaves, nopales, mezquite y yuca.",
+     "sub": "de 10 especies nativas:\nagaves, nopales, mezquite y yuca.",
+     "palabras": [
+      {
+       "p": "de",
+       "t": 58.437
+      },
+      {
+       "p": "diez",
+       "t": 58.548
+      },
+      {
+       "p": "especies",
+       "t": 58.828
+      },
+      {
+       "p": "nativas:",
+       "t": 59.228
+      },
+      {
+       "p": "agaves,",
+       "t": 59.968
+      },
+      {
+       "p": "nopales,",
+       "t": 60.768
+      },
+      {
+       "p": "mezquite",
+       "t": 61.388
+      },
+      {
+       "p": "y",
+       "t": 61.888
+      },
+      {
+       "p": "yuca.",
+       "t": 62.048
+      }
+     ]
+    },
+    {
+     "inicio": 63.042,
+     "fin": 65.084,
+     "voz": "Pero plantar no es lo mismo que reforestar:",
+     "sub": "Pero plantar no es lo mismo que reforestar:",
+     "palabras": [
+      {
+       "p": "Pero",
+       "t": 63.042
+      },
+      {
+       "p": "plantar",
+       "t": 63.148
+      },
+      {
+       "p": "no",
+       "t": 63.608
+      },
+      {
+       "p": "es",
+       "t": 63.768
+      },
+      {
+       "p": "lo",
+       "t": 63.868
+      },
+      {
+       "p": "mismo",
+       "t": 63.988
+      },
+      {
+       "p": "que",
+       "t": 64.228
+      },
+      {
+       "p": "reforestar:",
+       "t": 64.388
+      }
+     ]
+    },
+    {
+     "inicio": 66.072,
+     "fin": 70.497,
+     "voz": "en el primer año muere entre el cuatro y el dieciocho por ciento de lo plantado.",
+     "sub": "en el primer año muere entre el 4 y el 18 %\nde lo plantado.",
+     "palabras": [
+      {
+       "p": "en",
+       "t": 66.072
+      },
+      {
+       "p": "el",
+       "t": 66.148
+      },
+      {
+       "p": "primer",
+       "t": 66.288
+      },
+      {
+       "p": "año",
+       "t": 66.548
+      },
+      {
+       "p": "muere",
+       "t": 66.888
+      },
+      {
+       "p": "entre",
+       "t": 67.348
+      },
+      {
+       "p": "el",
+       "t": 67.848
+      },
+      {
+       "p": "cuatro",
+       "t": 68.028
+      },
+      {
+       "p": "y",
+       "t": 68.388
+      },
+      {
+       "p": "el",
+       "t": 68.568
+      },
+      {
+       "p": "dieciocho",
+       "t": 68.668
+      },
+      {
+       "p": "por",
+       "t": 69.128
+      },
+      {
+       "p": "ciento",
+       "t": 69.328
+      },
+      {
+       "p": "de",
+       "t": 69.688
+      },
+      {
+       "p": "lo",
+       "t": 69.868
+      },
+      {
+       "p": "plantado.",
+       "t": 69.968
+      }
+     ]
+    },
+    {
+     "inicio": 71.925,
+     "fin": 78.751,
+     "voz": "Comprar de menos incumple la meta; comprar de más rebasa el presupuesto de doce mil quinientos pesos por hectárea.",
+     "sub": "Comprar de menos incumple la meta; comprar de más\nrebasa el presupuesto de $12,500 por hectárea.",
+     "palabras": [
+      {
+       "p": "Comprar",
+       "t": 71.925
+      },
+      {
+       "p": "de",
+       "t": 72.388
+      },
+      {
+       "p": "menos",
+       "t": 72.688
+      },
+      {
+       "p": "incumple",
+       "t": 73.008
+      },
+      {
+       "p": "la",
+       "t": 73.588
+      },
+      {
+       "p": "meta;",
+       "t": 73.728
+      },
+      {
+       "p": "comprar",
+       "t": 74.548
+      },
+      {
+       "p": "de",
+       "t": 74.968
+      },
+      {
+       "p": "más",
+       "t": 75.088
+      },
+      {
+       "p": "rebasa",
+       "t": 75.268
+      },
+      {
+       "p": "el",
+       "t": 75.668
+      },
+      {
+       "p": "presupuesto",
+       "t": 75.788
+      },
+      {
+       "p": "de",
+       "t": 76.428
+      },
+      {
+       "p": "doce",
+       "t": 76.648
+      },
+      {
+       "p": "mil",
+       "t": 76.968
+      },
+      {
+       "p": "quinientos",
+       "t": 77.288
+      },
+      {
+       "p": "pesos",
+       "t": 77.608
+      },
+      {
+       "p": "por",
+       "t": 78.168
+      },
+      {
+       "p": "hectárea.",
+       "t": 78.448
+      }
+     ]
+    }
+   ],
+   "voz": {
+    "archivo": "docs/expoing/video/voz/E03.wav",
+    "sha1": "73de6f2279efa28d9f5eb1f60528b95f6c9a0e06",
+    "tempo": 1.0,
+    "desplazamiento": 48.548,
+    "habla": [
+     4.022,
+     30.203
+    ]
+   }
+  },
+  {
+   "id": "E4",
+   "titulo": "El proyecto y su alcance",
+   "inicio": 80.91,
+   "fin": 106.29,
+   "cues": [
+    {
+     "inicio": 81.41,
+     "fin": 85.534,
+     "voz": "Hoy, la compra se estima a ojo y se siembra con una secuencia fija.",
+     "sub": "Hoy, la compra se estima a ojo\ny se siembra con una secuencia fija.",
+     "palabras": [
+      {
+       "p": "Hoy,",
+       "t": 81.41
+      },
+      {
+       "p": "la",
+       "t": 81.658
+      },
+      {
+       "p": "compra",
+       "t": 81.918
+      },
+      {
+       "p": "se",
+       "t": 82.298
+      },
+      {
+       "p": "estima",
+       "t": 82.498
+      },
+      {
+       "p": "a",
+       "t": 82.938
+      },
+      {
+       "p": "ojo",
+       "t": 83.278
+      },
+      {
+       "p": "y",
+       "t": 83.598
+      },
+      {
+       "p": "se",
+       "t": 83.898
+      },
+      {
+       "p": "siembra",
+       "t": 84.078
+      },
+      {
+       "p": "con",
+       "t": 84.378
+      },
+      {
+       "p": "una",
+       "t": 84.598
+      },
+      {
+       "p": "secuencia",
+       "t": 84.778
+      },
+      {
+       "p": "fija.",
+       "t": 85.158
+      }
+     ]
+    },
+    {
+     "inicio": 86.399,
+     "fin": 89.306,
+     "voz": "Nuestro proyecto, refor, responde dos preguntas:",
+     "sub": "Nuestro proyecto, refor, responde dos preguntas:",
+     "palabras": [
+      {
+       "p": "Nuestro",
+       "t": 86.399
+      },
+      {
+       "p": "proyecto,",
+       "t": 86.658
+      },
+      {
+       "p": "refor,",
+       "t": 87.118
+      },
+      {
+       "p": "responde",
+       "t": 87.898
+      },
+      {
+       "p": "dos",
+       "t": 88.658
+      },
+      {
+       "p": "preguntas:",
+       "t": 88.818
+      }
+     ]
+    },
+    {
+     "inicio": 89.919,
+     "fin": 94.789,
+     "voz": "cuánto comprar de cada especie, al menor costo y con garantía de cumplir la meta,",
+     "sub": "cuánto comprar de cada especie, al menor costo\ny con garantía de cumplir la meta,",
+     "palabras": [
+      {
+       "p": "cuánto",
+       "t": 89.919
+      },
+      {
+       "p": "comprar",
+       "t": 90.218
+      },
+      {
+       "p": "de",
+       "t": 90.558
+      },
+      {
+       "p": "cada",
+       "t": 90.758
+      },
+      {
+       "p": "especie,",
+       "t": 90.958
+      },
+      {
+       "p": "al",
+       "t": 91.718
+      },
+      {
+       "p": "menor",
+       "t": 92.078
+      },
+      {
+       "p": "costo",
+       "t": 92.438
+      },
+      {
+       "p": "y",
+       "t": 92.998
+      },
+      {
+       "p": "con",
+       "t": 93.238
+      },
+      {
+       "p": "garantía",
+       "t": 93.398
+      },
+      {
+       "p": "de",
+       "t": 93.878
+      },
+      {
+       "p": "cumplir",
+       "t": 94.038
+      },
+      {
+       "p": "la",
+       "t": 94.378
+      },
+      {
+       "p": "meta,",
+       "t": 94.518
+      }
+     ]
+    },
+    {
+     "inicio": 96.02,
+     "fin": 98.809,
+     "voz": "y cómo acomodarlas para que compitan lo menos posible.",
+     "sub": "y cómo acomodarlas\npara que compitan lo menos posible.",
+     "palabras": [
+      {
+       "p": "y",
+       "t": 96.02
+      },
+      {
+       "p": "cómo",
+       "t": 96.098
+      },
+      {
+       "p": "acomodarlas",
+       "t": 96.318
+      },
+      {
+       "p": "para",
+       "t": 96.998
+      },
+      {
+       "p": "que",
+       "t": 97.158
+      },
+      {
+       "p": "compitan",
+       "t": 97.318
+      },
+      {
+       "p": "lo",
+       "t": 97.878
+      },
+      {
+       "p": "menos",
+       "t": 98.038
+      },
+      {
+       "p": "posible.",
+       "t": 98.298
+      }
+     ]
+    },
+    {
+     "inicio": 99.974,
+     "fin": 104.372,
+     "voz": "El alcance es lo que el planeador decide; el agua y el terreno quedan fuera.",
+     "sub": "El alcance es lo que el planeador decide;\nel agua y el terreno quedan fuera.",
+     "palabras": [
+      {
+       "p": "El",
+       "t": 99.974
+      },
+      {
+       "p": "alcance",
+       "t": 100.078
+      },
+      {
+       "p": "es",
+       "t": 100.558
+      },
+      {
+       "p": "lo",
+       "t": 100.818
+      },
+      {
+       "p": "que",
+       "t": 100.958
+      },
+      {
+       "p": "el",
+       "t": 101.078
+      },
+      {
+       "p": "planeador",
+       "t": 101.198
+      },
+      {
+       "p": "decide;",
+       "t": 101.638
+      },
+      {
+       "p": "el",
+       "t": 102.478
+      },
+      {
+       "p": "agua",
+       "t": 102.958
+      },
+      {
+       "p": "y",
+       "t": 103.158
+      },
+      {
+       "p": "el",
+       "t": 103.298
+      },
+      {
+       "p": "terreno",
+       "t": 103.438
+      },
+      {
+       "p": "quedan",
+       "t": 103.758
+      },
+      {
+       "p": "fuera.",
+       "t": 104.078
+      }
+     ]
+    }
+   ],
+   "voz": {
+    "archivo": "docs/expoing/video/voz/E04.wav",
+    "sha1": "2894fb0a6f7143d5722bc6f2650a393db554c8dd",
+    "tempo": 1.0,
+    "desplazamiento": 77.458,
+    "habla": [
+     3.952,
+     26.914
+    ]
+   }
+  },
+  {
+   "id": "E5",
+   "titulo": "Pregunta 1: diez mil temporadas",
+   "inicio": 106.29,
+   "fin": 126.12,
+   "cues": [
+    {
+     "inicio": 108.69,
+     "fin": 111.661,
+     "voz": "Tomemos el agave salmiana del polígono uno.",
+     "sub": "Tomemos el Agave salmiana del polígono 1.",
+     "palabras": [
+      {
+       "p": "Tomemos",
+       "t": 108.69
+      },
+      {
+       "p": "el",
+       "t": 109.1
+      },
+      {
+       "p": "agave",
+       "t": 109.28
+      },
+      {
+       "p": "salmiana",
+       "t": 109.7
+      },
+      {
+       "p": "del",
+       "t": 110.36
+      },
+      {
+       "p": "polígono",
+       "t": 110.62
+      },
+      {
+       "p": "uno.",
+       "t": 111.2
+      }
+     ]
+    },
+    {
+     "inicio": 112.265,
+     "fin": 115.81,
+     "voz": "La meta es de doscientas cincuenta y dos, y ya hay cuarenta y seis.",
+     "sub": "La meta es de 252, y ya hay 46.",
+     "palabras": [
+      {
+       "p": "La",
+       "t": 112.265
+      },
+      {
+       "p": "meta",
+       "t": 112.34
+      },
+      {
+       "p": "es",
+       "t": 112.62
+      },
+      {
+       "p": "de",
+       "t": 112.84
+      },
+      {
+       "p": "doscientas",
+       "t": 112.94
+      },
+      {
+       "p": "cincuenta",
+       "t": 113.22
+      },
+      {
+       "p": "y",
+       "t": 113.5
+      },
+      {
+       "p": "dos,",
+       "t": 113.78
+      },
+      {
+       "p": "y",
+       "t": 114.06
+      },
+      {
+       "p": "ya",
+       "t": 114.84
+      },
+      {
+       "p": "hay",
+       "t": 115.04
+      },
+      {
+       "p": "cuarenta",
+       "t": 115.24
+      },
+      {
+       "p": "y",
+       "t": 115.42
+      },
+      {
+       "p": "seis.",
+       "t": 115.6
+      }
+     ]
+    },
+    {
+     "inicio": 116.818,
+     "fin": 118.859,
+     "voz": "Simulamos diez mil temporadas de siembra.",
+     "sub": "Simulamos 10,000 temporadas de siembra.",
+     "palabras": [
+      {
+       "p": "Simulamos",
+       "t": 116.818
+      },
+      {
+       "p": "diez",
+       "t": 117.36
+      },
+      {
+       "p": "mil",
+       "t": 117.56
+      },
+      {
+       "p": "temporadas",
+       "t": 117.76
+      },
+      {
+       "p": "de",
+       "t": 118.32
+      },
+      {
+       "p": "siembra.",
+       "t": 118.48
+      }
+     ]
+    },
+    {
+     "inicio": 119.9,
+     "fin": 123.607,
+     "voz": "Comprar doscientas veinte alcanza en el noventa y seis por ciento de ellas.",
+     "sub": "Comprar 220 alcanza\nen el 96 % de ellas.",
+     "palabras": [
+      {
+       "p": "Comprar",
+       "t": 119.9
+      },
+      {
+       "p": "doscientas",
+       "t": 120.24
+      },
+      {
+       "p": "veinte",
+       "t": 120.58
+      },
+      {
+       "p": "alcanza",
+       "t": 120.92
+      },
+      {
+       "p": "en",
+       "t": 121.82
+      },
+      {
+       "p": "el",
+       "t": 121.9
+      },
+      {
+       "p": "noventa",
+       "t": 121.98
+      },
+      {
+       "p": "y",
+       "t": 122.18
+      },
+      {
+       "p": "seis",
+       "t": 122.38
+      },
+      {
+       "p": "por",
+       "t": 122.58
+      },
+      {
+       "p": "ciento",
+       "t": 122.77
+      },
+      {
+       "p": "de",
+       "t": 122.96
+      },
+      {
+       "p": "ellas.",
+       "t": 123.3
+      }
+     ]
+    }
+   ],
+   "voz": {
+    "archivo": "docs/expoing/video/voz/E05.wav",
+    "sha1": "adbbd0dc8e0c520f44d2a18f921825e7e1226d3b",
+    "tempo": 1.0,
+    "desplazamiento": 104.72,
+    "habla": [
+     3.97,
+     18.887
+    ]
+   }
+  },
+  {
+   "id": "E6",
+   "titulo": "Pregunta 1: el modelo de compra",
+   "inicio": 126.12,
+   "fin": 153.06,
+   "cues": [
+    {
+     "inicio": 126.52,
+     "fin": 128.629,
+     "voz": "Con eso armamos un modelo de optimización:",
+     "sub": "Con eso armamos un modelo de optimización:",
+     "palabras": [
+      {
+       "p": "Con",
+       "t": 126.52
+      },
+      {
+       "p": "eso",
+       "t": 126.617
+      },
+      {
+       "p": "armamos",
+       "t": 126.897
+      },
+      {
+       "p": "un",
+       "t": 127.317
+      },
+      {
+       "p": "modelo",
+       "t": 127.497
+      },
+      {
+       "p": "de",
+       "t": 127.797
+      },
+      {
+       "p": "optimización:",
+       "t": 127.957
+      }
+     ]
+    },
+    {
+     "inicio": 129.686,
+     "fin": 133.682,
+     "voz": "minimizar lo que cuesta comprar, más lo que se espera gastar en reponer.",
+     "sub": "minimizar lo que cuesta comprar,\nmás lo que se espera gastar en reponer.",
+     "palabras": [
+      {
+       "p": "minimizar",
+       "t": 129.686
+      },
+      {
+       "p": "lo",
+       "t": 130.137
+      },
+      {
+       "p": "que",
+       "t": 130.277
+      },
+      {
+       "p": "cuesta",
+       "t": 130.417
+      },
+      {
+       "p": "comprar,",
+       "t": 130.757
+      },
+      {
+       "p": "más",
+       "t": 131.557
+      },
+      {
+       "p": "lo",
+       "t": 132.057
+      },
+      {
+       "p": "que",
+       "t": 132.197
+      },
+      {
+       "p": "se",
+       "t": 132.317
+      },
+      {
+       "p": "espera",
+       "t": 132.437
+      },
+      {
+       "p": "gastar",
+       "t": 132.737
+      },
+      {
+       "p": "en",
+       "t": 133.157
+      },
+      {
+       "p": "reponer.",
+       "t": 133.257
+      }
+     ]
+    },
+    {
+     "inicio": 135.064,
+     "fin": 140.065,
+     "voz": "Respetar la meta total, un margen de diez por ciento por especie y el presupuesto.",
+     "sub": "Respetar la meta total, un margen de 10 %\npor especie y el presupuesto.",
+     "palabras": [
+      {
+       "p": "Respetar",
+       "t": 135.064
+      },
+      {
+       "p": "la",
+       "t": 135.537
+      },
+      {
+       "p": "meta",
+       "t": 135.657
+      },
+      {
+       "p": "total,",
+       "t": 135.877
+      },
+      {
+       "p": "un",
+       "t": 136.617
+      },
+      {
+       "p": "margen",
+       "t": 136.897
+      },
+      {
+       "p": "de",
+       "t": 137.257
+      },
+      {
+       "p": "diez",
+       "t": 137.397
+      },
+      {
+       "p": "por",
+       "t": 137.637
+      },
+      {
+       "p": "ciento",
+       "t": 137.857
+      },
+      {
+       "p": "por",
+       "t": 138.077
+      },
+      {
+       "p": "especie",
+       "t": 138.357
+      },
+      {
+       "p": "y",
+       "t": 138.857
+      },
+      {
+       "p": "el",
+       "t": 139.497
+      },
+      {
+       "p": "presupuesto.",
+       "t": 139.617
+      }
+     ]
+    },
+    {
+     "inicio": 140.984,
+     "fin": 146.337,
+     "voz": "Y exigir que cada especie cumpla su meta con al menos noventa y cinco por ciento de probabilidad.",
+     "sub": "Y exigir que cada especie cumpla su meta\ncon al menos 95 % de probabilidad.",
+     "palabras": [
+      {
+       "p": "Y",
+       "t": 140.984
+      },
+      {
+       "p": "exigir",
+       "t": 141.037
+      },
+      {
+       "p": "que",
+       "t": 141.437
+      },
+      {
+       "p": "cada",
+       "t": 141.577
+      },
+      {
+       "p": "especie",
+       "t": 141.857
+      },
+      {
+       "p": "cumpla",
+       "t": 142.257
+      },
+      {
+       "p": "su",
+       "t": 142.677
+      },
+      {
+       "p": "meta",
+       "t": 142.877
+      },
+      {
+       "p": "con",
+       "t": 143.237
+      },
+      {
+       "p": "al",
+       "t": 143.757
+      },
+      {
+       "p": "menos",
+       "t": 143.957
+      },
+      {
+       "p": "noventa",
+       "t": 144.297
+      },
+      {
+       "p": "y",
+       "t": 144.504
+      },
+      {
+       "p": "cinco",
+       "t": 144.71
+      },
+      {
+       "p": "por",
+       "t": 144.917
+      },
+      {
+       "p": "ciento",
+       "t": 145.157
+      },
+      {
+       "p": "de",
+       "t": 145.397
+      },
+      {
+       "p": "probabilidad.",
+       "t": 145.697
+      }
+     ]
+    },
+    {
+     "inicio": 148.081,
+     "fin": 151.675,
+     "voz": "Esa es la innovación: comprar con una garantía, no a ojo.",
+     "sub": "Esa es la innovación:\ncomprar con una garantía, no a ojo.",
+     "palabras": [
+      {
+       "p": "Esa",
+       "t": 148.081
+      },
+      {
+       "p": "es",
+       "t": 148.297
+      },
+      {
+       "p": "la",
+       "t": 148.377
+      },
+      {
+       "p": "innovación:",
+       "t": 148.477
+      },
+      {
+       "p": "comprar",
+       "t": 149.397
+      },
+      {
+       "p": "con",
+       "t": 149.777
+      },
+      {
+       "p": "una",
+       "t": 150.037
+      },
+      {
+       "p": "garantía,",
+       "t": 150.257
+      },
+      {
+       "p": "no",
+       "t": 151.077
+      },
+      {
+       "p": "a",
+       "t": 151.317
+      },
+      {
+       "p": "ojo.",
+       "t": 151.457
+      }
+     ]
+    }
+   ],
+   "voz": {
+    "archivo": "docs/expoing/video/voz/E06.wav",
+    "sha1": "ae252762f83256a30fbc757f142ddcf0414355d7",
+    "tempo": 1.0,
+    "desplazamiento": 122.637,
+    "habla": [
+     3.883,
+     29.038
+    ]
+   }
+  },
+  {
+   "id": "E7",
+   "titulo": "Pregunta 1: el resultado",
+   "inicio": 153.06,
+   "fin": 185.58,
+   "cues": [
+    {
+     "inicio": 153.46,
+     "fin": 158.341,
+     "voz": "Resultado: ciento ocho mil seiscientas ochenta plantas para los treinta polígonos.",
+     "sub": "Resultado: 108,680 plantas\npara los 30 polígonos.",
+     "palabras": [
+      {
+       "p": "Resultado:",
+       "t": 153.46
+      },
+      {
+       "p": "ciento",
+       "t": 154.256
+      },
+      {
+       "p": "ocho",
+       "t": 154.648
+      },
+      {
+       "p": "mil",
+       "t": 155.04
+      },
+      {
+       "p": "seiscientas",
+       "t": 155.432
+      },
+      {
+       "p": "ochenta",
+       "t": 155.824
+      },
+      {
+       "p": "plantas",
+       "t": 156.216
+      },
+      {
+       "p": "para",
+       "t": 156.816
+      },
+      {
+       "p": "los",
+       "t": 157.276
+      },
+      {
+       "p": "treinta",
+       "t": 157.496
+      },
+      {
+       "p": "polígonos.",
+       "t": 157.796
+      }
+     ]
+    },
+    {
+     "inicio": 159.289,
+     "fin": 164.187,
+     "voz": "Y un hallazgo: con doce mil quinientos pesos por hectárea, ningún polígono cumple.",
+     "sub": "Y un hallazgo: con $12,500 por hectárea,\nningún polígono cumple.",
+     "palabras": [
+      {
+       "p": "Y",
+       "t": 159.289
+      },
+      {
+       "p": "un",
+       "t": 159.336
+      },
+      {
+       "p": "hallazgo:",
+       "t": 159.516
+      },
+      {
+       "p": "con",
+       "t": 160.156
+      },
+      {
+       "p": "doce",
+       "t": 160.456
+      },
+      {
+       "p": "mil",
+       "t": 160.729
+      },
+      {
+       "p": "quinientos",
+       "t": 161.003
+      },
+      {
+       "p": "pesos",
+       "t": 161.276
+      },
+      {
+       "p": "por",
+       "t": 161.636
+      },
+      {
+       "p": "hectárea,",
+       "t": 161.916
+      },
+      {
+       "p": "ningún",
+       "t": 162.716
+      },
+      {
+       "p": "polígono",
+       "t": 163.236
+      },
+      {
+       "p": "cumple.",
+       "t": 163.756
+      }
+     ]
+    },
+    {
+     "inicio": 165.361,
+     "fin": 168.034,
+     "voz": "Hacen falta catorce mil cuatrocientos noventa y seis.",
+     "sub": "Hacen falta $14,496.",
+     "palabras": [
+      {
+       "p": "Hacen",
+       "t": 165.361
+      },
+      {
+       "p": "falta",
+       "t": 165.556
+      },
+      {
+       "p": "catorce",
+       "t": 165.856
+      },
+      {
+       "p": "mil",
+       "t": 166.209
+      },
+      {
+       "p": "cuatrocientos",
+       "t": 166.563
+      },
+      {
+       "p": "noventa",
+       "t": 166.916
+      },
+      {
+       "p": "y",
+       "t": 167.269
+      },
+      {
+       "p": "seis.",
+       "t": 167.623
+      }
+     ]
+    },
+    {
+     "inicio": 169.295,
+     "fin": 174.155,
+     "voz": "Ni aceptar cincuenta veces más riesgo lo resuelve: ahorra menos del cuatro por ciento.",
+     "sub": "Ni aceptar 50 veces más riesgo lo resuelve:\nahorra menos del 4 %.",
+     "palabras": [
+      {
+       "p": "Ni",
+       "t": 169.295
+      },
+      {
+       "p": "aceptar",
+       "t": 169.396
+      },
+      {
+       "p": "cincuenta",
+       "t": 169.856
+      },
+      {
+       "p": "veces",
+       "t": 170.096
+      },
+      {
+       "p": "más",
+       "t": 170.496
+      },
+      {
+       "p": "riesgo",
+       "t": 170.736
+      },
+      {
+       "p": "lo",
+       "t": 171.136
+      },
+      {
+       "p": "resuelve:",
+       "t": 171.276
+      },
+      {
+       "p": "ahorra",
+       "t": 172.516
+      },
+      {
+       "p": "menos",
+       "t": 172.896
+      },
+      {
+       "p": "del",
+       "t": 173.216
+      },
+      {
+       "p": "cuatro",
+       "t": 173.416
+      },
+      {
+       "p": "por",
+       "t": 173.656
+      },
+      {
+       "p": "ciento.",
+       "t": 173.896
+      }
+     ]
+    },
+    {
+     "inicio": 175.471,
+     "fin": 179.353,
+     "voz": "El cálculo exacto lo confirma: difiere en ocho centavos por hectárea.",
+     "sub": "El cálculo exacto lo confirma:\ndifiere en 8 centavos por hectárea.",
+     "palabras": [
+      {
+       "p": "El",
+       "t": 175.471
+      },
+      {
+       "p": "cálculo",
+       "t": 175.556
+      },
+      {
+       "p": "exacto",
+       "t": 175.956
+      },
+      {
+       "p": "lo",
+       "t": 176.396
+      },
+      {
+       "p": "confirma:",
+       "t": 176.496
+      },
+      {
+       "p": "difiere",
+       "t": 177.476
+      },
+      {
+       "p": "en",
+       "t": 177.836
+      },
+      {
+       "p": "ocho",
+       "t": 178.076
+      },
+      {
+       "p": "centavos",
+       "t": 178.276
+      },
+      {
+       "p": "por",
+       "t": 178.796
+      },
+      {
+       "p": "hectárea.",
+       "t": 178.976
+      }
+     ]
+    },
+    {
+     "inicio": 180.764,
+     "fin": 183.254,
+     "voz": "Saberlo antes de plantar evita perder la inversión.",
+     "sub": "Saberlo antes de plantar\nevita perder la inversión.",
+     "palabras": [
+      {
+       "p": "Saberlo",
+       "t": 180.764
+      },
+      {
+       "p": "antes",
+       "t": 181.176
+      },
+      {
+       "p": "de",
+       "t": 181.436
+      },
+      {
+       "p": "plantar",
+       "t": 181.636
+      },
+      {
+       "p": "evita",
+       "t": 182.116
+      },
+      {
+       "p": "perder",
+       "t": 182.456
+      },
+      {
+       "p": "la",
+       "t": 182.776
+      },
+      {
+       "p": "inversión.",
+       "t": 182.976
+      }
+     ]
+    }
+   ],
+   "voz": {
+    "archivo": "docs/expoing/video/voz/E07.wav",
+    "sha1": "c7b29fc28a19cb1d3e267a19d8dc6c7708b59512",
+    "tempo": 1.0,
+    "desplazamiento": 149.396,
+    "habla": [
+     4.064,
+     33.858
+    ]
+   }
+  },
+  {
+   "id": "E8",
+   "titulo": "Pregunta 2: el modelo de siembra",
+   "inicio": 185.58,
+   "fin": 211.36,
+   "cues": [
+    {
+     "inicio": 187.98,
+     "fin": 191.39,
+     "voz": "Se siembra al tresbolillo: cada planta tiene seis vecinas.",
+     "sub": "Se siembra al tresbolillo:\ncada planta tiene seis vecinas.",
+     "palabras": [
+      {
+       "p": "Se",
+       "t": 187.98
+      },
+      {
+       "p": "siembra",
+       "t": 188.02
+      },
+      {
+       "p": "al",
+       "t": 188.44
+      },
+      {
+       "p": "tresbolillo:",
+       "t": 188.74
+      },
+      {
+       "p": "cada",
+       "t": 189.82
+      },
+      {
+       "p": "planta",
+       "t": 190.0
+      },
+      {
+       "p": "tiene",
+       "t": 190.38
+      },
+      {
+       "p": "seis",
+       "t": 190.68
+      },
+      {
+       "p": "vecinas.",
+       "t": 190.96
+      }
+     ]
+    },
+    {
+     "inicio": 192.267,
+     "fin": 195.06,
+     "voz": "Una matriz mide cuánto compite cada par de especies.",
+     "sub": "Una matriz mide cuánto compite\ncada par de especies.",
+     "palabras": [
+      {
+       "p": "Una",
+       "t": 192.267
+      },
+      {
+       "p": "matriz",
+       "t": 192.4
+      },
+      {
+       "p": "mide",
+       "t": 192.82
+      },
+      {
+       "p": "cuánto",
+       "t": 193.12
+      },
+      {
+       "p": "compite",
+       "t": 193.54
+      },
+      {
+       "p": "cada",
+       "t": 193.96
+      },
+      {
+       "p": "par",
+       "t": 194.26
+      },
+      {
+       "p": "de",
+       "t": 194.54
+      },
+      {
+       "p": "especies.",
+       "t": 194.66
+      }
+     ]
+    },
+    {
+     "inicio": 196.184,
+     "fin": 201.132,
+     "voz": "Dos de la misma especie compiten más; el mezquite apenas compite con las suculentas.",
+     "sub": "Dos de la misma especie compiten más;\nel mezquite apenas compite con las suculentas.",
+     "palabras": [
+      {
+       "p": "Dos",
+       "t": 196.184
+      },
+      {
+       "p": "de",
+       "t": 196.4
+      },
+      {
+       "p": "la",
+       "t": 196.54
+      },
+      {
+       "p": "misma",
+       "t": 196.64
+      },
+      {
+       "p": "especie",
+       "t": 196.9
+      },
+      {
+       "p": "compiten",
+       "t": 197.3
+      },
+      {
+       "p": "más;",
+       "t": 197.8
+      },
+      {
+       "p": "el",
+       "t": 198.7
+      },
+      {
+       "p": "mezquite",
+       "t": 198.92
+      },
+      {
+       "p": "apenas",
+       "t": 199.32
+      },
+      {
+       "p": "compite",
+       "t": 199.64
+      },
+      {
+       "p": "con",
+       "t": 200.14
+      },
+      {
+       "p": "las",
+       "t": 200.36
+      },
+      {
+       "p": "suculentas.",
+       "t": 200.54
+      }
+     ]
+    },
+    {
+     "inicio": 202.356,
+     "fin": 204.842,
+     "voz": "Buscamos el acomodo de menor competencia total,",
+     "sub": "Buscamos el acomodo\nde menor competencia total,",
+     "palabras": [
+      {
+       "p": "Buscamos",
+       "t": 202.356
+      },
+      {
+       "p": "el",
+       "t": 202.74
+      },
+      {
+       "p": "acomodo",
+       "t": 202.92
+      },
+      {
+       "p": "de",
+       "t": 203.38
+      },
+      {
+       "p": "menor",
+       "t": 203.54
+      },
+      {
+       "p": "competencia",
+       "t": 203.84
+      },
+      {
+       "p": "total,",
+       "t": 204.38
+      }
+     ]
+    },
+    {
+     "inicio": 205.757,
+     "fin": 209.725,
+     "voz": "con una especie por posición y las cantidades que dictó la compra.",
+     "sub": "con una especie por posición\ny las cantidades que dictó la compra.",
+     "palabras": [
+      {
+       "p": "con",
+       "t": 205.757
+      },
+      {
+       "p": "una",
+       "t": 205.86
+      },
+      {
+       "p": "especie",
+       "t": 206.04
+      },
+      {
+       "p": "por",
+       "t": 206.36
+      },
+      {
+       "p": "posición",
+       "t": 206.56
+      },
+      {
+       "p": "y",
+       "t": 207.0
+      },
+      {
+       "p": "las",
+       "t": 207.54
+      },
+      {
+       "p": "cantidades",
+       "t": 207.7
+      },
+      {
+       "p": "que",
+       "t": 208.2
+      },
+      {
+       "p": "dictó",
+       "t": 208.42
+      },
+      {
+       "p": "la",
+       "t": 208.92
+      },
+      {
+       "p": "compra.",
+       "t": 209.42
+      }
+     ]
+    }
+   ],
+   "voz": {
+    "archivo": "docs/expoing/video/voz/E08.wav",
+    "sha1": "ac93038de4f86126a2f8b6543be94f2e90f57863",
+    "tempo": 1.0,
+    "desplazamiento": 183.92,
+    "habla": [
+     4.06,
+     25.805
+    ]
+   }
+  },
+  {
+   "id": "E9",
+   "titulo": "Pregunta 2: memético y resultado",
+   "inicio": 211.36,
+   "fin": 234.97,
+   "cues": [
+    {
+     "inicio": 211.76,
+     "fin": 215.294,
+     "voz": "Lo resolvemos con un algoritmo memético con búsqueda tabú,",
+     "sub": "Lo resolvemos con un algoritmo memético\ncon búsqueda tabú,",
+     "palabras": [
+      {
+       "p": "Lo",
+       "t": 211.76
+      },
+      {
+       "p": "resolvemos",
+       "t": 211.843
+      },
+      {
+       "p": "con",
+       "t": 212.503
+      },
+      {
+       "p": "un",
+       "t": 212.703
+      },
+      {
+       "p": "algoritmo",
+       "t": 212.923
+      },
+      {
+       "p": "memético",
+       "t": 213.403
+      },
+      {
+       "p": "con",
+       "t": 214.023
+      },
+      {
+       "p": "búsqueda",
+       "t": 214.583
+      },
+      {
+       "p": "tabú,",
+       "t": 214.903
+      }
+     ]
+    },
+    {
+     "inicio": 216.068,
+     "fin": 218.478,
+     "voz": "y lo medimos contra un modelo entero exacto.",
+     "sub": "y lo medimos contra un modelo entero exacto.",
+     "palabras": [
+      {
+       "p": "y",
+       "t": 216.068
+      },
+      {
+       "p": "lo",
+       "t": 216.103
+      },
+      {
+       "p": "medimos",
+       "t": 216.243
+      },
+      {
+       "p": "contra",
+       "t": 216.623
+      },
+      {
+       "p": "un",
+       "t": 216.883
+      },
+      {
+       "p": "modelo",
+       "t": 217.063
+      },
+      {
+       "p": "entero",
+       "t": 217.383
+      },
+      {
+       "p": "exacto.",
+       "t": 217.983
+      }
+     ]
+    },
+    {
+     "inicio": 219.247,
+     "fin": 223.348,
+     "voz": "Resultado: dieciséis por ciento menos competencia que sembrar al azar,",
+     "sub": "Resultado: 16 % menos competencia\nque sembrar al azar,",
+     "palabras": [
+      {
+       "p": "Resultado:",
+       "t": 219.247
+      },
+      {
+       "p": "dieciséis",
+       "t": 219.843
+      },
+      {
+       "p": "por",
+       "t": 220.463
+      },
+      {
+       "p": "ciento",
+       "t": 220.703
+      },
+      {
+       "p": "menos",
+       "t": 220.943
+      },
+      {
+       "p": "competencia",
+       "t": 221.483
+      },
+      {
+       "p": "que",
+       "t": 222.203
+      },
+      {
+       "p": "sembrar",
+       "t": 222.423
+      },
+      {
+       "p": "al",
+       "t": 222.943
+      },
+      {
+       "p": "azar,",
+       "t": 223.103
+      }
+     ]
+    },
+    {
+     "inicio": 224.561,
+     "fin": 227.276,
+     "voz": "a lo más a cuatro punto cinco por ciento del óptimo.",
+     "sub": "a lo más a 4.5 % del óptimo.",
+     "palabras": [
+      {
+       "p": "a",
+       "t": 224.563
+      },
+      {
+       "p": "lo",
+       "t": 224.683
+      },
+      {
+       "p": "más",
+       "t": 224.783
+      },
+      {
+       "p": "a",
+       "t": 225.043
+      },
+      {
+       "p": "cuatro",
+       "t": 225.223
+      },
+      {
+       "p": "punto",
+       "t": 225.536
+      },
+      {
+       "p": "cinco",
+       "t": 225.85
+      },
+      {
+       "p": "por",
+       "t": 226.163
+      },
+      {
+       "p": "ciento",
+       "t": 226.413
+      },
+      {
+       "p": "del",
+       "t": 226.663
+      },
+      {
+       "p": "óptimo.",
+       "t": 226.863
+      }
+     ]
+    },
+    {
+     "inicio": 228.315,
+     "fin": 232.147,
+     "voz": "Y los treinta polígonos se resuelven con solo seis claves de plantación.",
+     "sub": "Y los 30 polígonos se resuelven\ncon solo seis claves de plantación.",
+     "palabras": [
+      {
+       "p": "Y",
+       "t": 228.315
+      },
+      {
+       "p": "los",
+       "t": 228.363
+      },
+      {
+       "p": "treinta",
+       "t": 228.563
+      },
+      {
+       "p": "polígonos",
+       "t": 228.863
+      },
+      {
+       "p": "se",
+       "t": 229.503
+      },
+      {
+       "p": "resuelven",
+       "t": 229.663
+      },
+      {
+       "p": "con",
+       "t": 230.183
+      },
+      {
+       "p": "solo",
+       "t": 230.483
+      },
+      {
+       "p": "seis",
+       "t": 230.723
+      },
+      {
+       "p": "claves",
+       "t": 231.143
+      },
+      {
+       "p": "de",
+       "t": 231.543
+      },
+      {
+       "p": "plantación.",
+       "t": 231.663
+      }
+     ]
+    }
+   ],
+   "voz": {
+    "archivo": "docs/expoing/video/voz/E09.wav",
+    "sha1": "59bde42efde1e5b2a8cf1033aafb5889f0a775c1",
+    "tempo": 1.0,
+    "desplazamiento": 207.723,
+    "habla": [
+     4.037,
+     24.424
+    ]
+   }
+  },
+  {
+   "id": "E10",
+   "titulo": "La herramienta y las pruebas",
+   "inicio": 234.97,
+   "fin": 248.28,
+   "cues": [
+    {
+     "inicio": 235.37,
+     "fin": 239.76,
+     "voz": "Todo vive en refor, una herramienta de escritorio que se opera sin saber programar,",
+     "sub": "Todo vive en refor, una herramienta de escritorio\nque se opera sin saber programar,",
+     "palabras": [
+      {
+       "p": "Todo",
+       "t": 235.37
+      },
+      {
+       "p": "vive",
+       "t": 235.501
+      },
+      {
+       "p": "en",
+       "t": 235.741
+      },
+      {
+       "p": "refor,",
+       "t": 235.921
+      },
+      {
+       "p": "una",
+       "t": 236.461
+      },
+      {
+       "p": "herramienta",
+       "t": 236.841
+      },
+      {
+       "p": "de",
+       "t": 237.361
+      },
+      {
+       "p": "escritorio",
+       "t": 237.461
+      },
+      {
+       "p": "que",
+       "t": 238.061
+      },
+      {
+       "p": "se",
+       "t": 238.281
+      },
+      {
+       "p": "opera",
+       "t": 238.441
+      },
+      {
+       "p": "sin",
+       "t": 238.761
+      },
+      {
+       "p": "saber",
+       "t": 238.981
+      },
+      {
+       "p": "programar,",
+       "t": 239.261
+      }
+     ]
+    },
+    {
+     "inicio": 241.057,
+     "fin": 245.085,
+     "voz": "y que da los mismos resultados en Windows, macOS y Linux.",
+     "sub": "y que da los mismos resultados\nen Windows, macOS y Linux.",
+     "palabras": [
+      {
+       "p": "y",
+       "t": 241.057
+      },
+      {
+       "p": "que",
+       "t": 241.101
+      },
+      {
+       "p": "da",
+       "t": 241.241
+      },
+      {
+       "p": "los",
+       "t": 241.341
+      },
+      {
+       "p": "mismos",
+       "t": 241.541
+      },
+      {
+       "p": "resultados",
+       "t": 241.741
+      },
+      {
+       "p": "en",
+       "t": 242.401
+      },
+      {
+       "p": "Windows,",
+       "t": 242.761
+      },
+      {
+       "p": "macOS",
+       "t": 243.781
+      },
+      {
+       "p": "y",
+       "t": 244.361
+      },
+      {
+       "p": "Linux.",
+       "t": 244.801
+      }
+     ]
+    }
+   ],
+   "voz": {
+    "archivo": "docs/expoing/video/voz/E10.wav",
+    "sha1": "8c32ca0c90e79e8b00e51f78602e1b805b19880e",
+    "tempo": 1.0,
+    "desplazamiento": 231.241,
+    "habla": [
+     4.129,
+     13.844
+    ]
+   }
+  },
+  {
+   "id": "E11",
+   "titulo": "Impacto y cierre",
+   "inicio": 248.28,
+   "fin": 270.42,
+   "cues": [
+    {
+     "inicio": 248.68,
+     "fin": 252.775,
+     "voz": "El impacto: decisiones de reforestación con respaldo probabilístico,",
+     "sub": "El impacto: decisiones de reforestación\ncon respaldo probabilístico,",
+     "palabras": [
+      {
+       "p": "El",
+       "t": 248.68
+      },
+      {
+       "p": "impacto:",
+       "t": 248.777
+      },
+      {
+       "p": "decisiones",
+       "t": 249.517
+      },
+      {
+       "p": "de",
+       "t": 250.197
+      },
+      {
+       "p": "reforestación",
+       "t": 250.297
+      },
+      {
+       "p": "con",
+       "t": 251.077
+      },
+      {
+       "p": "respaldo",
+       "t": 251.337
+      },
+      {
+       "p": "probabilístico,",
+       "t": 251.817
+      }
+     ]
+    },
+    {
+     "inicio": 253.395,
+     "fin": 256.694,
+     "voz": "que cuidan el dinero público y la supervivencia de cada planta,",
+     "sub": "que cuidan el dinero público\ny la supervivencia de cada planta,",
+     "palabras": [
+      {
+       "p": "que",
+       "t": 253.395
+      },
+      {
+       "p": "cuidan",
+       "t": 253.437
+      },
+      {
+       "p": "el",
+       "t": 253.857
+      },
+      {
+       "p": "dinero",
+       "t": 253.977
+      },
+      {
+       "p": "público",
+       "t": 254.297
+      },
+      {
+       "p": "y",
+       "t": 254.837
+      },
+      {
+       "p": "la",
+       "t": 255.197
+      },
+      {
+       "p": "supervivencia",
+       "t": 255.317
+      },
+      {
+       "p": "de",
+       "t": 256.037
+      },
+      {
+       "p": "cada",
+       "t": 256.157
+      },
+      {
+       "p": "planta,",
+       "t": 256.377
+      }
+     ]
+    },
+    {
+     "inicio": 258.366,
+     "fin": 261.55,
+     "voz": "y un método abierto que puede repetirse en otros sitios.",
+     "sub": "y un método abierto\nque puede repetirse en otros sitios.",
+     "palabras": [
+      {
+       "p": "y",
+       "t": 258.366
+      },
+      {
+       "p": "un",
+       "t": 258.437
+      },
+      {
+       "p": "método",
+       "t": 258.597
+      },
+      {
+       "p": "abierto",
+       "t": 258.917
+      },
+      {
+       "p": "que",
+       "t": 259.377
+      },
+      {
+       "p": "puede",
+       "t": 259.657
+      },
+      {
+       "p": "repetirse",
+       "t": 259.937
+      },
+      {
+       "p": "en",
+       "t": 260.597
+      },
+      {
+       "p": "otros",
+       "t": 260.977
+      },
+      {
+       "p": "sitios.",
+       "t": 261.217
+      }
+     ]
+    },
+    {
+     "inicio": 262.456,
+     "fin": 265.879,
+     "voz": "Plantar es fácil. Lograr que sobreviva: ese es el reto.",
+     "sub": "Plantar es fácil.\nLograr que sobreviva: ese es el reto.",
+     "palabras": [
+      {
+       "p": "Plantar",
+       "t": 262.456
+      },
+      {
+       "p": "es",
+       "t": 262.777
+      },
+      {
+       "p": "fácil.",
+       "t": 262.917
+      },
+      {
+       "p": "Lograr",
+       "t": 263.697
+      },
+      {
+       "p": "que",
+       "t": 264.217
+      },
+      {
+       "p": "sobreviva:",
+       "t": 264.317
+      },
+      {
+       "p": "ese",
+       "t": 265.097
+      },
+      {
+       "p": "es",
+       "t": 265.377
+      },
+      {
+       "p": "el",
+       "t": 265.497
+      },
+      {
+       "p": "reto.",
+       "t": 265.637
+      }
+     ]
+    }
+   ],
+   "voz": {
+    "archivo": "docs/expoing/video/voz/E11.wav",
+    "sha1": "666a85b5826a73322b7aa052735e2973f2fa3faf",
+    "tempo": 1.0,
+    "desplazamiento": 244.657,
+    "habla": [
+     4.023,
+     21.222
+    ]
+   }
+  }
+ ]
+}

@@ -1,0 +1,247 @@
+1
+00:00:02,500 --> 00:00:05,672
+183 hectáreas del semidesierto potosino.
+
+2
+00:00:06,848 --> 00:00:10,765
+30 terrenos junto a una línea de transmisión
+que hay que reforestar.
+
+3
+00:00:12,263 --> 00:00:13,845
+Y una pregunta que parece sencilla:
+
+4
+00:00:14,946 --> 00:00:17,662
+¿cuántas plantas comprar,
+y dónde poner cada una?
+
+5
+00:00:20,250 --> 00:00:22,859
+Somos el equipo 5 de Optimización Estocástica,
+
+6
+00:00:23,813 --> 00:00:27,894
+modelo educativo profesional,
+modalidad presencial, del Tec de Monterrey:
+
+7
+00:00:29,225 --> 00:00:33,282
+Angel Eduardo Luna, Irasema Álvarez,
+Carolina Sánchez Meneses
+
+8
+00:00:33,712 --> 00:00:34,912
+y yo, Andrea de la Peña,
+
+9
+00:00:35,913 --> 00:00:40,031
+con la tutoría de Yadira Isabel Silva Soto
+y Rafael Muñoz Sánchez.
+
+10
+00:00:40,758 --> 00:00:45,202
+Nuestro proyecto: compra bajo incertidumbre
+y distribución espacial de especies
+
+11
+00:00:45,961 --> 00:00:49,326
+para la reforestación de 30 polígonos
+en San Luis Potosí.
+
+12
+00:00:52,570 --> 00:00:57,057
+El socioformador busca que cada hectárea
+tenga 658 plantas
+
+13
+00:00:58,437 --> 00:01:02,392
+de 10 especies nativas:
+agaves, nopales, mezquite y yuca.
+
+14
+00:01:03,042 --> 00:01:05,084
+Pero plantar no es lo mismo que reforestar:
+
+15
+00:01:06,072 --> 00:01:10,497
+en el primer año muere entre el 4 y el 18 %
+de lo plantado.
+
+16
+00:01:11,925 --> 00:01:18,751
+Comprar de menos incumple la meta; comprar de más
+rebasa el presupuesto de $12,500 por hectárea.
+
+17
+00:01:21,410 --> 00:01:25,534
+Hoy, la compra se estima a ojo
+y se siembra con una secuencia fija.
+
+18
+00:01:26,399 --> 00:01:29,306
+Nuestro proyecto, refor, responde dos preguntas:
+
+19
+00:01:29,919 --> 00:01:34,789
+cuánto comprar de cada especie, al menor costo
+y con garantía de cumplir la meta,
+
+20
+00:01:36,020 --> 00:01:38,809
+y cómo acomodarlas
+para que compitan lo menos posible.
+
+21
+00:01:39,974 --> 00:01:44,372
+El alcance es lo que el planeador decide;
+el agua y el terreno quedan fuera.
+
+22
+00:01:48,690 --> 00:01:51,661
+Tomemos el Agave salmiana del polígono 1.
+
+23
+00:01:52,265 --> 00:01:55,810
+La meta es de 252, y ya hay 46.
+
+24
+00:01:56,818 --> 00:01:58,859
+Simulamos 10,000 temporadas de siembra.
+
+25
+00:01:59,900 --> 00:02:03,607
+Comprar 220 alcanza
+en el 96 % de ellas.
+
+26
+00:02:06,520 --> 00:02:08,629
+Con eso armamos un modelo de optimización:
+
+27
+00:02:09,686 --> 00:02:13,682
+minimizar lo que cuesta comprar,
+más lo que se espera gastar en reponer.
+
+28
+00:02:15,064 --> 00:02:20,065
+Respetar la meta total, un margen de 10 %
+por especie y el presupuesto.
+
+29
+00:02:20,984 --> 00:02:26,337
+Y exigir que cada especie cumpla su meta
+con al menos 95 % de probabilidad.
+
+30
+00:02:28,081 --> 00:02:31,675
+Esa es la innovación:
+comprar con una garantía, no a ojo.
+
+31
+00:02:33,460 --> 00:02:38,341
+Resultado: 108,680 plantas
+para los 30 polígonos.
+
+32
+00:02:39,289 --> 00:02:44,187
+Y un hallazgo: con $12,500 por hectárea,
+ningún polígono cumple.
+
+33
+00:02:45,361 --> 00:02:48,034
+Hacen falta $14,496.
+
+34
+00:02:49,295 --> 00:02:54,155
+Ni aceptar 50 veces más riesgo lo resuelve:
+ahorra menos del 4 %.
+
+35
+00:02:55,471 --> 00:02:59,353
+El cálculo exacto lo confirma:
+difiere en 8 centavos por hectárea.
+
+36
+00:03:00,764 --> 00:03:03,254
+Saberlo antes de plantar
+evita perder la inversión.
+
+37
+00:03:07,980 --> 00:03:11,390
+Se siembra al tresbolillo:
+cada planta tiene seis vecinas.
+
+38
+00:03:12,267 --> 00:03:15,060
+Una matriz mide cuánto compite
+cada par de especies.
+
+39
+00:03:16,184 --> 00:03:21,132
+Dos de la misma especie compiten más;
+el mezquite apenas compite con las suculentas.
+
+40
+00:03:22,356 --> 00:03:24,842
+Buscamos el acomodo
+de menor competencia total,
+
+41
+00:03:25,757 --> 00:03:29,725
+con una especie por posición
+y las cantidades que dictó la compra.
+
+42
+00:03:31,760 --> 00:03:35,294
+Lo resolvemos con un algoritmo memético
+con búsqueda tabú,
+
+43
+00:03:36,068 --> 00:03:38,478
+y lo medimos contra un modelo entero exacto.
+
+44
+00:03:39,247 --> 00:03:43,348
+Resultado: 16 % menos competencia
+que sembrar al azar,
+
+45
+00:03:44,561 --> 00:03:47,276
+a lo más a 4.5 % del óptimo.
+
+46
+00:03:48,315 --> 00:03:52,147
+Y los 30 polígonos se resuelven
+con solo seis claves de plantación.
+
+47
+00:03:55,370 --> 00:03:59,760
+Todo vive en refor, una herramienta de escritorio
+que se opera sin saber programar,
+
+48
+00:04:01,057 --> 00:04:05,085
+y que da los mismos resultados
+en Windows, macOS y Linux.
+
+49
+00:04:08,680 --> 00:04:12,775
+El impacto: decisiones de reforestación
+con respaldo probabilístico,
+
+50
+00:04:13,395 --> 00:04:16,694
+que cuidan el dinero público
+y la supervivencia de cada planta,
+
+51
+00:04:18,366 --> 00:04:21,550
+y un método abierto
+que puede repetirse en otros sitios.
+
+52
+00:04:22,456 --> 00:04:25,879
+Plantar es fácil.
+Lograr que sobreviva: ese es el reto.
+

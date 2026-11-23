@@ -60,6 +60,14 @@ def guias(ids, fps, trabajadores):
     escenas = dv["linea"]["escenas"]
     total = escenas[-1]["fin"]
     elegidas = [e for e in escenas if not ids or e["id"].lower() in {i.lower() for i in ids}]
+    # Con la voz ya alineada, la animación sigue el ritmo de la toma grabada, no el planeado: una
+    # guía nueva para regrabar esa escena llevaría a Andrea al ritmo de la toma vieja.
+    con_voz = [e["id"] for e in elegidas if "voz" in e]
+    if con_voz:
+        sys.exit(f"{', '.join(con_voz)} ya tienen voz alineada (alineacion.json), y su guía seguiría el ritmo "
+                 "de esa toma.\nPara regrabarlas usa las guías que ya están en salida/guia/, o genera las "
+                 "nuevas con la línea planeada: mueve alineacion.json fuera, corre tiempos.py y datos_video.py, "
+                 "genera las guías y regresa alineacion.json.")
     if not elegidas:
         sys.exit(f"No hay escenas {ids}; existen {[e['id'] for e in escenas]}.")
     SALIDA.mkdir(parents=True, exist_ok=True)
