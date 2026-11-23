@@ -214,3 +214,7 @@ docs/res/*
 # (se regeneran; ver docs/expoing/video/CREDITOS.md)
 docs/expoing/video/salida/
 docs/expoing/video/musica/*.ogg
+# Tomas de voz de la narración (WAV, pesan; ver docs/expoing/video/GRABACION.md),
+# y los originales de las notas de voz de los que salen
+docs/expoing/video/voz/*.wav
+docs/expoing/video/voz/*.m4a
