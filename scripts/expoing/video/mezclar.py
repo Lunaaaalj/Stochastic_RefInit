@@ -67,14 +67,16 @@ CRUCE = 2.0       # s: fundido cruzado entre tramos de la música
 # segundos) suena qué segundo de la pieza. Perfil de sonoridad de la grabación (ffmpeg ebur128):
 #   apertura tranquila 0:04–1:17 · crescendo 1:20–1:50 · pasaje tranquilo 2:02–2:34 ·
 #   crescendo 2:35–2:47 · clímax 3:00–3:12, que se resuelve hasta 3:26 · coda 3:26–5:26
-#   (último acorde en 5:19.5, se apaga en 5:26) · aplausos desde 5:27.
+#   (el último acorde ataca en 5:19.1 y se apaga en 5:26) · aplausos desde 5:27.
 # El equipo prefirió el orden de la pieza, como en el animatic (el clímax, con la tarjeta de la
-# pregunta 2, ≈ 3:05 del video). Para terminar con el último acorde se saltan 52.8 s de la coda:
-# se sale en 4:02.3 (el valle más hondo de la coda) y se entra en 4:55.1 (otro valle), de modo
-# que el video acaba en 5:26.4 de la grabación, antes de los aplausos.
+# pregunta 2, ≈ 3:06 del video). Para terminar con el último acorde se saltan 40.9 s de la coda:
+# se sale en 4:08.8 y se entra en 4:49.7, dos valles con la misma sonoridad (−43.5 dB) y un croma
+# parecido (similitud 0.86), así que el acorde suena 0.85 s después de la última frase y el video
+# acaba en 5:23.8 de la grabación, antes de los aplausos. Con la versión con pausas (tiempos.py),
+# el tamaño del salto lo fija dónde cae la última frase; solo se elige el instante.
 MAPA_MUSICA = [
     ("E1", 0.0, None),      # de corrido desde MUSICA["desde"] (la primera nota suena a 1 s)
-    ("E10", 4.18, 295.13),  # el salto en la coda (≈ 3:59 del video, bajo la voz)
+    ("E10", 4.35, 289.69),  # el salto en la coda (≈ 4:05.6 del video, bajo la voz)
 ]
 FIN_PIEZA = 326.6           # s: después empiezan los aplausos; ningún tramo debe llegar ahí
 

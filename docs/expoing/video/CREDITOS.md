@@ -34,14 +34,14 @@ desde ese punto, con un fundido de entrada de 0.4 s, uno de salida de 2.5 s y no
 
 La mezcla final (`mezclar.py`, fase 5) conserva el orden de la pieza, como en el animatic: suena
 de corrido desde 3.15 s, así que el clímax (3:00–3:12 de la grabación) llega hacia 2:57–3:09 del
-video, con la tarjeta de la pregunta 2. Para terminar con el último acorde de la pieza, hay un
-solo salto en la coda, con un fundido cruzado de igual potencia de 2 s entre dos valles de su
-sonoridad:
+video, al terminar E7, y se resuelve con la tarjeta de la pregunta 2. Para terminar con el último
+acorde de la pieza, hay un solo salto en la coda, con un fundido cruzado de igual potencia de 2 s
+entre dos valles de su sonoridad que además tienen notas parecidas:
 
 | Video | Grabación | Qué suena |
 |---|---|---|
-| 0:00 – 3:59.2 | 0:03.2 – 4:02.3 | La pieza de corrido: apertura, crescendos y clímax, y el inicio de la coda |
-| 3:59.2 – 4:30.4 | 4:55.1 – 5:26.4 | El final de la coda, con el último acorde (5:19.5); los aplausos no se usan |
+| 0:00 – 4:05.6 | 0:03.2 – 4:08.8 | La pieza de corrido: apertura, crescendos y clímax, y el inicio de la coda |
+| 4:05.6 – 4:39.7 | 4:49.7 – 5:23.8 | El final de la coda, con el último acorde (ataca en 5:19.1, 0.85 s después de la última frase); los aplausos no se usan |
 
 Su nivel sigue a la voz: unos 24 dB por debajo de ella, sube en los silencios largos (inicio,
 tarjetas y cambios de escena), sube 4 dB en las tarjetas de capítulo y se desvanece en los

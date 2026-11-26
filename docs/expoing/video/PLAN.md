@@ -38,7 +38,7 @@ documento fija qué se ve, qué se oye, cuándo y con qué herramientas.
 | Música | *Reflets dans l'eau* (Debussy, *Images*, 1905), piano, en una grabación de dominio público o CC0 |
 | Efectos | Muy pocos (≤ 4), discretos |
 | Subtítulos | Quemados, clásicos, en una franja inferior reservada; además se entrega un `.srt` |
-| Duración | Objetivo de 4:15 a 4:30; el guion calculado dura **4:30** a ritmo tranquilo (E10 lleva 1.5 s más para que se vea el zoom de la grabación de `refor_gui`) |
+| Duración | Objetivo de 4:15 a 4:30; el guion calculado dura **4:30** a ritmo tranquilo (E10 lleva 1.5 s más para que se vea el zoom de la grabación de `refor_gui`). **Versión con pausas: 4:39.7** (silencios más largos entre tomas para que se oiga la pieza; la plataforma admite hasta 5:00) |
 | Formato | MP4 H.264 + AAC, 1920 × 1080, **60 fps**; archivo `refor_expoing_2026.mp4` (22 caracteres) |
 | Ubicación | Plan y guion en `docs/expoing/video/`; código en `scripts/expoing/video/` |
 | Socioformador | **Nunca se nombra a la institución** en la voz, los subtítulos, los rótulos, la tarjeta final, los créditos ni el `.srt`; siempre se dice «el socioformador». Vale para todo material del evento |
@@ -229,6 +229,12 @@ numeración es «Pregunta 1» y «Pregunta 2», porque sí es una secuencia.
   está en `CREDITOS.md`. *Decisión del equipo (fase 5):* la música va en el orden de la pieza, como
   en el animatic, con el clímax en la tarjeta de la pregunta 2 (≈ 3:05) en lugar de en E10–E11, y
   termina con el último acorde de la pieza (un salto en la coda).
+  *Versión con pausas (segunda versión, por separado):* cinco silencios entre tomas son más largos
+  (E6→E7 +1.8 s, E8→E9 +2.5 s, E9→E10 +2 s, E10→E11 +2 s y +1 s al final, `tiempos.py`) para
+  que la música suba sola. Antes de la tarjeta de la pregunta 2 solo caben 1.8 s: más correría
+  el clímax bajo la voz de E7. Ahí se oye el arranque del segundo crescendo, la cima del clímax
+  cae justo al terminar E7 y la tarjeta entra cuando se resuelve; el último acorde suena después
+  de la última frase.
 
 ### 4.3 Efectos
 
@@ -247,6 +253,8 @@ Nada más; el rubato de Debussy choca con efectos rítmicos.
 Formato de cada escena: tiempo, visual detallado, voz (texto hablado exacto, que es
 lo que lee Andrea) y subtítulos con sus tiempos. Los tiempos de subtítulo los
 genera `tiempos.py`. La duración total es de **4:30.4**; con la tarjeta final completa, **4:30**.
+Los tiempos de esta sección son los de la primera versión; los de la versión con pausas (4:39.7)
+están en `linea_de_tiempo.json` y `guion.srt`.
 
 ### E1 · Gancho: de la región a la planta (0:00.0 – 0:19.6)
 

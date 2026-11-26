@@ -21,6 +21,11 @@ VEL = 14.5      # caracteres hablados por segundo (narración tranquila en espa�
 PAUSA = 0.35    # pausa entre subtítulos dentro de una escena
 
 # (id, titulo, entrada_antes_de_voz, colchon_final, [(voz, subtitulo), ...])
+# Versión con pausas: silencios más largos entre tomas para que se oiga la pieza (la música solo
+# sube en silencios de más de HUECO = 2.5 s, mezclar.py). E6 +1.8 s (el arranque del segundo
+# crescendo; más correría el clímax fuera de la tarjeta de E8), E8 +2.5 s, E9 +2 s, E11 +2 s de
+# entrada (no en E10, que acabaría con la grabación de la GUI congelada) y +1 s de colchón (el
+# último acorde suena después de la última frase).
 E = [
  ("E1", "Gancho: de la región a la planta", 2.5, 1.2, [
   ("Ciento ochenta y tres hectáreas del semidesierto potosino.", "183 hectáreas del semidesierto potosino."),
@@ -57,7 +62,7 @@ E = [
   ("Simulamos diez mil temporadas de siembra.", "Simulamos 10,000 temporadas de siembra."),
   ("Comprar doscientas veinte alcanza en el noventa y seis por ciento de ellas.", "Comprar 220 alcanza\nen el 96 % de ellas."),
  ]),
- ("E6", "Pregunta 1: el modelo de compra", 0.4, 1.0, [
+ ("E6", "Pregunta 1: el modelo de compra", 0.4, 2.8, [
   ("Con eso armamos un modelo de optimización:", "Con eso armamos un modelo de optimización:"),
   ("minimizar lo que cuesta comprar, más lo que se espera gastar en reponer.", "minimizar lo que cuesta comprar,\nmás lo que se espera gastar en reponer."),
   ("Respetar la meta total, un margen de diez por ciento por especie y el presupuesto.", "Respetar la meta total, un margen de 10 %\npor especie y el presupuesto."),
@@ -72,14 +77,14 @@ E = [
   ("El cálculo exacto lo confirma: difiere en ocho centavos por hectárea.", "El cálculo exacto lo confirma:\ndifiere en 8 centavos por hectárea."),
   ("Saberlo antes de plantar evita perder la inversión.", "Saberlo antes de plantar\nevita perder la inversión."),
  ]),
- ("E8", "Pregunta 2: el modelo de siembra", 2.4, 0.8, [
+ ("E8", "Pregunta 2: el modelo de siembra", 2.4, 3.3, [
   ("Se siembra al tresbolillo: cada planta tiene seis vecinas.", "Se siembra al tresbolillo:\ncada planta tiene seis vecinas."),
   ("Una matriz mide cuánto compite cada par de especies.", "Una matriz mide cuánto compite\ncada par de especies."),
   ("Dos de la misma especie compiten más; el mezquite apenas compite con las suculentas.", "Dos de la misma especie compiten más;\nel mezquite apenas compite con las suculentas."),
   ("Buscamos el acomodo de menor competencia total,", "Buscamos el acomodo\nde menor competencia total,"),
   ("con una especie por posición y las cantidades que dictó la compra.", "con una especie por posición\ny las cantidades que dictó la compra."),
  ]),
- ("E9", "Pregunta 2: memético y resultado", 0.4, 1.4, [
+ ("E9", "Pregunta 2: memético y resultado", 0.4, 3.4, [
   ("Lo resolvemos con un algoritmo memético con búsqueda tabú,", "Lo resolvemos con un algoritmo memético\ncon búsqueda tabú,"),
   ("y lo medimos contra un modelo entero exacto.", "y lo medimos contra un modelo entero exacto."),
   ("Resultado: dieciséis por ciento menos competencia que sembrar al azar,", "Resultado: 16 % menos competencia\nque sembrar al azar,"),
@@ -90,7 +95,7 @@ E = [
   ("Todo vive en refor, una herramienta de escritorio que se opera sin saber programar,", "Todo vive en refor, una herramienta de escritorio\nque se opera sin saber programar,"),
   ("y que da los mismos resultados en Windows, macOS y Linux.", "y que da los mismos resultados\nen Windows, macOS y Linux."),
  ]),
- ("E11", "Impacto y cierre", 0.4, 4.0, [
+ ("E11", "Impacto y cierre", 2.4, 5.0, [
   ("El impacto: decisiones de reforestación con respaldo probabilístico,", "El impacto: decisiones de reforestación\ncon respaldo probabilístico,"),
   ("que cuidan el dinero público y la supervivencia de cada planta,", "que cuidan el dinero público\ny la supervivencia de cada planta,"),
   ("y un método abierto que puede repetirse en otros sitios.", "y un método abierto\nque puede repetirse en otros sitios."),
